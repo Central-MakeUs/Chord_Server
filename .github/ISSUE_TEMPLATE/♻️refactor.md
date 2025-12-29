@@ -2,7 +2,7 @@
 name: "♻️Refactor"
 about: 리팩토링
 title: "[♻️Refactor] 설명을 작성해주세요."
-labels: "♻️Refactor"
+labels: "\U0001F680Deployment, ♻️Refactor"
 assignees: subin930
 
 ---
