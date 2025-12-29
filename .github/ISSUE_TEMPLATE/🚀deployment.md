@@ -1,6 +1,6 @@
 ---
 name: "\U0001F680Deployment"
-about: Describe this issue template's purpose here.
+about: '배포 관련 '
 title: "[\U0001F680Deployment] 설명을 작성해주세요."
 labels: "\U0001F680Deployment"
 assignees: ''

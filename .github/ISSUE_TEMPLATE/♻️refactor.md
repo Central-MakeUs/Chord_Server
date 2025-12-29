@@ -3,7 +3,7 @@ name: "♻️Refactor"
 about: 리팩토링
 title: "[♻️Refactor] 설명을 작성해주세요."
 labels: "♻️Refactor"
-assignees: ''
+assignees: subin930
 
 ---
 
