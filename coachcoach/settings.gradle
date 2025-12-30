@@ -1,1 +1,10 @@
 rootProject.name = 'coachcoach'
+
+include 'common'
+include 'common:security'
+
+include 'service'
+include 'service:auth'
+include 'service:user-store'
+include 'service:catalog'
+include 'service:insight'
