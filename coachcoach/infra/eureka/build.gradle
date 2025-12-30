@@ -6,8 +6,11 @@ dependencies {
     // Spring Boot Starter Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
-    // Eureka Client
-    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    //Eureka Server
+    implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+
+    // Spring Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 dependencyManagement {
