@@ -3,8 +3,11 @@ ext {
 }
 
 dependencies {
-    // Spring Boot Starter Web
-    implementation 'org.springframework.boot:spring-boot-starter-web'
+    // WebFlux Starter
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // Spring Cloud Gateway
+    implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
 
     // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
