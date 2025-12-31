@@ -1,0 +1,14 @@
+server.port: 9000
+spring:
+  application:
+    name: auth-service
+
+eureka:
+  instance:
+    prefer-ip-address: true   # 호스트명 대신 IP로 등록
+    hostname: localhost
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
