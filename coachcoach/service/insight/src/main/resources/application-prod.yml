@@ -1,7 +1,7 @@
-server.port: 9002
+server.port: 9003
 spring:
   application:
-    name: catalog-service
+    name: insight-service
 
 eureka:
   instance:

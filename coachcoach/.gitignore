@@ -195,13 +195,11 @@ gradle-app.setting
 *.hprof
 
 ### yml/yaml ###
-application-*.properties
-application-*.yml
+application-dev.yml
 .env
 .env.*
 !application.yml
 !application.properties
-!application-example.yml.sample
 
 
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij+all,visualstudiocode,macos
