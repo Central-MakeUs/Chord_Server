@@ -1,4 +1,4 @@
-# User-store Dockerfile
+# Auth Dockerfile
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 COPY . .
