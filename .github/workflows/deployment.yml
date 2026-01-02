@@ -13,17 +13,17 @@ jobs:
       matrix:
         include:
           - name: gateway
-            path: ./coach/coach/infra/gateway
+            path: ./coachcoach/infra/gateway
           - name: eureka
-            path: ./coach/coach/infra/eureka
+            path: ./coachcoach/infra/eureka
           - name: auth
-            path: ./coach/service/auth
+            path: ./coachcoach/service/auth
           - name: user-store
-            path: ./coach/service/user-store
+            path: ./coachcoach/service/user-store
           - name: catalog
-            path: ./coach/service/catalog
+            path: ./coachcoach/service/catalog
           - name: insight
-            path: ./coach/service/insight
+            path: ./coachcoach/service/insight
     steps:
       - uses: actions/checkout@v3
       - run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u bread0930 --password-stdin
