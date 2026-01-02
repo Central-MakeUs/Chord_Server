@@ -6,9 +6,8 @@ spring:
 eureka:
   instance:
     prefer-ip-address: true   # 호스트명 대신 IP로 등록
-    hostname: localhost
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://10.0.0.107:8761/eureka/
