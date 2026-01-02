@@ -54,12 +54,12 @@ jobs:
           )
 
           for NAME in "${!SERVICES[@]}"; do
-            PATH="${SERVICES[$NAME]}"
+            SERVICE_PATH="${SERVICES[$NAME]}"
 
             echo "▶ Building $NAME"
 
             docker build \
-              -f ${PATH}/Dockerfile \
+              -f ${SERVICE_PATH}/Dockerfile \
               -t quay.io/bread0930/chord-server-${NAME}:${{ github.sha }} \
               .
 
