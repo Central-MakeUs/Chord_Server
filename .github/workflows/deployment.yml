@@ -54,12 +54,12 @@ jobs:
           )
 
           for NAME in "${!SERVICES[@]}"; do
-            PATH="${SERVICES[$NAME]}"
+            SERVICE_PATH="${SERVICES[$NAME]}"
 
             echo "▶ Building $NAME"
 
             docker build \
-              -f ${PATH}/Dockerfile \
+              -f ${SERVICE_PATH}/Dockerfile \
               -t quay.io/bread0930/chord-server-${NAME}:${{ github.sha }} \
               .
 
@@ -81,8 +81,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PUBLIC_EC2_1_SSH_KEY }}
           script: |
-            docker-compose -f /home/ubuntu/public1-compose.yml pull
-            docker-compose -f /home/ubuntu/public1-compose.yml up -d
+            docker-compose -f /home/ubuntu/compose/public1-compose.yml pull
+            docker-compose -f /home/ubuntu/compose/public1-compose.yml up -d
 
   deploy-2:
     runs-on: ubuntu-latest
@@ -98,8 +98,8 @@ jobs:
           proxy_username: ubuntu
           proxy_key: ${{ secrets.PUBLIC_EC2_1_SSH_KEY }}
           script: |
-            docker-compose -f /home/ubuntu/private1-compose.yml pull
-            docker-compose -f /home/ubuntu/private1-compose.yml up -d
+            docker-compose -f /home/ubuntu/compose/private1-compose.yml pull
+            docker-compose -f /home/ubuntu/compose/private1-compose.yml up -d
   deploy-3:
     runs-on: ubuntu-latest
     needs: build
@@ -114,5 +114,5 @@ jobs:
           proxy_username: ubuntu
           proxy_key: ${{ secrets.PUBLIC_EC2_1_SSH_KEY }}
           script: |
-            docker-compose -f /home/ubuntu/private2-compose.yml pull
-            docker-compose -f /home/ubuntu/private2-compose.yml up -d
+            docker-compose -f /home/ubuntu/compose/private2-compose.yml pull
+            docker-compose -f /home/ubuntu/compose/private2-compose.yml up -d
