@@ -9,11 +9,10 @@ ext {
 }
 
 dependencies {
-    // Spring Boot Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
-    // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 dependencyManagement {

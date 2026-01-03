@@ -1,11 +1,17 @@
-server.port: 9000
+server.port: 8000
 spring:
   application:
-    name: auth-service
-
+    name: gateway-service
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true # Eureka 기반 라우팅
+          lower-case-service-id: true
 eureka:
   instance:
     prefer-ip-address: true   # 호스트명 대신 IP로 등록
+    hostname: localhost
     metadata-map:
       prometheus.scrape: true # 수집 대상
   client:
