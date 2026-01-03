@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  eureka:
+    image: quay.io/bread0930/chord-server-eureka:latest
+    container_name: eureka
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+    networks:
+      - coachcoach-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  gateway:
+    image: quay.io/bread0930/chord-server-gateway:latest
+    container_name: gateway
+    ports:
+      - "8080:8000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+    networks:
+      - coachcoach-network
+    depends_on:
+      eureka:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  coachcoach-network:
+    driver: bridge
