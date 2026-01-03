@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  auth:
+    image: quay.io/bread0930/chord-server-auth:latest
+    container_name: auth
+    network_mode: "host"
+    ports:
+      - "9000:9000"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://10.0.0.107:8761/eureka/
+    restart: unless-stopped
+
+  user-store:
+    image: quay.io/bread0930/chord-server-user-store:latest
+    container_name: user-store
+    network_mode: "host"
+    ports:
+      - "9001:9001"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://10.0.0.107:8761/eureka/
+    restart: unless-stopped
+
+networks:
+  coachcoach-network:
+    driver: bridge
