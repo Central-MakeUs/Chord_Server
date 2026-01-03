@@ -8,6 +8,7 @@ services:
       - "8761:8761"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx128m -Xms64m
     networks:
       - coachcoach-network
     restart: unless-stopped
@@ -25,6 +26,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka:8761/eureka/
+      - JAVA_OPTS=-Xmx128m -Xms64m
     networks:
       - coachcoach-network
     depends_on:
@@ -42,6 +44,9 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'  # 7일만 보관 (기본 15일)
+      - '--storage.tsdb.retention.size=1GB'  # 최대 1GB
+
     networks:
       - coachcoach-network
     restart: unless-stopped
@@ -56,6 +61,10 @@ services:
       - GF_USERS_ALLOW_SIGN_UP=false
     volumes:
       - grafana-data:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          memory: 128m
     depends_on:
       - prometheus
     networks:
