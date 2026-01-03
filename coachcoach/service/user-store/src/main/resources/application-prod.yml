@@ -1,4 +1,4 @@
-server.port: 9003
+server.port: 9001
 spring:
   application:
     name: user-store-service
