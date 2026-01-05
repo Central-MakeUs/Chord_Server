@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 30s
+  evaluation_interval: 30s
+
+scrape_configs:
+  # prometheus 정보 수집
+  - job_name: "prometheus"
+    static_configs:
+      - targets: [ "localhost:9090" ]
+
+  # Eureka에 등록된 서비스 정보 수집
+  - job_name: 'eureka-discovery'
+    eureka_sd_configs:
+      # Eureka 서버 주소 설정
+      - server: http://eureka:8761/eureka
+    relabel_configs:
+      # 필터링 (prometheus.scarpe = true 서비스만 수집)
+      - source_labels: [__meta_eureka_app_instance_metadata_prometheus_scrape]
+        action: keep
+        regex: true
+      # application = "<Eureka에 등록된 서비스 이름>" 형식으로 변환
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+      # instance = "<서비스가 실행 중인 호스트명>" 형식으로 변환
+      - source_labels: [__meta_eureka_app_instance_hostname]
+        target_label: instance

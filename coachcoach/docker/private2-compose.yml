@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  catalog:
+    image: quay.io/bread0930/chord-server-catalog:latest
+    container_name: catalog
+    network_mode: "host"
+    ports:
+      - "9002:9002"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://10.0.0.107:8761/eureka/
+    restart: unless-stopped
+
+  insight:
+    image: quay.io/bread0930/chord-server-insight:latest
+    container_name: insight
+    network_mode: "host"
+    ports:
+      - "9003:9003"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://10.0.0.107:8761/eureka/
+    restart: unless-stopped
+
+networks:
+  coachcoach-network:
+    driver: bridge

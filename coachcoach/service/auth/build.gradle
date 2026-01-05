@@ -1,17 +1,30 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+}
+
 ext {
     set('springCloudVersion', "2023.0.3")
 }
 
 dependencies {
-    // Spring Boot Starter Web
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
-    // Eureka Client
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
     }
+}
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
 }
