@@ -2,7 +2,12 @@ package com.coachcoach.catalog.controller;
 
 import com.coachcoach.catalog.service.CatalogService;
 import com.coachcoach.catalog.service.request.IngredientCategoryCreateRequest;
+import com.coachcoach.catalog.service.request.MenuCategoryCreateRequest;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
+import com.coachcoach.catalog.service.response.MenuCategoryResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,8 +29,24 @@ public class CatalogController {
     /**
      * 재료 카테고리 생성
      */
+    @Operation(summary = "재료 카테고리 생성", description = "📍인증 구현 X <br>📍유저가 중복 카테고리를 생성하려고 시도 시 CATALOG_001 에러 발생")
     @PostMapping("/ingredients/category")
-    public IngredientCategoryResponse createIngredientCategory(@RequestHeader(name = "userId", required = false) String userId, @RequestBody IngredientCategoryCreateRequest request) {
+    public IngredientCategoryResponse createIngredientCategory(
+            @RequestHeader(name = "userId", required = false) String userId,
+            @Valid @RequestBody IngredientCategoryCreateRequest request
+    ) {
         return catalogService.createIngredientCategory(Long.valueOf(userId), request);
+    }
+
+    /**
+     * 메뉴 카테고리 생성
+     */
+    @Operation(summary = "메뉴 카테고리 생성", description = "📍인증 구현 X <br>📍유저가 중복 카테고리를 생성하려고 시도 시 CATALOG_001 에러 발생")
+    @PostMapping("/menu/category")
+    public MenuCategoryResponse createMenuCategory(
+            @RequestHeader(name = "userId", required = false) String userId,
+            @Valid @RequestBody MenuCategoryCreateRequest request
+    ) {
+        return catalogService.createMenuCategory(Long.valueOf(userId), request);
     }
 }
