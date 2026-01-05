@@ -13,6 +13,8 @@ public enum CommonErrorCode implements ErrorCode {
     INTERNAL_SERVER_ERROR("COMMON_003", "서버 내부 오류가 발생했습니다", HttpStatus.INTERNAL_SERVER_ERROR),
     INVALID_TYPE_VALUE("COMMON_004", "잘못된 타입입니다", HttpStatus.BAD_REQUEST),
     MISSING_REQUEST_PARAMETER("COMMON_005", "필수 파라미터가 누락되었습니다", HttpStatus.BAD_REQUEST),
+    SERVICE_UNAVAILABLE("COMMON_006", "서비스에 연결할 수 없습니다", HttpStatus.SERVICE_UNAVAILABLE),
+    NOT_FOUND("COMMON_007", "요청하신 자원을 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
 
     // 인증/인가
     UNAUTHORIZED("AUTH_001", "인증이 필요합니다", HttpStatus.UNAUTHORIZED),

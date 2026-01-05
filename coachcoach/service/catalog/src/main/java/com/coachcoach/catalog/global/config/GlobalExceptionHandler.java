@@ -1,4 +1,4 @@
-package com.coachcoach.common.config;
+package com.coachcoach.catalog.global.config;
 
 import com.coachcoach.common.dto.ErrorResponse;
 import com.coachcoach.common.exception.BusinessException;
