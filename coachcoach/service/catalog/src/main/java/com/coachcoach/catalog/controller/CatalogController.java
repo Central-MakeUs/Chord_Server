@@ -9,10 +9,9 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 /**
@@ -48,5 +47,23 @@ public class CatalogController {
             @Valid @RequestBody MenuCategoryCreateRequest request
     ) {
         return catalogService.createMenuCategory(Long.valueOf(userId), request);
+    }
+
+    /**
+     * 재료 카테고리 목록 조회
+     */
+    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍유저 별 생성한 재료 카테고리 목록 조회(생성 시간 기준 오름차순)")
+    @GetMapping("/ingredients/category")
+    public List<IngredientCategoryResponse> readIngredientCategory(@RequestHeader(name = "userId", required = false) String userId) {
+        return catalogService.readIngredientCategory(2L);
+    }
+
+    /**
+     * 메뉴 카테고리 목록 조회
+     */
+    @Operation(summary = "메뉴 카테고리 목록 조회", description = "📍인증 구현 X <br>📍유저 별 생성한 메뉴 카테고리 목록 조회(생성 시간 기준 오름차순)")
+    @GetMapping("/menu/category")
+    public List<MenuCategoryResponse> readMenuCategory(@RequestHeader(name = "userId", required = false) String userId) {
+        return catalogService.readMenuCategory(2L);
     }
 }

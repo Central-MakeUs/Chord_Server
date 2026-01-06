@@ -14,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class CatalogService {
@@ -63,4 +65,27 @@ public class CatalogService {
         return MenuCategoryResponse.from(mc);
     }
 
+    /**
+     * 재료 카테고리 목록 조회
+     */
+    public List<IngredientCategoryResponse> readIngredientCategory(Long userId) {
+        //정렬 조건: 생성한 시점 순
+        List<IngredientCategory> result = ingredientCategoryRepository.findByUserIdOrderByCreatedAtAsc(userId);
+
+        return result.stream()
+                .map(IngredientCategoryResponse::from)
+                .toList();
+    }
+
+    /**
+     * 메뉴 카테고리 목록 조회
+     */
+    public List<MenuCategoryResponse> readMenuCategory(Long userId) {
+        //정렬 조건: 생성한 시점 순
+        List<MenuCategory> result = menuCategoryRepository.findByUserIdOrderByCreatedAtAsc(userId);
+
+        return result.stream()
+                .map(MenuCategoryResponse::from)
+                .toList();
+    }
 }
