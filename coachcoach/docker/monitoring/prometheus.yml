@@ -13,6 +13,7 @@ scrape_configs:
     eureka_sd_configs:
       # Eureka 서버 주소 설정
       - server: http://eureka:8761/eureka
+    metrics_path: '/actuator/prometheus'
     relabel_configs:
       # 필터링 (prometheus.scarpe = true 서비스만 수집)
       - source_labels: [__meta_eureka_app_instance_metadata_prometheus_scrape]
