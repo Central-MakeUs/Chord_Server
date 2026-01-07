@@ -12,15 +12,23 @@ public class GatewayConfig {
         return builder.routes()
                 .route("auth-service",
                         p -> p.path("/api/auth/**")
+                                .filters(f -> f.rewritePath("/api/auth/(?<segment>.*)", "/${segment}"))
                                 .uri("lb://auth-service"))
                 .route("user-store-service",
                         p -> p.path("/api/user-store/**")
+                                .filters(f -> f.rewritePath("/api/user-store/(?<segment>.*)", "/${segment}"))
                                 .uri("lb://user-store-service"))
                 .route("catalog-service",
                         p -> p.path("/api/catalog/**")
+                                .filters(
+                                        f -> f
+                                                .rewritePath("/api/catalog/(?<segment>.*)", "/${segment}")
+                                                .addRequestHeader("userId", "1")
+                                )
                                 .uri("lb://catalog-service"))
                 .route("insight-service",
                         p -> p.path("/api/insight/**")
+                                .filters(f -> f.rewritePath("/api/insight/(?<segment>.*)", "/${segment}"))
                                 .uri("lb://insight-service"))
                 .build();
     }

@@ -7,9 +7,10 @@ services:
     network_mode: "host"
     ports:
       - "9000:9000"
+    env_file:
+      - common.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://10.0.0.107:8761/eureka/
     restart: unless-stopped
 
   user-store:
@@ -18,9 +19,10 @@ services:
     network_mode: "host"
     ports:
       - "9001:9001"
+    env_file:
+      - common.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://10.0.0.107:8761/eureka/
     restart: unless-stopped
 
 networks:

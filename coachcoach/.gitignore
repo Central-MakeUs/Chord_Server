@@ -199,8 +199,7 @@ gradle-app.setting
 
 ### yml/yaml ###
 application-dev.yml
-.env
-.env.*
+common.env
 !application.yml
 !application.properties
 
