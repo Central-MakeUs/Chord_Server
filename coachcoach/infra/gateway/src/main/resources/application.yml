@@ -11,9 +11,41 @@ spring:
 eureka:
   instance:
     prefer-ip-address: true   # 호스트명 대신 IP로 등록
-    hostname: localhost
+    metadata-map:
+      prometheus.scrape: true # 수집 대상
   client:
     register-with-eureka: true
     fetch-registry: true
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    use-root-path: true
+    urls:
+      - name: auth-service
+        url: /api/auth/v3/api-docs
+      - name: user-store-service
+        url: /api/user-store/v3/api-docs
+      - name: catalog-service
+        url: /api/catalog/v3/api-docs
+      - name: insight-service
+        url: /api/insight/v3/api-docs
+    path: /swagger-ui.html
