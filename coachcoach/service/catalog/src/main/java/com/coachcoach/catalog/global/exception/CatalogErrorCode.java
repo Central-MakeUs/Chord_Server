@@ -8,7 +8,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 @RequiredArgsConstructor
 public enum CatalogErrorCode implements ErrorCode {
-    DUPCATEGORY("CATALOG_001", "이미 등록된 카테고리입니다", HttpStatus.CONFLICT),
+    DUP_CATEGORY("CATALOG_001", "이미 등록된 카테고리입니다", HttpStatus.CONFLICT),
+    DUP_INGREDIENT("CATALOG_002", "이미 등록된 재료입니다", HttpStatus.CONFLICT),
     ;
     private final String code;
     private final String message;

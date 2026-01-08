@@ -2,6 +2,7 @@ package com.coachcoach.catalog.controller;
 
 import com.coachcoach.catalog.service.CatalogService;
 import com.coachcoach.catalog.service.request.IngredientCategoryCreateRequest;
+import com.coachcoach.catalog.service.request.IngredientCreateRequest;
 import com.coachcoach.catalog.service.request.MenuCategoryCreateRequest;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
 import com.coachcoach.catalog.service.response.MenuCategoryResponse;
@@ -38,6 +39,27 @@ public class CatalogController {
     }
 
     /**
+     * 재료 카테고리 목록 조회
+     */
+    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍유저 별 생성한 재료 카테고리 목록 조회(생성 시간 기준 오름차순)")
+    @GetMapping("/ingredients/category")
+    public List<IngredientCategoryResponse> readIngredientCategory(@RequestHeader(name = "userId", required = false) String userId) {
+        return catalogService.readIngredientCategory(Long.valueOf(userId));
+    }
+
+    /**
+     * 재료 생성
+     */
+    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)")
+    @PostMapping("/ingredients")
+    public void createIngredient(
+            @RequestHeader(name = "userId", required = false) String userId,
+            @Valid @RequestBody IngredientCreateRequest request
+    ) {
+        catalogService.createIngredient(Long.valueOf(userId), request);
+    }
+
+    /**
      * 메뉴 카테고리 생성
      */
     @Operation(summary = "메뉴 카테고리 생성", description = "📍인증 구현 X <br>📍유저가 중복 카테고리를 생성하려고 시도 시 CATALOG_001 에러 발생")
@@ -47,15 +69,6 @@ public class CatalogController {
             @Valid @RequestBody MenuCategoryCreateRequest request
     ) {
         return catalogService.createMenuCategory(Long.valueOf(userId), request);
-    }
-
-    /**
-     * 재료 카테고리 목록 조회
-     */
-    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍유저 별 생성한 재료 카테고리 목록 조회(생성 시간 기준 오름차순)")
-    @GetMapping("/ingredients/category")
-    public List<IngredientCategoryResponse> readIngredientCategory(@RequestHeader(name = "userId", required = false) String userId) {
-        return catalogService.readIngredientCategory(Long.valueOf(userId));
     }
 
     /**
