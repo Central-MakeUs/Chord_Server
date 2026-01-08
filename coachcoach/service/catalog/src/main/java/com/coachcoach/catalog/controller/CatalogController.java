@@ -50,7 +50,7 @@ public class CatalogController {
     /**
      * 재료 생성
      */
-    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)")
+    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
     @PostMapping("/ingredients")
     public void createIngredient(
             @RequestHeader(name = "userId", required = false) String userId,

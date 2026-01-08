@@ -73,7 +73,7 @@ public class CatalogService {
     @Transactional
     public void createIngredient(Long userId, IngredientCreateRequest request) {
         // 중복 확인 (userId + ingredientName)
-        if(ingredientCategoryRepository.existsByUserIdAndCategoryName(userId, request.getIngredientName())) {
+        if(ingredientRepository.existsByUserIdAndIngredientName(userId, request.getIngredientName())) {
             throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
         }
 
@@ -83,8 +83,12 @@ public class CatalogService {
         // 재료 단가 입력
         Ingredient ingredient = ingredientRepository.save(
                 Ingredient.create(
-                        userId, request.getIngredientCategoryId(),
-                        request.getIngredientName(), request.getUnit(), unitPrice
+                        userId,
+                        request.getIngredientCategoryId(),
+                        request.getIngredientName(),
+                        request.getUnit(),
+                        unitPrice,
+                        (request.getSupplier() == null || request.getSupplier().isBlank()) ? null : request.getSupplier()
                 )
         );
 

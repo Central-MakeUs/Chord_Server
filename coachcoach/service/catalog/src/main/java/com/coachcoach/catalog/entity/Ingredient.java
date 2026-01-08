@@ -2,10 +2,7 @@ package com.coachcoach.catalog.entity;
 
 import com.coachcoach.catalog.entity.enums.Unit;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,8 +27,12 @@ public class Ingredient {
     private LocalDateTime updatedAt;
 
     public static Ingredient create(
-            Long userId, Long ingredientCategoryId,
-            String ingredientName, Unit unit, BigDecimal currentUnitPrice
+            Long userId,
+            Long ingredientCategoryId,
+            String ingredientName,
+            Unit unit,
+            BigDecimal currentUnitPrice,
+            String supplier
     ) {
         Ingredient ingredient = new Ingredient();
 
@@ -41,6 +42,7 @@ public class Ingredient {
         ingredient.ingredientName = ingredientName;
         ingredient.unit = unit;
         ingredient.currentUnitPrice = currentUnitPrice;
+        ingredient.supplier = supplier;
 
         ingredient.createdAt = LocalDateTime.now();
         ingredient.updatedAt = LocalDateTime.now();

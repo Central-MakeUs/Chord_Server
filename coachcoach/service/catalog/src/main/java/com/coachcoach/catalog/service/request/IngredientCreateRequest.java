@@ -3,7 +3,6 @@ package com.coachcoach.catalog.service.request;
 import com.coachcoach.catalog.entity.enums.Unit;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -22,4 +21,5 @@ public class IngredientCreateRequest {
     private BigDecimal originalPrice;
     @NotNull(message = "사용량 입력은 필수입니다.")
     private BigDecimal originalAmount;
+    private String supplier;
 }
