@@ -14,6 +14,7 @@ import com.coachcoach.catalog.service.request.IngredientCategoryCreateRequest;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
 import com.coachcoach.catalog.service.request.MenuCategoryCreateRequest;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
+import com.coachcoach.catalog.service.response.IngredientResponse;
 import com.coachcoach.catalog.service.response.MenuCategoryResponse;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,22 @@ public class CatalogService {
                 .map(IngredientCategoryResponse::from)
                 .toList();
     }
+
+    /**
+     * 카테고리 별 목록 조회
+     * 전체 조회(ingredientCategoryId == null): 추가한 날짜 내림차순 (최신순)
+     * 카테고리 지정 조회: 추가한 날짜 내림차순 (최신순)
+     */
+    public List<IngredientResponse> readAllIngredientsByCategory(Long userId, Long ingredientCategoryId) {
+        List<Ingredient> result = (ingredientCategoryId == null) ?
+                ingredientRepository.findByUserIdOrderByCreatedAtDesc(userId) :
+                ingredientRepository.findByUserIdAndIngredientCategoryIdOrderByCreatedAtDesc(userId, ingredientCategoryId);
+
+        return result.stream()
+                .map(IngredientResponse::from)
+                .toList();
+    }
+
 
     /**
      * 재료 생성(재료명, 가격, 사용량, 단위, 카테고리)
