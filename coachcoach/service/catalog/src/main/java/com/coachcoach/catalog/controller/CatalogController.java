@@ -1,11 +1,7 @@
 package com.coachcoach.catalog.controller;
 
 import com.coachcoach.catalog.service.CatalogService;
-import com.coachcoach.catalog.service.request.IngredientCategoryCreateRequest;
-import com.coachcoach.catalog.service.request.IngredientCreateRequest;
-import com.coachcoach.catalog.service.request.MenuCategoryCreateRequest;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
-import com.coachcoach.catalog.service.response.IngredientResponse;
 import com.coachcoach.catalog.service.response.MenuCategoryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,68 +24,33 @@ public class CatalogController {
     private final CatalogService catalogService;
 
     /**
-     * 재료 카테고리 생성
-     */
-    @Operation(summary = "재료 카테고리 생성", description = "📍인증 구현 X <br>📍유저가 중복 카테고리를 생성하려고 시도 시 CATALOG_001 에러 발생")
-    @PostMapping("/ingredient-categories")
-    public IngredientCategoryResponse createIngredientCategory(
-            @RequestHeader(name = "userId", required = false) String userId,
-            @Valid @RequestBody IngredientCategoryCreateRequest request
-    ) {
-        return catalogService.createIngredientCategory(Long.valueOf(userId), request);
-    }
-
-    /**
      * 재료 카테고리 목록 조회
      */
-    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍유저 별 생성한 재료 카테고리 목록 조회(생성 시간 기준 오름차순)")
+    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환<br>📍'전체'(ALL)는 목록에 포함되어 있지 않음.")
     @GetMapping("/ingredient-categories")
-    public List<IngredientCategoryResponse> readIngredientCategory(@RequestHeader(name = "userId", required = false) String userId) {
-        return catalogService.readIngredientCategory(Long.valueOf(userId));
+    public List<IngredientCategoryResponse> readIngredientCategory() {
+        return catalogService.readIngredientCategory();
     }
 
     /**
      * 재료 생성
      */
-    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
-    @PostMapping("/ingredients")
-    public void createIngredient(
-            @RequestHeader(name = "userId", required = false) String userId,
-            @Valid @RequestBody IngredientCreateRequest request
-    ) {
-        catalogService.createIngredient(Long.valueOf(userId), request);
-    }
+//    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
+//    @PostMapping("/ingredients")
+//    public void createIngredient(
+//            @RequestHeader(name = "userId", required = false) String userId,
+//            @Valid @RequestBody IngredientCreateRequest request
+//    ) {
+//        catalogService.createIngredient(Long.valueOf(userId), request);
+//    }
 
-    /**
-     * 카테고리 별 재료 목록 조회
-     */
-    @Operation(summary = "카테고리 별 재료 목록 조회", description = "📍인증 구현 X <br>📍ingredientCategoryId = null로 지정 시 전체 목록 조회 <br> 📍정렬 기준: 생성일 기준 최신순")
-    @GetMapping("/ingredients")
-    public List<IngredientResponse> readAllIngredientsByCategory(
-            @RequestHeader(name = "userId", required = false) String userId,
-            @RequestParam(name = "ingredientCategoryId", required = false) Long ingredientCategoryId
-    ) {
-        return catalogService.readAllIngredientsByCategory(Long.valueOf(userId), ingredientCategoryId);
-    }
-
-    /**
-     * 메뉴 카테고리 생성
-     */
-    @Operation(summary = "메뉴 카테고리 생성", description = "📍인증 구현 X <br>📍유저가 중복 카테고리를 생성하려고 시도 시 CATALOG_001 에러 발생")
-    @PostMapping("/menu-categories")
-    public MenuCategoryResponse createMenuCategory(
-            @RequestHeader(name = "userId", required = false) String userId,
-            @Valid @RequestBody MenuCategoryCreateRequest request
-    ) {
-        return catalogService.createMenuCategory(Long.valueOf(userId), request);
-    }
 
     /**
      * 메뉴 카테고리 목록 조회
      */
-    @Operation(summary = "메뉴 카테고리 목록 조회", description = "📍인증 구현 X <br>📍유저 별 생성한 메뉴 카테고리 목록 조회(생성 시간 기준 오름차순)")
+    @Operation(summary = "메뉴 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환📍'즐겨찾기(FAVORITE)'는 목록에 포함되어 있지 않음")
     @GetMapping("/menu-categories")
-    public List<MenuCategoryResponse> readMenuCategory(@RequestHeader(name = "userId", required = false) String userId) {
-        return catalogService.readMenuCategory(Long.valueOf(userId));
+    public List<MenuCategoryResponse> readMenuCategory() {
+        return catalogService.readMenuCategory();
     }
 }

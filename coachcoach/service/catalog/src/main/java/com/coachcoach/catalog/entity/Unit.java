@@ -8,19 +8,17 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-@Table(name = "tb_ingredient_category")
+@Table(name = "tb_unit")
 @Getter
-@Entity
 @ToString
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IngredientCategory {
+public class Unit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ingredient_category_id")
-    private Long categoryId;
-    private String categoryCode;
-    private String categoryName;
-    private Integer displayOrder;
+    private Long unitId;
+    private String unitCode;
+    private Integer baseQuantity;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

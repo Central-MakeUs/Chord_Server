@@ -8,6 +8,5 @@ import java.util.List;
 
 @Repository
 public interface MenuCategoryRepository extends JpaRepository<MenuCategory, Long> {
-    boolean existsByUserIdAndCategoryName(Long userId, String categoryName);
-    List<MenuCategory> findByUserIdOrderByCreatedAtAsc(Long userId);
+    List<MenuCategory> findAllByOrderByDisplayOrderAsc();
 }

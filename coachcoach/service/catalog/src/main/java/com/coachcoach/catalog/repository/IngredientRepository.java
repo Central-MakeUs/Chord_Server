@@ -8,7 +8,4 @@ import java.util.List;
 
 @Repository
 public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
-    boolean existsByUserIdAndIngredientName(Long userId, String ingredientName);
-    List<Ingredient> findByUserIdAndIngredientCategoryIdOrderByCreatedAtDesc(Long userId, Long ingredientCategoryId);
-    List<Ingredient> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

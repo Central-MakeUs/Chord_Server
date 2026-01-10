@@ -1,29 +1,29 @@
 package com.coachcoach.catalog.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Table(name = "tb_ingredient")
+@Table(name = "tb_recipe")
 @Getter
 @ToString
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Ingredient {
+public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long recipeId;
+    private Long menuId;
     private Long ingredientId;
-    private Long userId;
-    private String ingredientCategoryCode;
-    private String ingredientName;
-    private String unitCode;
+    @Column(precision = 10, scale = 3)
+    private BigDecimal usageAmount;
     @Column(precision = 10, scale = 2)
-    private BigDecimal currentUnitPrice;
-    private String supplier;
-    @Column(name = "is_favorite")
-    private Boolean favorite;
+    private BigDecimal cost;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -8,19 +8,18 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
-@Table(name = "tb_ingredient_category")
+@Table(name = "tb_margin_grade")
 @Getter
-@Entity
 @ToString
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IngredientCategory {
+public class MarginGrade {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ingredient_category_id")
-    private Long categoryId;
-    private String categoryCode;
-    private String categoryName;
-    private Integer displayOrder;
+    private Long gradeId;
+    private String gradeCode;
+    private String gradeName;
+    private String message;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
