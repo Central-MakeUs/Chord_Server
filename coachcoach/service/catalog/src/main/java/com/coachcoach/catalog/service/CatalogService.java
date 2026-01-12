@@ -13,9 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -143,12 +141,12 @@ public class CatalogService {
     /**
      * 가격 변경 이력 목록
      */
-    public List<PriceHistoryResponse> readIngredientPriceHistory(Long ingredientId) {
+    public List<PriceHistoryResponse> readIngredientPriceHistory(Long userId, Long ingredientId) {
         // 변경 이력 조회
         List<IngredientPriceHistory> results = ingredientPriceHistoryRepository.findByIngredientIdOrderByHistoryIdDesc(ingredientId);
 
         // 단위 조회
-        Ingredient ingredient = ingredientRepository.findById(ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         String unitCode = ingredient.getUnitCode();
         Integer baseQuantity = codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity();
 
@@ -159,6 +157,15 @@ public class CatalogService {
                         baseQuantity
                 ))
                 .toList();
+    }
+
+    /**
+     * 즐겨찾기 설정/해제
+     */
+    @Transactional
+    public void updateFavorite(Long userId, Long ingredientId, Boolean favorite) {
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+        ingredient.updateFavorite(favorite);
     }
 
     /**

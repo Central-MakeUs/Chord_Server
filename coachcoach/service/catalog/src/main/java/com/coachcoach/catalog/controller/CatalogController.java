@@ -74,9 +74,21 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "ingredientId") Long ingredientId
     ) {
-        return catalogService.readIngredientPriceHistory(ingredientId);
+        return catalogService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
     }
 
+    /**
+     * 즐겨찾기 설정/해제
+     */
+    @Operation(summary = "즐겨찾기 설정/해제")
+    @PatchMapping("/ingredients/{ingredientId}/favorite")
+    public void updateFavorite(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId,
+            @RequestParam(name = "favorite") Boolean favorite
+    ) {
+        catalogService.updateFavorite(Long.valueOf(userId), ingredientId, favorite);
+    }
 
     /**
      * 메뉴 카테고리 목록 조회

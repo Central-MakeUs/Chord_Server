@@ -108,6 +108,13 @@ class CatalogApiTest {
                 .forEach(System.out::println);
     }
 
+    @Test
+    void updateFavorite() {
+        restClient.patch()
+                .uri("/ingredients/3/favorite?favorite=true")
+                .retrieve();
+    }
+
     @Getter
     @AllArgsConstructor
     static class IngredientCreateRequest {

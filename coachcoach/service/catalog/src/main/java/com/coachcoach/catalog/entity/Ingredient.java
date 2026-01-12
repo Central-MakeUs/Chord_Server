@@ -49,4 +49,9 @@ public class Ingredient {
 
         return ingredient;
     }
+
+    public void updateFavorite(Boolean favorite) {
+        this.favorite = favorite;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
