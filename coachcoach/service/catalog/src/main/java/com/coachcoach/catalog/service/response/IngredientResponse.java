@@ -17,7 +17,7 @@ public class IngredientResponse {
     private Integer baseQuantity;
     private BigDecimal currentUnitPrice;
 
-    public static IngredientResponse from(Ingredient ingredient, Integer baseQuantity) {
+    public static IngredientResponse of(Ingredient ingredient, Integer baseQuantity) {
         IngredientResponse response = new IngredientResponse();
 
         response.ingredientId = ingredient.getIngredientId();

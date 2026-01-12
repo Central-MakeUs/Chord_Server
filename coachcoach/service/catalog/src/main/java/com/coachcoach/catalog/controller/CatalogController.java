@@ -2,9 +2,7 @@ package com.coachcoach.catalog.controller;
 
 import com.coachcoach.catalog.service.CatalogService;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
-import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
-import com.coachcoach.catalog.service.response.IngredientResponse;
-import com.coachcoach.catalog.service.response.MenuCategoryResponse;
+import com.coachcoach.catalog.service.response.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -53,6 +51,30 @@ public class CatalogController {
             @Valid @RequestBody IngredientCreateRequest request
     ) {
         return catalogService.createIngredient(Long.valueOf(userId), request);
+    }
+
+    /**
+     * 재료 상세
+     */
+    @Operation(summary = "재료 상세")
+    @GetMapping("/ingredients/{ingredientId}")
+    public IngredientDetailResponse readIngredientDetail(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId
+    ) {
+        return catalogService.readIngredientDetail(Long.valueOf(userId), ingredientId);
+    }
+
+    /**
+     * 가격 변경 이력 목록
+     */
+    @Operation(summary = "재료 가격 변경 이력 목록")
+    @GetMapping("/ingredients/{ingredientId}/price-history")
+    public List<PriceHistoryResponse> readIngredientPriceHistory(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId
+    ) {
+        return catalogService.readIngredientPriceHistory(ingredientId);
     }
 
 

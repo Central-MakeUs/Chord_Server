@@ -1,9 +1,7 @@
 package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
-import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
-import com.coachcoach.catalog.service.response.IngredientResponse;
-import com.coachcoach.catalog.service.response.MenuCategoryResponse;
+import com.coachcoach.catalog.service.response.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -82,6 +80,31 @@ class CatalogApiTest {
 
         System.out.println("ingredient list");
         response.stream()
+                .forEach(System.out::println);
+    }
+
+    @Test
+    void readIngredientDetail() {
+        IngredientDetailResponse response =
+                restClient.get()
+                        .uri("/ingredients/3")
+                        .retrieve()
+                        .body(IngredientDetailResponse.class);
+        System.out.println("ingredient detail");
+        System.out.println(response.toString());
+    }
+
+    @Test
+    void readIngredientPriceHistory() {
+        List<PriceHistoryResponse> responses =
+                restClient.get()
+                        .uri("/ingredients/3/price-history")
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<List<PriceHistoryResponse>>() {});
+
+        System.out.println("ingredient price history");
+
+        responses.stream()
                 .forEach(System.out::println);
     }
 

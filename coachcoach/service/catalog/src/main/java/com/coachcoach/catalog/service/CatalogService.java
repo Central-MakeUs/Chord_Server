@@ -4,23 +4,24 @@ import com.coachcoach.catalog.entity.*;
 import com.coachcoach.catalog.global.exception.CatalogErrorCode;
 import com.coachcoach.catalog.global.util.Cache;
 import com.coachcoach.catalog.global.util.CodeFinder;
-import com.coachcoach.catalog.repository.IngredientCategoryRepository;
-import com.coachcoach.catalog.repository.IngredientPriceHistoryRepository;
-import com.coachcoach.catalog.repository.IngredientRepository;
-import com.coachcoach.catalog.repository.MenuCategoryRepository;
+import com.coachcoach.catalog.repository.*;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
-import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
-import com.coachcoach.catalog.service.response.IngredientResponse;
-import com.coachcoach.catalog.service.response.MenuCategoryResponse;
+import com.coachcoach.catalog.service.response.*;
 import com.coachcoach.common.exception.BusinessException;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CatalogService {
@@ -30,6 +31,7 @@ public class CatalogService {
     private final IngredientCategoryRepository ingredientCategoryRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final IngredientRepository ingredientRepository;
+    private final MenuRepository menuRepository;
     private final IngredientPriceHistoryRepository ingredientPriceHistoryRepository;
 
     /**
@@ -51,7 +53,7 @@ public class CatalogService {
             // 전체 조회
             return ingredientRepository.findAllByUserIdOrderByIngredientIdDesc(userId)
                     .stream()
-                    .map(x -> IngredientResponse.from(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
+                    .map(x -> IngredientResponse.of(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
                     .toList();
         }
 
@@ -63,7 +65,7 @@ public class CatalogService {
         // 부분 조회
         return ingredientRepository.findByUserIdAndIngredientCategoryCodeInOrderByIngredientIdDesc(userId, category)
                 .stream()
-                .map(x -> IngredientResponse.from(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
+                .map(x -> IngredientResponse.of(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
                 .toList();
 
     }
@@ -111,7 +113,52 @@ public class CatalogService {
                 new BigDecimal(0)
         ));
 
-        return IngredientResponse.from(ingredient, unit.getBaseQuantity());
+        return IngredientResponse.of(ingredient, unit.getBaseQuantity());
+    }
+
+    /**
+     * 재료 상세
+     */
+    public IngredientDetailResponse readIngredientDetail(Long userId, Long ingredientId) {
+        // 단가 조회
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+        Unit unit = codeFinder.findUnitByCode(ingredient.getUnitCode());
+
+        //사용 중인 메뉴 조회
+        List<String> menus = menuRepository.findMenusByUserIdAndIngredientId(userId, ingredientId);
+
+        // 히스토리 조회 (가장 최신)
+        IngredientPriceHistory iph = ingredientPriceHistoryRepository.findFirstByIngredientIdOrderByHistoryIdDesc(ingredientId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_PRICEHISTORY));
+
+        return IngredientDetailResponse.of(
+                ingredient,
+                unit.getBaseQuantity(),
+                menus,
+                iph
+        );
+    }
+
+    /**
+     * 가격 변경 이력 목록
+     */
+    public List<PriceHistoryResponse> readIngredientPriceHistory(Long ingredientId) {
+        // 변경 이력 조회
+        List<IngredientPriceHistory> results = ingredientPriceHistoryRepository.findByIngredientIdOrderByHistoryIdDesc(ingredientId);
+
+        // 단위 조회
+        Ingredient ingredient = ingredientRepository.findById(ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+        String unitCode = ingredient.getUnitCode();
+        Integer baseQuantity = codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity();
+
+        return results.stream()
+                .map(x -> PriceHistoryResponse.of(
+                        x,
+                        unitCode,
+                        baseQuantity
+                ))
+                .toList();
     }
 
     /**
