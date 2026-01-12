@@ -17,19 +17,9 @@ public class MenuCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "menu_category_id")
     private Long categoryId;
-    private Long userId;
+    private String categoryCode;
     private String categoryName;
+    private Integer displayOrder;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-
-    public static MenuCategory create(Long userId, String categoryName) {
-        MenuCategory mc = new MenuCategory();
-
-        mc.userId = userId;
-        mc.categoryName = categoryName;
-        mc.createdAt = LocalDateTime.now();
-        mc.updatedAt = LocalDateTime.now();
-
-        return mc;
-    }
 }

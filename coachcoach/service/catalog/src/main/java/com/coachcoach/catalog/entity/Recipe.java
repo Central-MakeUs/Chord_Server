@@ -6,21 +6,24 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Table(name = "tb_ingredient_category")
+@Table(name = "tb_recipe")
 @Getter
-@Entity
 @ToString
+@Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class IngredientCategory {
+public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ingredient_category_id")
-    private Long categoryId;
-    private String categoryCode;
-    private String categoryName;
-    private Integer displayOrder;
+    private Long recipeId;
+    private Long menuId;
+    private Long ingredientId;
+    @Column(precision = 10, scale = 3)
+    private BigDecimal usageAmount;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal cost;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
