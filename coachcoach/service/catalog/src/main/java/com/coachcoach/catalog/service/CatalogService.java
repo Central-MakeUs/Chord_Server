@@ -157,14 +157,12 @@ public class CatalogService {
 
         // 단위 조회
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
-        String unitCode = ingredient.getUnitCode();
-        Integer baseQuantity = codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity();
 
         return results.stream()
                 .map(x -> PriceHistoryResponse.of(
                         x,
-                        unitCode,
-                        baseQuantity
+                        x.getUnitCode(),
+                        codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()
                 ))
                 .toList();
     }

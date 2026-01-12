@@ -38,7 +38,7 @@ public class CatalogController {
      */
     @Operation(summary = "카테고리 별 재료 목록 반환")
     @GetMapping("/ingredients")
-    public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false, defaultValue = "1") String userId, @RequestParam(name = "category", required = false) List<String> category) {
+    public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false) String userId, @RequestParam(name = "category", required = false) List<String> category) {
         return catalogService.readIngredientsByCategory(Long.valueOf(userId), category);
     }
 
@@ -48,7 +48,7 @@ public class CatalogController {
     @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
     @PostMapping("/ingredients")
     public IngredientResponse createIngredient(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "userId", required = false) String userId,
             @Valid @RequestBody IngredientCreateRequest request
     ) {
         return catalogService.createIngredient(Long.valueOf(userId), request);
@@ -60,7 +60,7 @@ public class CatalogController {
     @Operation(summary = "재료 상세")
     @GetMapping("/ingredients/{ingredientId}")
     public IngredientDetailResponse readIngredientDetail(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "userId", required = false) String userId,
             @PathVariable(name = "ingredientId") Long ingredientId
     ) {
         return catalogService.readIngredientDetail(Long.valueOf(userId), ingredientId);
@@ -72,7 +72,7 @@ public class CatalogController {
     @Operation(summary = "재료 가격 변경 이력 목록")
     @GetMapping("/ingredients/{ingredientId}/price-history")
     public List<PriceHistoryResponse> readIngredientPriceHistory(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "userId", required = false) String userId,
             @PathVariable(name = "ingredientId") Long ingredientId
     ) {
         return catalogService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
@@ -84,7 +84,7 @@ public class CatalogController {
     @Operation(summary = "즐겨찾기 설정/해제")
     @PatchMapping("/ingredients/{ingredientId}/favorite")
     public void updateFavorite(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "userId", required = false) String userId,
             @PathVariable(name = "ingredientId") Long ingredientId,
             @RequestParam(name = "favorite") Boolean favorite
     ) {
@@ -97,7 +97,7 @@ public class CatalogController {
     @Operation(summary = "재료 단가 수정")
     @PatchMapping("/ingredients/{ingredientId}")
     public IngredientUpdateResponse updateIngredient(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "userId", required = false) String userId,
             @PathVariable(name = "ingredientId") Long ingredientId,
             @Valid @RequestBody IngredientUpdateRequest request
     ) {
@@ -110,7 +110,7 @@ public class CatalogController {
     @Operation(summary = "메뉴 공급업체 수정")
     @PatchMapping("/ingredients/{ingredientId}/supplier")
     public SupplierUpdateResponse updateIngredientSupplier(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "userId", required = false) String userId,
             @PathVariable(name = "ingredientId") Long ingredientId,
             @RequestBody SupplierUpdateRequest request
     ) {
