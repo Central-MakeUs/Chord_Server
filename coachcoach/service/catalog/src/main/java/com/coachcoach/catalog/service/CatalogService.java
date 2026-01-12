@@ -108,6 +108,7 @@ public class CatalogService {
                 IngredientPriceHistory.create(
                 ingredient.getIngredientId(),
                 unitPrice,
+                unit.getUnitCode(),
                 request.getAmount(),
                 request.getPrice(),
                 null
@@ -194,6 +195,7 @@ public class CatalogService {
                 IngredientPriceHistory.create(
                         ingredientId,
                         unitPrice,
+                        currentUnit.getUnitCode(),
                         request.getAmount(),
                         request.getPrice(),
                         changeRate

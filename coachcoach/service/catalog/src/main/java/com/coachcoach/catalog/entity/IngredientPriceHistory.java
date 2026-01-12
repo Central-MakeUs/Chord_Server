@@ -21,6 +21,7 @@ public class IngredientPriceHistory {
     private Long ingredientId;              // 재료 고유 ID
     @Column(precision = 10, scale = 2)
     private BigDecimal unitPrice;           // 구매 단가
+    private String unitCode;
     @Column(precision = 10, scale = 3)
     private BigDecimal originalAmount;      // 사용자 구매량
     @Column(precision = 10, scale = 2)
@@ -31,13 +32,14 @@ public class IngredientPriceHistory {
 
     public static IngredientPriceHistory create(
             Long ingredientId,
-            BigDecimal unitPrice,
+            BigDecimal unitPrice, String unitCode,
             BigDecimal originalAmount, BigDecimal originalPrice, BigDecimal changeRate
     ) {
         IngredientPriceHistory iph = new IngredientPriceHistory();
 
         iph.ingredientId = ingredientId;
         iph.unitPrice = unitPrice;
+        iph.unitCode = unitCode;
         iph.originalAmount = originalAmount;
         iph.originalPrice = originalPrice;
         iph.changeRate = changeRate;

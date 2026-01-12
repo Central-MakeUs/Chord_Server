@@ -120,7 +120,7 @@ class CatalogApiTest {
     void updateIngredient() {
         IngredientUpdateResponse response = restClient.patch()
                 .uri("/ingredients/3")
-                .body(new IngredientUpdateRequest(new BigDecimal(9000), new BigDecimal(200), "G"))
+                .body(new IngredientUpdateRequest(new BigDecimal(9000), new BigDecimal(100), "ML"))
                 .retrieve()
                 .body(IngredientUpdateResponse.class);
 

@@ -27,7 +27,7 @@ public class CatalogController {
     /**
      * 재료 카테고리 목록 조회
      */
-    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환<br>📍'전체'(ALL)는 목록에 포함되어 있지 않음.")
+    @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환<br>📍'즐겨찾기(FAVORITE)'는 목록에 포함되어 있지 않음")
     @GetMapping("/ingredient-categories")
     public List<IngredientCategoryResponse> readIngredientCategory() {
         return catalogService.readIngredientCategory();
@@ -120,7 +120,7 @@ public class CatalogController {
     /**
      * 메뉴 카테고리 목록 조회
      */
-    @Operation(summary = "메뉴 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환📍'즐겨찾기(FAVORITE)'는 목록에 포함되어 있지 않음")
+    @Operation(summary = "메뉴 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환<br>📍'전체'(ALL)는 목록에 포함되어 있지 않음")
     @GetMapping("/menu-categories")
     public List<MenuCategoryResponse> readMenuCategory() {
         return catalogService.readMenuCategory();
