@@ -1,12 +1,14 @@
 package com.coachcoach.catalog.service.request;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.ToString;
 
-@Getter
+import java.math.BigDecimal;
+
 @ToString
-public class MenuCategoryCreateRequest {
-    @NotBlank(message = "카테고리는 필수입니다.")
-    private String categoryName;
+@Getter
+public class SupplierUpdateRequest {
+    private String supplier;
 }

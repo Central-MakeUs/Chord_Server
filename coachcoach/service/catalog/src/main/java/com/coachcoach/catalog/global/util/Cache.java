@@ -1,0 +1,39 @@
+package com.coachcoach.catalog.global.util;
+
+import com.coachcoach.catalog.entity.IngredientCategory;
+import com.coachcoach.catalog.entity.MenuCategory;
+import com.coachcoach.catalog.entity.Unit;
+import com.coachcoach.catalog.repository.IngredientCategoryRepository;
+import com.coachcoach.catalog.repository.MenuCategoryRepository;
+import com.coachcoach.catalog.repository.UnitRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+@Transactional(readOnly=true)
+public class Cache {
+    private final IngredientCategoryRepository ingredientCategoryRepository;
+    private final MenuCategoryRepository menuCategoryRepository;
+    private final UnitRepository unitRepository;
+
+    @Cacheable(value = "ingredient-categories", key = "'all'")
+    public List<IngredientCategory> getIngredientCategories() {
+        return ingredientCategoryRepository.findAllByOrderByDisplayOrderAsc();
+    }
+
+    @Cacheable(value = "menu-categories", key = "'all'")
+    public List<MenuCategory> getMenuCategories() {
+        return menuCategoryRepository.findAllByOrderByDisplayOrderAsc();
+    }
+
+    @Cacheable(value = "unit-code", key = "'all'")
+    public List<Unit> getUnits() {
+        return unitRepository.findAllByOrderByUnitIdAsc();
+    }
+}

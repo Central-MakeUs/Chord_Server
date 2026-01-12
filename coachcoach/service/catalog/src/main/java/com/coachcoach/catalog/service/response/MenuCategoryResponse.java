@@ -10,16 +10,16 @@ import java.time.LocalDateTime;
 @Getter
 @ToString
 public class MenuCategoryResponse {
-    private Long categoryId;
-    private Long userId;
+    private String categoryCode;
     private String categoryName;
+    private Integer displayOrder;
 
     public static MenuCategoryResponse from(MenuCategory mc) {
         MenuCategoryResponse response = new MenuCategoryResponse();
 
-        response.categoryId = mc.getCategoryId();
-        response.userId = mc.getUserId();
+        response.categoryCode = mc.getCategoryCode();
         response.categoryName = mc.getCategoryName();
+        response.displayOrder = mc.getDisplayOrder();
 
         return response;
     }

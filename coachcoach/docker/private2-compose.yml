@@ -1,28 +1,63 @@
 version: '3.8'
 
 services:
+  auth:
+    image: quay.io/bread0930/chord-server-auth:latest
+    container_name: auth
+    ports:
+      - "9000:9000"
+    env_file:
+      - common.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx128m -Xms64m
+      - EUREKA_INSTANCE_IP_ADDRESS=10.0.1.227
+    networks:
+      - coachcoach-network
+    restart: unless-stopped
+
+  user-store:
+    image: quay.io/bread0930/chord-server-user-store:latest
+    container_name: user-store
+    ports:
+      - "9001:9001"
+    env_file:
+      - common.env
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx128m -Xms64m
+      - EUREKA_INSTANCE_IP_ADDRESS=10.0.1.227
+    networks:
+      - coachcoach-network
+    restart: unless-stopped
   catalog:
     image: quay.io/bread0930/chord-server-catalog:latest
     container_name: catalog
-    network_mode: "host"
     ports:
       - "9002:9002"
     env_file:
       - common.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx128m -Xms64m
+      - EUREKA_INSTANCE_IP_ADDRESS=10.0.1.227
+    networks:
+      - coachcoach-network
     restart: unless-stopped
 
   insight:
     image: quay.io/bread0930/chord-server-insight:latest
     container_name: insight
-    network_mode: "host"
     ports:
       - "9003:9003"
     env_file:
       - common.env
     environment:
       - SPRING_PROFILES_ACTIVE=prod
+      - JAVA_OPTS=-Xmx128m -Xms64m
+      - EUREKA_INSTANCE_IP_ADDRESS=10.0.1.227
+    networks:
+      - coachcoach-network
     restart: unless-stopped
 
 networks:

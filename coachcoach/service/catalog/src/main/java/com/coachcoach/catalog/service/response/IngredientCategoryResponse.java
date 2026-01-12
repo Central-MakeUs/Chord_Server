@@ -9,16 +9,16 @@ import java.time.LocalDateTime;
 @Getter
 @ToString
 public class IngredientCategoryResponse {
-    private Long categoryId;
-    private Long userId;
+    private String categoryCode;
     private String categoryName;
+    private Integer displayOrder;
 
     public static IngredientCategoryResponse from(IngredientCategory ic) {
         IngredientCategoryResponse response = new IngredientCategoryResponse();
 
-        response.categoryId = ic.getCategoryId();
-        response.userId = ic.getUserId();
+        response.categoryCode = ic.getCategoryCode();
         response.categoryName = ic.getCategoryName();
+        response.displayOrder = ic.getDisplayOrder();
 
         return response;
     }
