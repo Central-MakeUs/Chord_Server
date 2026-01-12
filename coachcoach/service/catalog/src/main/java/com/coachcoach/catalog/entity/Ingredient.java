@@ -55,6 +55,10 @@ public class Ingredient {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void updateSupplier(String supplier) {
+        this.supplier = supplier;
+    }
+
     public void update(BigDecimal unitPrice, String unitCode) {
         this.currentUnitPrice = unitPrice;
         this.unitCode = unitCode;

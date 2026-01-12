@@ -7,6 +7,7 @@ import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.catalog.repository.*;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
 import com.coachcoach.catalog.service.request.IngredientUpdateRequest;
+import com.coachcoach.catalog.service.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.service.response.*;
 import com.coachcoach.common.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -206,6 +207,17 @@ public class CatalogService {
                 currentUnit.getUnitCode(),
                 iph
         );
+    }
+
+    /**
+     * 재료 공급업체 수정
+     */
+    @Transactional
+    public SupplierUpdateResponse updateIngredientSupplier(Long userId, Long ingredientId, SupplierUpdateRequest request) {
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+        ingredient.updateSupplier(request.getSupplier());
+
+        return SupplierUpdateResponse.from(ingredient);
     }
 
     /**

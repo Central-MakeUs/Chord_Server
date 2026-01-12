@@ -3,9 +3,9 @@ package com.coachcoach.catalog.controller;
 import com.coachcoach.catalog.service.CatalogService;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
 import com.coachcoach.catalog.service.request.IngredientUpdateRequest;
+import com.coachcoach.catalog.service.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.service.response.*;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -104,6 +104,18 @@ public class CatalogController {
         return catalogService.updateIngredient(Long.valueOf(userId), ingredientId, request);
     }
 
+    /**
+     * 재료 공급업체 수정
+     */
+    @Operation(summary = "메뉴 공급업체 수정")
+    @PatchMapping("/ingredients/{ingredientId}/supplier")
+    public SupplierUpdateResponse updateIngredientSupplier(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId,
+            @RequestBody SupplierUpdateRequest request
+    ) {
+        return catalogService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
+    }
 
     /**
      * 메뉴 카테고리 목록 조회

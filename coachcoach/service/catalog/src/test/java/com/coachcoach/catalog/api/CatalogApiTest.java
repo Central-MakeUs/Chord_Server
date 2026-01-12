@@ -128,6 +128,18 @@ class CatalogApiTest {
         System.out.println(response.toString());
     }
 
+    @Test
+    void updateSupplier() {
+        SupplierUpdateResponse response = restClient.patch()
+                .uri("/ingredients/3/supplier")
+                .body(new SupplierUpdateRequest("쿠팡"))
+                .retrieve()
+                .body(SupplierUpdateResponse.class);
+
+        System.out.println("update");
+        System.out.println(response.toString());
+    }
+
     @Getter
     @AllArgsConstructor
     static class IngredientCreateRequest {
@@ -154,5 +166,12 @@ class CatalogApiTest {
         private BigDecimal amount;
         @NotBlank(message = "단위 입력은 필수입니다.")
         private String unitCode;
+    }
+
+    @ToString
+    @Getter
+    @AllArgsConstructor
+    static class SupplierUpdateRequest {
+        private String supplier;
     }
 }
