@@ -49,7 +49,7 @@ public class CatalogService {
      * 정렬 조건: ingredientId Desc (최신순)
      */
     public List<IngredientResponse> readIngredientsByCategory(Long userId, List<String> category) {
-        if(category == null) {
+        if(category == null || category.isEmpty()) {
             // 전체 조회
             return ingredientRepository.findAllByUserIdOrderByIngredientIdDesc(userId)
                     .stream()
@@ -58,15 +58,22 @@ public class CatalogService {
         }
 
         // 카테고리 유효성 검사
-        if (category.stream().anyMatch(code -> !codeFinder.existsIngredientCategory(code))) {
+        boolean includeFavorite = category.contains("FAVORITE");
+        List<String> actualCategories = category.stream()
+                .filter(code -> !"FAVORITE".equals(code))
+                .toList();
+
+        if (actualCategories.stream()
+                .anyMatch(code -> !codeFinder.existsIngredientCategory(code))) {
             throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
         }
 
-        // 부분 조회
-        return ingredientRepository.findByUserIdAndIngredientCategoryCodeInOrderByIngredientIdDesc(userId, category)
-                .stream()
-                .map(x -> IngredientResponse.of(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
-                .toList();
+        return (includeFavorite ?
+                ingredientRepository.findByUserIdAndCategoryCodesOrFavorite(userId, category) :
+                ingredientRepository.findByUserIdAndIngredientCategoryCodeInOrderByIngredientIdDesc(userId, category))
+                    .stream()
+                    .map(x -> IngredientResponse.of(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
+                    .toList();
 
     }
 
