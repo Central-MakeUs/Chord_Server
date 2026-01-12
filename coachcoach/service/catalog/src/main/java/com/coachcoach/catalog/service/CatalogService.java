@@ -10,12 +10,14 @@ import com.coachcoach.catalog.repository.IngredientPriceHistoryRepository;
 import com.coachcoach.catalog.repository.IngredientRepository;
 import com.coachcoach.catalog.repository.MenuCategoryRepository;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
+import com.coachcoach.catalog.service.response.IngredientResponse;
 import com.coachcoach.catalog.service.response.MenuCategoryResponse;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CatalogService {
 
+    private final CacheService cacheService;
     private final IngredientCategoryRepository ingredientCategoryRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final IngredientRepository ingredientRepository;
@@ -35,12 +38,18 @@ public class CatalogService {
      */
     public List<IngredientCategoryResponse> readIngredientCategory() {
         // 정렬 조건: display order asc
-        List<IngredientCategory> result = ingredientCategoryRepository.findAllByOrderByDisplayOrderAsc();
-
-        return result.stream()
+        return cacheService.getIngredientCategories().stream()
                 .map(IngredientCategoryResponse::from)
                 .toList();
     }
+
+    /**
+     * 카테고리 별 재료 목록 반환 (필터링, 복수 선택 가능)
+     */
+//    public List<IngredientResponse> readIngredientsByCategory(Long userId, List<String> category) {
+//        // 재료
+//    }
+
 
     /**
      * 재료 생성(재료명, 가격, 사용량, 단위, 카테고리)
@@ -82,9 +91,7 @@ public class CatalogService {
      */
     public List<MenuCategoryResponse> readMenuCategory() {
         // 정렬 조건: display order asc
-        List<MenuCategory> result = menuCategoryRepository.findAllByOrderByDisplayOrderAsc();
-
-        return result.stream()
+        return cacheService.getMenuCategories().stream()
                 .map(MenuCategoryResponse::from)
                 .toList();
     }
