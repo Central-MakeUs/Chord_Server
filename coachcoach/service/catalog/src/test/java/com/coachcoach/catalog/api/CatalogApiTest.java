@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.ToString;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
@@ -115,6 +116,18 @@ class CatalogApiTest {
                 .retrieve();
     }
 
+    @Test
+    void updateIngredient() {
+        IngredientUpdateResponse response = restClient.patch()
+                .uri("/ingredients/3")
+                .body(new IngredientUpdateRequest(new BigDecimal(9000), new BigDecimal(200), "G"))
+                .retrieve()
+                .body(IngredientUpdateResponse.class);
+
+        System.out.println("update");
+        System.out.println(response.toString());
+    }
+
     @Getter
     @AllArgsConstructor
     static class IngredientCreateRequest {
@@ -129,5 +142,17 @@ class CatalogApiTest {
         @NotNull(message = "사용량 입력은 필수입니다.")
         private BigDecimal amount;
         private String supplier;
+    }
+
+    @ToString
+    @Getter
+    @AllArgsConstructor
+    static class IngredientUpdateRequest {
+        @NotNull(message = "가격 입력은 필수입니다.")
+        private BigDecimal price;
+        @NotNull(message = "사용량 입력은 필수입니다.")
+        private BigDecimal amount;
+        @NotBlank(message = "단위 입력은 필수입니다.")
+        private String unitCode;
     }
 }

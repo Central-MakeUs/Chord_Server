@@ -6,6 +6,7 @@ import com.coachcoach.catalog.global.util.Cache;
 import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.catalog.repository.*;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
+import com.coachcoach.catalog.service.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.service.response.*;
 import com.coachcoach.common.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
@@ -108,7 +109,7 @@ public class CatalogService {
                 unitPrice,
                 request.getAmount(),
                 request.getPrice(),
-                new BigDecimal(0)
+                null
         ));
 
         return IngredientResponse.of(ingredient, unit.getBaseQuantity());
@@ -169,6 +170,45 @@ public class CatalogService {
     }
 
     /**
+     * 재료 단가 수정
+     */
+    @Transactional
+    public IngredientUpdateResponse updateIngredient(Long userId, Long ingredientId, IngredientUpdateRequest request) {
+        // 재료 조회
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+        Unit previousUnit = codeFinder.findUnitByCode(ingredient.getUnitCode());
+        Unit currentUnit = codeFinder.findUnitByCode(request.getUnitCode());
+
+        //단가 계산
+        BigDecimal unitPrice = calUnitPrice(currentUnit,  request.getPrice(), request.getAmount());
+
+        // 가격 변동률 계산 (단위가 바뀐 경우 null로 설정)
+        BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
+
+        // 가격 업데이트
+        ingredient.update(unitPrice, currentUnit.getUnitCode());
+
+        // 히스토리 업데이트
+        IngredientPriceHistory iph = ingredientPriceHistoryRepository.save(
+                IngredientPriceHistory.create(
+                        ingredientId,
+                        unitPrice,
+                        request.getAmount(),
+                        request.getPrice(),
+                        changeRate
+                )
+        );
+
+        // 변환
+        return IngredientUpdateResponse.of(
+                unitPrice,
+                currentUnit.getBaseQuantity(),
+                currentUnit.getUnitCode(),
+                iph
+        );
+    }
+
+    /**
      * 메뉴 카테고리 목록 조회
      */
     public List<MenuCategoryResponse> readMenuCategory() {
@@ -186,5 +226,29 @@ public class CatalogService {
     private BigDecimal calUnitPrice(Unit unit, BigDecimal price, BigDecimal amount) {
         return price.divide(amount, 2, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal(unit.getBaseQuantity()));
+    }
+
+    /**
+     * 재료 단가 변동률 계산 (2자리 반올림)
+     * 변동률 = ((현재가격 - 이전가격) / 이전가격) * 100
+     */
+    private BigDecimal calChangeRate(Unit unit, BigDecimal previousUnitPrice, BigDecimal currentUnitPrice) {
+        if (previousUnitPrice == null || previousUnitPrice.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+
+        if (currentUnitPrice == null) {
+            return BigDecimal.ZERO;
+        }
+
+        //
+        BigDecimal difference = currentUnitPrice.subtract(previousUnitPrice);
+        // 4자리로 나눗셈
+        // 2자리 반올림
+
+        return currentUnitPrice.subtract(previousUnitPrice)  // 4500 - 4000 = 500
+                .divide(previousUnitPrice, 4, RoundingMode.HALF_UP)  // 500 / 4000 = 0.1250
+                .multiply(BigDecimal.valueOf(100))  // 0.1250 * 100 = 12.50
+                .setScale(2, RoundingMode.HALF_UP);  // 12.50
     }
 }

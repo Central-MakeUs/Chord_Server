@@ -15,7 +15,7 @@ public class IngredientDetailResponse {
     private String ingredientName;      // 재료 이름
     private BigDecimal unitPrice;       // 단가
     private Integer baseQuantity;    // 단위 기준량
-    private String unit;                // 단위
+    private String unitCode;                // 단위
     private String supplier;            // 공급업체
     private List<String> menus;         // 해당 메뉴를 사용 중인 메뉴 목록
     private BigDecimal originalAmount;  // 구매량
@@ -29,7 +29,7 @@ public class IngredientDetailResponse {
         response.ingredientName = ingredient.getIngredientName();
         response.unitPrice = ingredient.getCurrentUnitPrice();
         response.baseQuantity = baseQuantity;
-        response.unit = ingredient.getUnitCode();
+        response.unitCode = ingredient.getUnitCode();
         response.supplier = ingredient.getSupplier();
         response.menus = menus;
         response.originalAmount = history.getOriginalAmount();

@@ -2,6 +2,7 @@ package com.coachcoach.catalog.controller;
 
 import com.coachcoach.catalog.service.CatalogService;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
+import com.coachcoach.catalog.service.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.service.response.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -89,6 +90,20 @@ public class CatalogController {
     ) {
         catalogService.updateFavorite(Long.valueOf(userId), ingredientId, favorite);
     }
+
+    /**
+     * 재료 단가 수정
+     */
+    @Operation(summary = "재료 단가 수정")
+    @PatchMapping("/ingredients/{ingredientId}")
+    public IngredientUpdateResponse updateIngredient(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId,
+            @Valid @RequestBody IngredientUpdateRequest request
+    ) {
+        return catalogService.updateIngredient(Long.valueOf(userId), ingredientId, request);
+    }
+
 
     /**
      * 메뉴 카테고리 목록 조회
