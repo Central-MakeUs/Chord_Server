@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.controller;
 
 import com.coachcoach.catalog.service.CatalogService;
+import com.coachcoach.catalog.service.request.IngredientCreateRequest;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
 import com.coachcoach.catalog.service.response.IngredientResponse;
 import com.coachcoach.catalog.service.response.MenuCategoryResponse;
@@ -45,14 +46,14 @@ public class CatalogController {
     /**
      * 재료 생성
      */
-//    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
-//    @PostMapping("/ingredients")
-//    public void createIngredient(
-//            @RequestHeader(name = "userId", required = false) String userId,
-//            @Valid @RequestBody IngredientCreateRequest request
-//    ) {
-//        catalogService.createIngredient(Long.valueOf(userId), request);
-//    }
+    @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
+    @PostMapping("/ingredients")
+    public IngredientResponse createIngredient(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @Valid @RequestBody IngredientCreateRequest request
+    ) {
+        return catalogService.createIngredient(Long.valueOf(userId), request);
+    }
 
 
     /**

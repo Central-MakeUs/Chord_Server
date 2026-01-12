@@ -16,7 +16,8 @@ public class CacheConfig {
     public CacheManager cacheManager() {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(
                 "ingredient-categories",  // 재료 카테고리 엔티티
-                "menu-categories"         // 메뉴 카테고리 엔티티
+                "menu-categories",          // 메뉴 카테고리 엔티티
+                "unit-code"                 // 단위 코드 엔티티
         );
 
         cacheManager.setCaffeine(Caffeine.newBuilder()

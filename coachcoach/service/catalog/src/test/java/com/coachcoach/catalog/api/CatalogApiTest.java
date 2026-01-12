@@ -1,13 +1,21 @@
 package com.coachcoach.catalog.api;
 
+import com.coachcoach.catalog.service.request.IngredientCreateRequest;
 import com.coachcoach.catalog.service.response.IngredientCategoryResponse;
+import com.coachcoach.catalog.service.response.IngredientResponse;
 import com.coachcoach.catalog.service.response.MenuCategoryResponse;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
 
+import java.math.BigDecimal;
 import java.util.List;
 
+import static org.assertj.core.api.FactoryBasedNavigableListAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CatalogApiTest {
@@ -39,5 +47,44 @@ class CatalogApiTest {
         for(MenuCategoryResponse response : responses) {
             System.out.println(response.toString());
         }
+    }
+
+    @Test
+    void createIngredient() {
+        // given
+        IngredientCreateRequest request = new IngredientCreateRequest(
+                "INGREDIENTS",
+                "코코아 파우더",
+                "G",
+                new BigDecimal("3000"),
+                new BigDecimal("200"),
+                "쿠팡"
+        );
+
+        // when
+        IngredientResponse response = restClient.post()
+                .uri("/ingredients")
+                .body(request)
+                .retrieve()
+                .body(IngredientResponse.class);  // 응답 받기
+
+        // then
+        System.out.println(response.toString());
+    }
+
+    @Getter
+    @AllArgsConstructor
+    static class IngredientCreateRequest {
+        @NotBlank(message = "카테고리 입력은 필수입니다.")
+        private String categoryCode;        // INGREDIENTS / MATERIAL
+        @NotBlank(message = "재료명 입력은 필수입니다.")
+        private String ingredientName;
+        @NotBlank(message = "단위 입력은 필수입니다.")
+        private String unitCode;            // G / KG / EA / ML
+        @NotNull(message = "가격 입력은 필수입니다.")
+        private BigDecimal price;
+        @NotNull(message = "사용량 입력은 필수입니다.")
+        private BigDecimal amount;
+        private String supplier;
     }
 }

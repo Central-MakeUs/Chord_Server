@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 public enum CatalogErrorCode implements ErrorCode {
     DUP_CATEGORY("CATALOG_001", "이미 등록된 카테고리입니다", HttpStatus.CONFLICT),
     DUP_INGREDIENT("CATALOG_002", "이미 등록된 재료입니다", HttpStatus.CONFLICT),
+
+    NOTFOUND_UNIT("CATALOG_003", "존재하지 않는 단위입니다.", HttpStatus.NOT_FOUND),
+    NOTFOUND_CATEGORY("CATALOG_004", "존재하지 않는 카테고리입니다.", HttpStatus.NOT_FOUND),
     ;
     private final String code;
     private final String message;

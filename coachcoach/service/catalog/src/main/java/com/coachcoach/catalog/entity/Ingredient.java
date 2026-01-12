@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.entity;
 
+import com.coachcoach.catalog.global.util.Cache;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,7 +24,29 @@ public class Ingredient {
     private BigDecimal currentUnitPrice;
     private String supplier;
     @Column(name = "is_favorite")
-    private Boolean favorite;
+    private Boolean favorite = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public static Ingredient create(
+            Long userId,
+            String ingredientCategoryCode,
+            String ingredientName,
+            String unitCode,
+            BigDecimal currentUnitPrice,
+            String supplier
+    ) {
+        Ingredient ingredient = new Ingredient();
+
+        ingredient.userId = userId;
+        ingredient.ingredientCategoryCode = ingredientCategoryCode;
+        ingredient.ingredientName = ingredientName;
+        ingredient.unitCode = unitCode;
+        ingredient.currentUnitPrice = currentUnitPrice;
+        ingredient.supplier = supplier;
+        ingredient.createdAt = LocalDateTime.now();
+        ingredient.updatedAt = LocalDateTime.now();
+
+        return ingredient;
+    }
 }
