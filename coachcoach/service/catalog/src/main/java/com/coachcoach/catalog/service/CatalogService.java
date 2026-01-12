@@ -44,10 +44,29 @@ public class CatalogService {
 
     /**
      * 카테고리 별 재료 목록 반환 (필터링, 복수 선택 가능)
+     * 정렬 조건: ingredientId Desc (최신순)
      */
-//    public List<IngredientResponse> readIngredientsByCategory(Long userId, List<String> category) {
-//        // 재료
-//    }
+    public List<IngredientResponse> readIngredientsByCategory(Long userId, List<String> category) {
+        if(category == null) {
+            // 전체 조회
+            return ingredientRepository.findAllByUserIdOrderByIngredientIdDesc(userId)
+                    .stream()
+                    .map(x -> IngredientResponse.from(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
+                    .toList();
+        }
+
+        // 카테고리 유효성 검사
+        if (category.stream().anyMatch(code -> !codeFinder.existsIngredientCategory(code))) {
+            throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
+        }
+
+        // 부분 조회
+        return ingredientRepository.findByUserIdAndIngredientCategoryCodeInOrderByIngredientIdDesc(userId, category)
+                .stream()
+                .map(x -> IngredientResponse.from(x, codeFinder.findUnitByCode(x.getUnitCode()).getBaseQuantity()))
+                .toList();
+
+    }
 
 
     /**

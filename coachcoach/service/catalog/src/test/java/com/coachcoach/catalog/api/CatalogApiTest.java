@@ -53,12 +53,12 @@ class CatalogApiTest {
     void createIngredient() {
         // given
         IngredientCreateRequest request = new IngredientCreateRequest(
-                "INGREDIENTS",
-                "코코아 파우더",
-                "G",
-                new BigDecimal("3000"),
-                new BigDecimal("200"),
-                "쿠팡"
+                "MATERIAL",
+                "포장용기",
+                "EA",
+                new BigDecimal("2850"),
+                new BigDecimal("100"),
+                null
         );
 
         // when
@@ -70,6 +70,19 @@ class CatalogApiTest {
 
         // then
         System.out.println(response.toString());
+    }
+
+    @Test
+    void readIngredients() {
+        List<IngredientResponse> response =
+                restClient.get()
+                .uri("/ingredients?category=MATERIAL&category=INGREDIENTS")
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<IngredientResponse>>() {});
+
+        System.out.println("ingredient list");
+        response.stream()
+                .forEach(System.out::println);
     }
 
     @Getter

@@ -37,11 +37,11 @@ public class CatalogController {
     /**
      * 카테고리 별 재료 목록 반환 (필터링, 복수 선택 가능)
      */
-//    @Operation(summary = "카테고리 별 재료 목록 반환")
-//    @GetMapping("/ingredients")
-//    public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false) String userId, @RequestParam(name = "category") List<String> category) {
-//        return catalogService.readIngredientsByCategory(Long.valueOf(userId), category);
-//    }
+    @Operation(summary = "카테고리 별 재료 목록 반환")
+    @GetMapping("/ingredients")
+    public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false, defaultValue = "1") String userId, @RequestParam(name = "category", required = false) List<String> category) {
+        return catalogService.readIngredientsByCategory(Long.valueOf(userId), category);
+    }
 
     /**
      * 재료 생성
