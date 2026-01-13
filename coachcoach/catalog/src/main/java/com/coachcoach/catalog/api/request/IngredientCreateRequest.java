@@ -21,4 +21,24 @@ public class IngredientCreateRequest {
     @NotNull(message = "사용량 입력은 필수입니다.")
     private BigDecimal amount;
     private String supplier;
+
+    public static IngredientCreateRequest of(
+            String categoryCode,
+            String ingredientName,
+            String unitCode,
+            BigDecimal price,
+            BigDecimal amount,
+            String supplier
+    ) {
+        IngredientCreateRequest request = new IngredientCreateRequest();
+
+        request.categoryCode = categoryCode;
+        request.ingredientName = ingredientName;
+        request.unitCode = unitCode;
+        request.price = price;
+        request.amount = amount;
+        request.supplier = supplier;
+
+        return request;
+    }
 }

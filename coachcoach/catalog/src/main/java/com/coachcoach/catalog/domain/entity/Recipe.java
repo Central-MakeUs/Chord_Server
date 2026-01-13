@@ -26,4 +26,23 @@ public class Recipe {
     private BigDecimal cost;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public static Recipe create(Long menuId, Long ingredientId, BigDecimal amount, BigDecimal cost) {
+        Recipe recipe = new Recipe();
+
+        recipe.menuId = menuId;
+        recipe.ingredientId = ingredientId;
+        recipe.usageAmount = amount;
+        recipe.cost = cost;
+
+        recipe.createdAt = LocalDateTime.now();
+        recipe.updatedAt = LocalDateTime.now();
+
+        return recipe;
+    }
+
+    public void update(BigDecimal cost) {
+        this.cost = cost;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

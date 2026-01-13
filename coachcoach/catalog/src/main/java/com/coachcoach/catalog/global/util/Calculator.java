@@ -1,6 +1,9 @@
 package com.coachcoach.catalog.global.util;
 
+import com.coachcoach.catalog.api.response.MenuCostAnalysis;
 import com.coachcoach.catalog.domain.entity.Unit;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -164,5 +167,30 @@ public class Calculator {
     public BigDecimal calRecommendedPrice(BigDecimal totalCost) {
         return totalCost
                 .divide(BigDecimal.valueOf(0.3), 0, RoundingMode.HALF_UP);
+    }
+
+    public MenuCostAnalysis calAnalysis(
+            BigDecimal totalCost,
+            BigDecimal sellingPrice,
+            BigDecimal laborCost,
+            Integer workTime
+    ) {
+        // 원가율 계산
+        BigDecimal costRate = calCostRate(totalCost, sellingPrice);
+
+        // 공헌이익률 계산
+        BigDecimal laborCostPerCup = calLaborCostPerCup(workTime, laborCost);
+        BigDecimal contributionMargin = calContributionMargin(sellingPrice, totalCost, laborCostPerCup);
+
+        // 마진율 계산
+        BigDecimal marginRate = calMarginRate(sellingPrice, totalCost, laborCostPerCup);
+
+        // 마진 등급 코드 계산
+        String marginCode = calMarginGrade(marginRate);
+
+        // 권장 가격 계산
+        BigDecimal recommendedPrice = calRecommendedPrice(totalCost);
+
+        return new MenuCostAnalysis(costRate, contributionMargin, marginRate, marginCode, recommendedPrice);
     }
 }

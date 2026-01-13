@@ -5,7 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Long> {
@@ -19,4 +21,8 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
             nativeQuery = true
     )
     List<String> findMenusByUserIdAndIngredientId(Long userId, Long ingredientId);
+
+    Optional<Menu> findByUserIdAndMenuId(Long userId, Long menuId);
+    boolean existsByUserIdAndMenuId(Long userId, Long menuId);
+    boolean existsByUserIdAndMenuName(Long userId, String menuName);
 }

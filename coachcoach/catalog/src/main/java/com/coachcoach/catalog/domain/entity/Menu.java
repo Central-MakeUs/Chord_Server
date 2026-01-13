@@ -37,4 +37,53 @@ public class Menu {
     private BigDecimal recommendedPrice;    // 권장 가격
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    public static Menu create(
+            Long userId,
+            String menuCategoryCode,
+            String menuName,
+            BigDecimal sellingPrice,
+            BigDecimal totalCost,
+            BigDecimal costRate,
+            BigDecimal contributionMargin,
+            BigDecimal marginRate,
+            String marginGradeCode,
+            Integer workTime,
+            BigDecimal recommendedPrice
+    ) {
+        Menu menu = new Menu();
+
+        menu.userId = userId;
+        menu.menuCategoryCode = menuCategoryCode;
+        menu.menuName = menuName;
+        menu.sellingPrice = sellingPrice;
+        menu.totalCost = totalCost;
+        menu.costRate = costRate;
+        menu.contributionMargin = contributionMargin;
+        menu.marginRate = marginRate;
+        menu.marginGradeCode = marginGradeCode;
+        menu.workTime = workTime;
+        menu.recommendedPrice = recommendedPrice;
+        menu.createdAt = LocalDateTime.now();
+        menu.updatedAt = LocalDateTime.now();
+
+        return menu;
+    }
+
+    public void update(
+            BigDecimal totalCost,
+            BigDecimal costRate,
+            BigDecimal contributionMargin,
+            BigDecimal marginRate,
+            String marginGradeCode,
+            BigDecimal recommendedPrice
+    ) {
+        this.totalCost = totalCost;
+        this.costRate = costRate;
+        this.contributionMargin = contributionMargin;
+        this.marginRate = marginRate;
+        this.marginGradeCode = marginGradeCode;
+        this.recommendedPrice = recommendedPrice;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
