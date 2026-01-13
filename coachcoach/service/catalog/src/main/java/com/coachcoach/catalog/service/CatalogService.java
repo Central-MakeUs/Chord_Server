@@ -3,6 +3,7 @@ package com.coachcoach.catalog.service;
 import com.coachcoach.catalog.entity.*;
 import com.coachcoach.catalog.global.exception.CatalogErrorCode;
 import com.coachcoach.catalog.global.util.Cache;
+import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.catalog.repository.*;
 import com.coachcoach.catalog.service.request.IngredientCreateRequest;
@@ -28,11 +29,15 @@ public class CatalogService {
 
     private final Cache cache;
     private final CodeFinder codeFinder;
+    private final Calculator calculator;
     private final IngredientCategoryRepository ingredientCategoryRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final IngredientRepository ingredientRepository;
     private final MenuRepository menuRepository;
     private final IngredientPriceHistoryRepository ingredientPriceHistoryRepository;
+    private final TemplateMenuRepository templateMenuRepository;
+    private final TemplateRecipeRepository templateRecipeRepository;
+    private final TemplateIngredientRepository templateIngredientRepository;
 
     /**
      * 재료 카테고리 목록 조회
@@ -97,7 +102,7 @@ public class CatalogService {
 
         // 단가 계산
         Unit unit = codeFinder.findUnitByCode(request.getUnitCode());
-        BigDecimal unitPrice = calUnitPrice(unit, request.getPrice(), request.getAmount());
+        BigDecimal unitPrice = calculator.calUnitPrice(unit, request.getPrice(), request.getAmount());
 
         // 재료 단가 입력
         Ingredient ingredient = ingredientRepository.save(
@@ -187,10 +192,10 @@ public class CatalogService {
         Unit currentUnit = codeFinder.findUnitByCode(request.getUnitCode());
 
         //단가 계산
-        BigDecimal unitPrice = calUnitPrice(currentUnit,  request.getPrice(), request.getAmount());
+        BigDecimal unitPrice = calculator.calUnitPrice(currentUnit,  request.getPrice(), request.getAmount());
 
         // 가격 변동률 계산 (단위가 바뀐 경우 null로 설정)
-        BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
+        BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calculator.calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
 
         // 가격 업데이트
         ingredient.update(unitPrice, currentUnit.getUnitCode());
@@ -238,36 +243,38 @@ public class CatalogService {
     }
 
     /**
-     * 재료 단가 계산 (2자리 반올림)
-     * 1kg, 100g, 1개, 100ml
-     * 구매가격 / 구매량 * 기준량
+     * 메뉴명 검색
      */
-    private BigDecimal calUnitPrice(Unit unit, BigDecimal price, BigDecimal amount) {
-        return price.divide(amount, 2, RoundingMode.HALF_UP)
-                .multiply(new BigDecimal(unit.getBaseQuantity()));
+    public List<SearchMenusResponse> searchMenus(String keyword) {
+        List<TemplateMenu> result = templateMenuRepository.findByKeywords(keyword);
+
+        return result.stream()
+                .map(SearchMenusResponse::from)
+                .toList();
     }
 
     /**
-     * 재료 단가 변동률 계산 (2자리 반올림)
-     * 변동률 = ((현재가격 - 이전가격) / 이전가격) * 100
+     * 템플릿에 따른 메뉴 기본 정보 제공 (메뉴명 + 가격 + 카테고리 + 제조시간)
      */
-    private BigDecimal calChangeRate(Unit unit, BigDecimal previousUnitPrice, BigDecimal currentUnitPrice) {
-        if (previousUnitPrice == null || previousUnitPrice.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
-        }
+    public TemplateBasicResponse readMenuTemplate(Long templateId) {
+        TemplateMenu template = templateMenuRepository.findById(templateId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_TEMPLATE));
 
-        if (currentUnitPrice == null) {
-            return BigDecimal.ZERO;
-        }
-
-        //
-        BigDecimal difference = currentUnitPrice.subtract(previousUnitPrice);
-        // 4자리로 나눗셈
-        // 2자리 반올림
-
-        return currentUnitPrice.subtract(previousUnitPrice)  // 4500 - 4000 = 500
-                .divide(previousUnitPrice, 4, RoundingMode.HALF_UP)  // 500 / 4000 = 0.1250
-                .multiply(BigDecimal.valueOf(100))  // 0.1250 * 100 = 12.50
-                .setScale(2, RoundingMode.HALF_UP);  // 12.50
+        return TemplateBasicResponse.from(template);
     }
+
+    /**
+     * 템플릿에 따른 재료 리스트 제공
+     */
+    public List<RecipeTemplateResponse> readTemplateIngredients(Long templateId) {
+        List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
+
+        return recipes.stream()
+                .map(x ->
+                        RecipeTemplateResponse.of(
+                        x,
+                        templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT))
+                ))
+                .toList();
+    }
+
 }

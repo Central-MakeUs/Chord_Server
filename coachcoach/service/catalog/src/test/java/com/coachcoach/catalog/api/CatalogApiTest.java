@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClient;
 
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -138,6 +139,44 @@ class CatalogApiTest {
 
         System.out.println("update");
         System.out.println(response.toString());
+    }
+
+    @Test
+    void searchMenus() {
+        List<SearchMenusResponse> results =
+                restClient.get()
+                        .uri("/menus/search?keyword=커피")
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<List<SearchMenusResponse>>() {});
+
+        System.out.println("search menus");
+        results.stream()
+                .forEach(System.out::println);
+    }
+
+    @Test
+    void readMenuTemplate() {
+        TemplateBasicResponse result =
+                restClient.get()
+                        .uri("/menus/template/3")
+                        .retrieve()
+                        .body(TemplateBasicResponse.class);
+
+        System.out.println("template");
+        System.out.println(result.toString());
+    }
+
+    @Test
+    void readTemplateRecipe() {
+        List<RecipeTemplateResponse> result =
+                restClient.get()
+                        .uri("/menus/template/3/ingredients")
+                        .retrieve()
+                        .body(new ParameterizedTypeReference<List<RecipeTemplateResponse>>() {});
+
+        System.out.println("template");
+        result.stream()
+                .forEach(System.out::println);
     }
 
     @Getter
