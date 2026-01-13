@@ -1,13 +1,10 @@
 rootProject.name = 'coachcoach'
 
-include 'infra'
-include 'infra:gateway'
-include 'infra:eureka'
-
 include 'common'
 
-include 'service'
-include 'service:auth'
-include 'service:user-store'
-include 'service:catalog'
-include 'service:insight'
+include 'auth'
+include 'user-store'
+include 'catalog'
+include 'insight'
+
+include 'app'

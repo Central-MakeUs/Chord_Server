@@ -1,9 +1,9 @@
 name: CI/CD Pipeline
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,7 +17,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -27,46 +27,32 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x coachcoach/gradlew
 
-      # 전체 빌드
-      - name: Build all modules
+      # app 빌드
+      - name: Build application
         working-directory: coachcoach
-        run: ./gradlew clean build -x test
+        run: ./gradlew :app:clean :app:bootJar -x test
 
+      # 저장소 로그인
       - name: Login to Quay
         run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u bread0930 --password-stdin
 
-      # 서비스별 도커 이미지 빌드 & 푸시
-      - name: Build & Push images
+      # 도커 이미지 빌드 & 푸시
+      - name: Build & Push Docker images
         working-directory: coachcoach
         shell: bash
         run: |
-          set -e
+          docker build \
+            -f Dockerfile \
+            -t quay.io/bread0930/coachcoach:latest \
+            -t quay.io/bread0930/coachcoach:${{ github.sha }} \
+            .
 
-          declare -A SERVICES=(
-            [gateway]="infra/gateway"
-            [eureka]="infra/eureka"
-            [auth]="service/auth"
-            [user-store]="service/user-store"
-            [catalog]="service/catalog"
-            [insight]="service/insight"
-          )
+          docker push quay.io/bread0930/coachcoach:latest
+          docker push quay.io/bread0930/coachcoach:${{ github.sha }}
 
-          for NAME in "${!SERVICES[@]}"; do
-            SERVICE_PATH="${SERVICES[$NAME]}"
+          echo "Image pushed successfully"
 
-            echo "▶ Building $NAME"
-
-            docker build \
-              -f ${SERVICE_PATH}/Dockerfile \
-              -t quay.io/bread0930/chord-server-${NAME}:latest \
-              .
-            # docker tag quay.io/bread0930/chord-server-${NAME}:latest \
-            #            quay.io/bread0930/chord-server-${NAME}:${{ github.sha }}
-            # docker push quay.io/bread0930/chord-server-${NAME}:${{ github.sha }}
-            docker push quay.io/bread0930/chord-server-${NAME}:latest
-          done
-          
-  deploy-1:
+  deploy:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -77,39 +63,23 @@ jobs:
           username: ubuntu
           key: ${{ secrets.PUBLIC_EC2_1_SSH_KEY }}
           script: |
-            docker-compose -f /home/ubuntu/compose/public1-compose.yml pull
-            docker-compose -f /home/ubuntu/compose/public1-compose.yml up -d
 
-  deploy-2:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to private EC2 - 1 (User-store, Auth)
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.PRIVATE_EC2_1_HOST }}
-          username: ubuntu
-          key: ${{ secrets.PRIVATE_EC2_1_SSH_KEY }}
-          proxy_host: ${{ secrets.PUBLIC_EC2_1_HOST }}
-          proxy_username: ubuntu
-          proxy_key: ${{ secrets.PUBLIC_EC2_1_SSH_KEY }}
-          script: |
-            docker-compose -f /home/ubuntu/compose/private1-compose.yml pull
-            docker-compose -f /home/ubuntu/compose/private1-compose.yml up -d
+            cd /home/ubuntu/coachcoach
 
-  deploy-3:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to private EC2 - 2 (Catalog, Insight)
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.PRIVATE_EC2_2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.PRIVATE_EC2_2_SSH_KEY }}
-          proxy_host: ${{ secrets.PUBLIC_EC2_1_HOST }}
-          proxy_username: ubuntu
-          proxy_key: ${{ secrets.PUBLIC_EC2_1_SSH_KEY }}
-          script: |
-            docker-compose -f /home/ubuntu/compose/private2-compose.yml pull
-            docker-compose -f /home/ubuntu/compose/private2-compose.yml up -d
+            docker-compose pull
+
+            docker-compose up -d
+
+            sleep 10
+            for i in {1..10}; do
+              if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                echo "Application is healthy!"
+                exit 0
+              fi
+              echo "Waiting for application... ($i/10)"
+              sleep 5
+            done
+
+            echo "Health check failed"
+            docker-compose logs --tail=50 app
+            exit 1
