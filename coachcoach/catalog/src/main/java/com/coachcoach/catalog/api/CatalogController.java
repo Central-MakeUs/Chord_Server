@@ -178,7 +178,44 @@ public class CatalogController {
     @GetMapping("/menus")
     public List<MenuResponse> readMenusByCategory(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestParam(name = "categoryCode") String categoryCode) {
+            @RequestParam(name = "categoryCode") String categoryCode
+    ) {
         return catalogService.readMenusByCategory(Long.valueOf(userId), categoryCode);
     }
+
+    /**
+     * 메뉴 상세 정보 반환
+     */
+    @Operation(summary = "메뉴 상세 정보 반환")
+    @GetMapping("/menus/{menuId}")
+    public MenuDetailResponse readMenu(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId
+    ) {
+        return catalogService.readMenu(Long.valueOf(userId), menuId);
+    }
+
+    /**
+     * 재료 목록 반환
+     */
+
+    /**
+     * 메뉴명 수정
+     */
+
+    /**
+     * 가격 수정
+     */
+
+    /**
+     * 카테고리 수정
+     */
+
+    /**
+     * 제조 시간 수정
+     */
+
+    /**
+     * 레시피 추가
+     */
 }

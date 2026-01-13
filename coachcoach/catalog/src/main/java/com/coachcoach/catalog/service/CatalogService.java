@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -502,5 +504,16 @@ public class CatalogService {
         return menus.stream()
                 .map(x -> MenuResponse.of(x, codeFinder.getMarginNameByCode(x.getMarginGradeCode())))
                 .toList();
+    }
+
+    /**
+     * 메뉴 상세 정보 반환
+     */
+    public MenuDetailResponse readMenu(
+            Long userId, Long menuId
+    ) {
+        Menu menu = menuRepository.findByUserIdAndMenuId(userId, menuId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+        MarginGrade margin = codeFinder.findMarginCodeByCode(menu.getMarginGradeCode());
+        return MenuDetailResponse.of(menu, margin.getGradeName(), margin.getMessage());
     }
 }
