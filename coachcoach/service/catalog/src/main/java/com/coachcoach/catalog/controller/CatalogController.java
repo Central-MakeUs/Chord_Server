@@ -154,5 +154,7 @@ public class CatalogController {
         return catalogService.readTemplateIngredients(templateId);
     }
 
-
+    /**
+     * 메뉴 등록
+     */
 }

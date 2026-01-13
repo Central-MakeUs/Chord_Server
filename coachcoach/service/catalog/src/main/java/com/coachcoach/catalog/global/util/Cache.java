@@ -1,9 +1,11 @@
 package com.coachcoach.catalog.global.util;
 
 import com.coachcoach.catalog.entity.IngredientCategory;
+import com.coachcoach.catalog.entity.MarginGrade;
 import com.coachcoach.catalog.entity.MenuCategory;
 import com.coachcoach.catalog.entity.Unit;
 import com.coachcoach.catalog.repository.IngredientCategoryRepository;
+import com.coachcoach.catalog.repository.MarginGradeRepository;
 import com.coachcoach.catalog.repository.MenuCategoryRepository;
 import com.coachcoach.catalog.repository.UnitRepository;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ public class Cache {
     private final IngredientCategoryRepository ingredientCategoryRepository;
     private final MenuCategoryRepository menuCategoryRepository;
     private final UnitRepository unitRepository;
+    private final MarginGradeRepository marginGradeRepository;
 
     @Cacheable(value = "ingredient-categories", key = "'all'")
     public List<IngredientCategory> getIngredientCategories() {
@@ -36,4 +39,7 @@ public class Cache {
     public List<Unit> getUnits() {
         return unitRepository.findAllByOrderByUnitIdAsc();
     }
+
+    @Cacheable(value="margin-grade", key="'all'")
+    public List<MarginGrade> getMarginGrades() { return marginGradeRepository.findAllByOrderByGradeIdAsc(); }
 }
