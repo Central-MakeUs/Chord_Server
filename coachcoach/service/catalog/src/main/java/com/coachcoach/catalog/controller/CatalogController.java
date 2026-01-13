@@ -7,6 +7,7 @@ import com.coachcoach.catalog.service.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.service.response.*;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -125,4 +126,33 @@ public class CatalogController {
     public List<MenuCategoryResponse> readMenuCategory() {
         return catalogService.readMenuCategory();
     }
+
+    /**
+     * 메뉴명 검색
+     */
+    @Operation(summary = "메뉴명 검색")
+    @GetMapping("/menus/search")
+    public List<SearchMenusResponse> searchMenus(@RequestParam(name = "keyword") String keyword) {
+        return catalogService.searchMenus(keyword);
+    }
+
+    /**
+     * 템플릿에 따른 메뉴 기본 정보 제공 (메뉴명 + 가격 + 카테고리 + 제조시간)
+     */
+    @Operation(summary = "템플릿에 따른 메뉴 기본 정보 제공 (메뉴명+가격+카테고리+제조시간)")
+    @GetMapping("/menus/template/{templateId}")
+    public TemplateBasicResponse readMenuTemplate(@PathVariable(name = "templateId") Long templateId) {
+        return catalogService.readMenuTemplate(templateId);
+    }
+
+    /**
+     * 템플릿에 따른 재료 리스트 제공
+     */
+    @Operation(summary = "템플릿에 따른 재료 리스트 제공")
+    @GetMapping("/menus/template/{templateId}/ingredients")
+    public List<RecipeTemplateResponse> readTemplateIngredients(@PathVariable(name = "templateId") Long templateId) {
+        return catalogService.readTemplateIngredients(templateId);
+    }
+
+
 }

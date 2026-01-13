@@ -33,6 +33,9 @@ public class CatalogService {
     private final IngredientRepository ingredientRepository;
     private final MenuRepository menuRepository;
     private final IngredientPriceHistoryRepository ingredientPriceHistoryRepository;
+    private final TemplateMenuRepository templateMenuRepository;
+    private final TemplateRecipeRepository templateRecipeRepository;
+    private final TemplateIngredientRepository templateIngredientRepository;
 
     /**
      * 재료 카테고리 목록 조회
@@ -234,6 +237,41 @@ public class CatalogService {
         // 정렬 조건: display order asc
         return cache.getMenuCategories().stream()
                 .map(MenuCategoryResponse::from)
+                .toList();
+    }
+
+    /**
+     * 메뉴명 검색
+     */
+    public List<SearchMenusResponse> searchMenus(String keyword) {
+        List<TemplateMenu> result = templateMenuRepository.findByKeywords(keyword);
+
+        return result.stream()
+                .map(SearchMenusResponse::from)
+                .toList();
+    }
+
+    /**
+     * 템플릿에 따른 메뉴 기본 정보 제공 (메뉴명 + 가격 + 카테고리 + 제조시간)
+     */
+    public TemplateBasicResponse readMenuTemplate(Long templateId) {
+        TemplateMenu template = templateMenuRepository.findById(templateId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_TEMPLATE));
+
+        return TemplateBasicResponse.from(template);
+    }
+
+    /**
+     * 템플릿에 따른 재료 리스트 제공
+     */
+    public List<RecipeTemplateResponse> readTemplateIngredients(Long templateId) {
+        List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
+
+        return recipes.stream()
+                .map(x ->
+                        RecipeTemplateResponse.of(
+                        x,
+                        templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT))
+                ))
                 .toList();
     }
 
