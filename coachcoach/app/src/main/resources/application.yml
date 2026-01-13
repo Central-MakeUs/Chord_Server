@@ -1,0 +1,83 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+    context-path: /
+  shutdown: graceful              # 실행 중인 모은 요청을 수행한 후 종료
+  error:
+    include-message: always       # 에러 메시지 항상 포함
+    include-binding-errors: always  # Validation 에러 항상 포함
+    include-stacktrace: on_param
+
+spring:
+  application:
+    name: app
+  jpa:
+    hibernate:
+      ddl-auto: none
+    open-in-view: false
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_batch_fetch_size: 100
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10   # 최대 커넥션 수
+      minimum-idle: 5         # 최소 유휴 커넥션
+      connection-timeout: 30000   # 30초
+      idle-timeout: 600000    # 10분
+      max-lifetime: 1800000   # 30분
+      connection-test-query: SELECT 1   # 커넥션 검증 쿼리
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false  # ISO-8601 형식 사용
+    time-zone: Asia/Seoul
+    default-property-inclusion: non_null  # null 필드 제외
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+logging:
+  level:
+    chord.catalog: DEBUG  # 프로젝트 로그 레벨
+    org.hibernate.SQL: DEBUG  # SQL 로그
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 파라미터
+    org.springframework.web: INFO
+    org.springframework.cloud: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    disable-swagger-default-url: true
