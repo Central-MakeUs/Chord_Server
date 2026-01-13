@@ -18,6 +18,7 @@ public enum CatalogErrorCode implements ErrorCode {
     NOTFOUND_PRICEHISTORY("CATALOG_006", "변경 이력이 존재하지 않습니다.", HttpStatus.NOT_FOUND),
     NOTFOUND_TEMPLATE("CATALOG_007", "존재하지 않는 템플릿입니다.", HttpStatus.NOT_FOUND),
     NOTFOUND_MENU("CATALOG_008", "존재하지 않는 메뉴입니다.", HttpStatus.NOT_FOUND),
+    NOTFOUND_MARGINGRADE("CATALOG_009", "존재하지 않는 마진 등급입니다.", HttpStatus.NOT_FOUND),
     ;
     private final String code;
     private final String message;

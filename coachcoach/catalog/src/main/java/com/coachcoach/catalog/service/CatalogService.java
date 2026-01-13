@@ -12,12 +12,14 @@ import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.api.request.MenuCreateRequest;
 import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
 import com.coachcoach.common.exception.BusinessException;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -485,5 +487,20 @@ public class CatalogService {
                     //레시피 등록
                     createRecipe(userId, menu.getMenuId(), ingredient, x.getAmount(), x.getPrice());
                 });
+    }
+
+    /**
+     * 카테고리 별 메뉴 목록 반환 (필터링)
+     */
+    public List<MenuResponse> readMenusByCategory(Long userId, String categoryCode) {
+        // 유효성 검사
+        if(!codeFinder.existsMenuCategory(categoryCode)){
+            throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
+        }
+
+        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(userId, categoryCode);
+        return menus.stream()
+                .map(x -> MenuResponse.of(x, codeFinder.getMarginNameByCode(x.getMarginGradeCode())))
+                .toList();
     }
 }

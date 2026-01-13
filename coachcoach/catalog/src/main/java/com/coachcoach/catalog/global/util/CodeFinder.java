@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.global.util;
 
 import com.coachcoach.catalog.domain.entity.IngredientCategory;
+import com.coachcoach.catalog.domain.entity.MarginGrade;
 import com.coachcoach.catalog.domain.entity.MenuCategory;
 import com.coachcoach.catalog.domain.entity.Unit;
 import com.coachcoach.catalog.global.exception.CatalogErrorCode;
@@ -56,5 +57,28 @@ public class CodeFinder {
     public boolean existsUnit(String unitCode) {
         return cache.getUnits().stream()
                 .anyMatch(unit -> unit.getUnitCode().equals(unitCode));
+    }
+
+    /**
+     * 마진 코드로 마진 찾기
+     */
+    public MarginGrade findMarginCodeByCode(String code) {
+        return cache.getMarginGrades().stream()
+                .filter(margin -> margin.getGradeCode().equals(code))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MARGINGRADE));
+    }
+
+    public boolean existsMargin(String code) {
+        return cache.getMarginGrades().stream()
+                .anyMatch(margin -> margin.getGradeCode().equals(code));
+    }
+
+    public String getMarginNameByCode(String code) {
+        return findMarginCodeByCode(code).getGradeName();
+    }
+
+    public String getMarginMessageByCode(String code) {
+        return findMarginCodeByCode(code).getMessage();
     }
 }

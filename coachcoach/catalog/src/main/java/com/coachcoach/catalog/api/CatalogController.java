@@ -170,4 +170,15 @@ public class CatalogController {
             @Valid @RequestBody MenuCreateRequest request) {
         catalogService.createMenu(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), request);
     }
+
+    /**
+     * 카테고리 별 메뉴 목록 반환 (필터링)
+     */
+    @Operation(summary = "카테고리 별 메뉴 목록 반환 (필터링)")
+    @GetMapping("/menus")
+    public List<MenuResponse> readMenusByCategory(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestParam(name = "categoryCode") String categoryCode) {
+        return catalogService.readMenusByCategory(Long.valueOf(userId), categoryCode);
+    }
 }
