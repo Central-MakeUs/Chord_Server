@@ -1,11 +1,12 @@
 package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.api.response.*;
-import com.coachcoach.catalog.service.CatalogService;
+import com.coachcoach.catalog.service.MenuService;
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
 import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.api.request.MenuCreateRequest;
 import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
+import com.coachcoach.catalog.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -27,7 +28,8 @@ import java.util.List;
 @RequestMapping("/api/v1/catalog")
 public class CatalogController {
 
-    private final CatalogService catalogService;
+    private final MenuService menuService;
+    private final IngredientService ingredientService;
 
     /**
      * 재료 카테고리 목록 조회
@@ -35,7 +37,7 @@ public class CatalogController {
     @Operation(summary = "재료 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환<br>📍'즐겨찾기(FAVORITE)'는 목록에 포함되어 있지 않음")
     @GetMapping("/ingredient-categories")
     public List<IngredientCategoryResponse> readIngredientCategory() {
-        return catalogService.readIngredientCategory();
+        return ingredientService.readIngredientCategory();
     }
 
     /**
@@ -44,7 +46,7 @@ public class CatalogController {
     @Operation(summary = "카테고리 별 재료 목록 반환")
     @GetMapping("/ingredients")
     public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false, defaultValue = "1") String userId, @RequestParam(name = "category", required = false) List<String> category) {
-        return catalogService.readIngredientsByCategory(Long.valueOf(userId), category);
+        return ingredientService.readIngredientsByCategory(Long.valueOf(userId), category);
     }
 
     /**
@@ -56,7 +58,7 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @Valid @RequestBody IngredientCreateRequest request
     ) {
-        return catalogService.createIngredient(Long.valueOf(userId), request);
+        return ingredientService.createIngredient(Long.valueOf(userId), request);
     }
 
     /**
@@ -68,7 +70,7 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "ingredientId") Long ingredientId
     ) {
-        return catalogService.readIngredientDetail(Long.valueOf(userId), ingredientId);
+        return ingredientService.readIngredientDetail(Long.valueOf(userId), ingredientId);
     }
 
     /**
@@ -80,7 +82,7 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "ingredientId") Long ingredientId
     ) {
-        return catalogService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
+        return ingredientService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
     }
 
     /**
@@ -93,7 +95,7 @@ public class CatalogController {
             @PathVariable(name = "ingredientId") Long ingredientId,
             @RequestParam(name = "favorite") Boolean favorite
     ) {
-        catalogService.updateFavorite(Long.valueOf(userId), ingredientId, favorite);
+        ingredientService.updateFavorite(Long.valueOf(userId), ingredientId, favorite);
     }
 
     /**
@@ -107,7 +109,7 @@ public class CatalogController {
             @PathVariable(name = "ingredientId") Long ingredientId,
             @Valid @RequestBody IngredientUpdateRequest request
     ) {
-        return catalogService.updateIngredient(Long.valueOf(userId), BigDecimal.valueOf(Long.valueOf(laborCost)), ingredientId, request);
+        return ingredientService.updateIngredient(Long.valueOf(userId), BigDecimal.valueOf(Long.valueOf(laborCost)), ingredientId, request);
     }
 
     /**
@@ -120,7 +122,7 @@ public class CatalogController {
             @PathVariable(name = "ingredientId") Long ingredientId,
             @RequestBody SupplierUpdateRequest request
     ) {
-        return catalogService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
+        return ingredientService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
     }
 
     /**
@@ -129,7 +131,7 @@ public class CatalogController {
     @Operation(summary = "메뉴 카테고리 목록 조회", description = "📍인증 구현 X <br>📍display order를 기준으로 오름차순으로 반환<br>📍'전체'(ALL)는 목록에 포함되어 있지 않음")
     @GetMapping("/menu-categories")
     public List<MenuCategoryResponse> readMenuCategory() {
-        return catalogService.readMenuCategory();
+        return menuService.readMenuCategory();
     }
 
     /**
@@ -138,7 +140,7 @@ public class CatalogController {
     @Operation(summary = "메뉴명 검색")
     @GetMapping("/menus/search")
     public List<SearchMenusResponse> searchMenus(@RequestParam(name = "keyword") String keyword) {
-        return catalogService.searchMenus(keyword);
+        return menuService.searchMenus(keyword);
     }
 
     /**
@@ -147,7 +149,7 @@ public class CatalogController {
     @Operation(summary = "템플릿에 따른 메뉴 기본 정보 제공 (메뉴명+가격+카테고리+제조시간)")
     @GetMapping("/menus/template/{templateId}")
     public TemplateBasicResponse readMenuTemplate(@PathVariable(name = "templateId") Long templateId) {
-        return catalogService.readMenuTemplate(templateId);
+        return menuService.readMenuTemplate(templateId);
     }
 
     /**
@@ -156,7 +158,7 @@ public class CatalogController {
     @Operation(summary = "템플릿에 따른 재료 리스트 제공")
     @GetMapping("/menus/template/{templateId}/ingredients")
     public List<RecipeTemplateResponse> readTemplateIngredients(@PathVariable(name = "templateId") Long templateId) {
-        return catalogService.readTemplateIngredients(templateId);
+        return menuService.readTemplateIngredients(templateId);
     }
 
     /**
@@ -168,7 +170,7 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
             @Valid @RequestBody MenuCreateRequest request) {
-        catalogService.createMenu(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), request);
+        menuService.createMenu(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), request);
     }
 
     /**
@@ -180,7 +182,7 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestParam(name = "categoryCode") String categoryCode
     ) {
-        return catalogService.readMenusByCategory(Long.valueOf(userId), categoryCode);
+        return menuService.readMenusByCategory(Long.valueOf(userId), categoryCode);
     }
 
     /**
@@ -192,7 +194,7 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "menuId") Long menuId
     ) {
-        return catalogService.readMenu(Long.valueOf(userId), menuId);
+        return menuService.readMenu(Long.valueOf(userId), menuId);
     }
 
     /**
