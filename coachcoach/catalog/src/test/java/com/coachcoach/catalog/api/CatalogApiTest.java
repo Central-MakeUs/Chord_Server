@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 class CatalogApiTest {
-    RestClient restClient = RestClient.create("http://localhost:8080");
+    RestClient restClient = RestClient.create("http://localhost:8080/api/v1/catalog");
 
     @Test
     void readIngredientCategories() {
