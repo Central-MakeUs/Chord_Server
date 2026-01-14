@@ -22,22 +22,5 @@ public class MenuCreateRequest {
     private Integer workTime;
 
     // 재료 관련
-    List<IngredientRequest> ingredients;
-
-    @Getter
-    @ToString
-    public static class IngredientRequest {
-        private Long ingredientId;
-        @NotBlank(message = "재료 카테고리 입력은 필수입니다.")
-        private String categoryCode;        // INGREDIENTS / MATERIAL
-        @NotBlank(message = "재료명 입력은 필수입니다.")
-        private String ingredientName;
-        @NotBlank(message = "단위 입력은 필수입니다.")
-        private String unitCode;            // G / KG / EA / ML
-        @NotNull(message = "가격 입력은 필수입니다.")
-        private BigDecimal price;
-        @NotNull(message = "사용량 입력은 필수입니다.")
-        private BigDecimal amount;
-        private String supplier;
-    }
+    List<IngredientCreateRequest> ingredients;
 }
