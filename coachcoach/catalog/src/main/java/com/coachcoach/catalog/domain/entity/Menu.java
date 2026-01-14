@@ -86,4 +86,44 @@ public class Menu {
         this.recommendedPrice = recommendedPrice;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateName(String menuName) {
+        this.menuName = menuName;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateSellingPrice(
+            BigDecimal sellingPrice,
+            BigDecimal costRate,
+            BigDecimal contributionMargin,
+            BigDecimal marginRate,
+            String marginGradeCode,
+            BigDecimal recommendedPrice
+    ) {
+        this.sellingPrice = sellingPrice;
+        this.costRate = costRate;
+        this.contributionMargin = contributionMargin;
+        this.marginRate = marginRate;
+        this.marginGradeCode = marginGradeCode;
+        this.recommendedPrice = recommendedPrice;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateCategory(String category) {
+        this.menuCategoryCode = category;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateWorkTime(
+            Integer workTime,
+            BigDecimal contributionMargin,
+            BigDecimal marginRate,
+            String marginGradeCode
+    ) {
+        this.workTime = workTime;
+        this.contributionMargin = contributionMargin;
+        this.marginRate = marginRate;
+        this.marginGradeCode = marginGradeCode;
+        this.updatedAt = LocalDateTime.now();
+    }
 }

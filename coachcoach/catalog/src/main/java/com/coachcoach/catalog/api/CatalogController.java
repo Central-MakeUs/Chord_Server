@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.api.response.*;
+import com.coachcoach.catalog.domain.entity.Ingredient;
 import com.coachcoach.catalog.service.MenuService;
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
 import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
@@ -147,7 +148,7 @@ public class CatalogController {
      * 템플릿에 따른 메뉴 기본 정보 제공 (메뉴명 + 가격 + 카테고리 + 제조시간)
      */
     @Operation(summary = "템플릿에 따른 메뉴 기본 정보 제공 (메뉴명+가격+카테고리+제조시간)")
-    @GetMapping("/menus/template/{templateId}")
+    @GetMapping("/menus/templates/{templateId}")
     public TemplateBasicResponse readMenuTemplate(@PathVariable(name = "templateId") Long templateId) {
         return menuService.readMenuTemplate(templateId);
     }
@@ -156,7 +157,7 @@ public class CatalogController {
      * 템플릿에 따른 재료 리스트 제공
      */
     @Operation(summary = "템플릿에 따른 재료 리스트 제공")
-    @GetMapping("/menus/template/{templateId}/ingredients")
+    @GetMapping("/menus/templates/{templateId}/ingredients")
     public List<RecipeTemplateResponse> readTemplateIngredients(@PathVariable(name = "templateId") Long templateId) {
         return menuService.readTemplateIngredients(templateId);
     }
@@ -198,26 +199,82 @@ public class CatalogController {
     }
 
     /**
-     * 재료 목록 반환
+     * 재료 목록(레시피) 반환
      */
+    @Operation(summary = "해당 메뉴의 재료 목록(레시피) 반환")
+    @GetMapping("/menus/{menuId}/recipes")
+    public List<IngredientResponse> readRecipe(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId
+    ) {
+        return menuService.readRecipe(Long.valueOf(userId), menuId);
+    }
 
     /**
      * 메뉴명 수정
      */
+    @Operation(summary = "메뉴명 수정")
+    @PatchMapping("/menus/{menuId}")
+    public void updateMenuName(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestParam(name = "menuName") String menuName
+    ) {
+        menuService.updateMenuName(Long.valueOf(userId), menuId, menuName);
+    }
 
     /**
      * 가격 수정
      */
+    @Operation(summary = "메뉴 가격 수정")
+    @PatchMapping("/menus/{menuId}/price")
+    public void updateSellingPrice(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestParam(name = "sellingPrice") BigDecimal sellingPrice
+    ) {
+        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, sellingPrice);
+    }
 
     /**
      * 카테고리 수정
      */
+    @Operation(summary = "메뉴 카테고리 수정")
+    @PatchMapping("/menus/{menuId}/category")
+    public void updateMenuCategory(
+        @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+        @PathVariable(name = "menuId") Long menuId,
+        @RequestParam(name = "category") String category
+    ) {
+        menuService.updateMenuCategory(Long.valueOf(userId), menuId, category);
+    }
 
     /**
      * 제조 시간 수정
      */
+    @Operation(summary = "메뉴 제조 시간 수정")
+    @PatchMapping("/menus/{menuId}/worktime")
+    public void updateWorkTime(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestParam(name = "worktime") Integer workTime
+    ) {
+        menuService.updateWorkTime(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, workTime);
+    }
 
     /**
      * 레시피 추가
      */
+    @Operation(summary = "메뉴 레시피 추가")
+    @PostMapping("/menus/{menuId}/recipes")
+    public IngredientResponse createRecipes(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestBody IngredientCreateRequest request
+    ) {
+        return menuService.createRecipes(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
+    }
 }
