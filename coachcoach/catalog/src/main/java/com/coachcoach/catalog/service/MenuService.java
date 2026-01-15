@@ -531,6 +531,39 @@ public class MenuService {
     }
 
     /**
+     * 메뉴 판매가 수정
+     */
+    @Transactional
+    public void updateSellingPrice(
+            Long userId,
+            BigDecimal laborCost,
+            Long menuId,
+            BigDecimal sellingPrice
+    ) {
+        // 유효성 검증 (메뉴 존재 여부)
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        // 메뉴 analysis 재계산
+        MenuCostAnalysis analysis = calculator.calAnalysis(
+                menu.getTotalCost(),
+                sellingPrice,
+                laborCost,
+                menu.getWorkTime()
+        );
+
+        menu.updateSellingPrice(
+                sellingPrice,
+                analysis.getCostRate(),
+                analysis.getContributionMargin(),
+                analysis.getMarginRate(),
+                analysis.getMarginGradeCode(),
+                analysis.getRecommendedPrice()
+        );
+    }
+
+    /**
      * 카테고리 수정
      */
     @Transactional

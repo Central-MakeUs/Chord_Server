@@ -259,14 +259,24 @@ public class CatalogController {
     public void updateMenuName(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "menuId") Long menuId,
-            @RequestParam(name = "menuName") String menuName
+            @Valid @RequestBody MenuCreateRequest request
     ) {
-        menuService.updateMenuName(Long.valueOf(userId), menuId, menuName);
+        menuService.updateMenuName(Long.valueOf(userId), menuId, request.getMenuName());
     }
 
     /**
      * 메뉴 판매가 수정
      */
+    @Operation(summary = "메뉴 판매가 수정")
+    @PatchMapping("/menus/{menuId}/price")
+    public void updateSellingPrice(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestParam(name = "price") BigDecimal price
+    ) {
+        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, price);
+    }
 
     /**
      * 메뉴 카테고리 수정
@@ -276,9 +286,9 @@ public class CatalogController {
     public void updateMenuCategory(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "menuId") Long menuId,
-            @RequestParam(name = "category") String category
+            @Valid @RequestBody MenuCategoryUpdateRequest request
     ) {
-        menuService.updateMenuCategory(Long.valueOf(userId), menuId, category);
+        menuService.updateMenuCategory(Long.valueOf(userId), menuId, request.getCategory());
     }
 
     /**
