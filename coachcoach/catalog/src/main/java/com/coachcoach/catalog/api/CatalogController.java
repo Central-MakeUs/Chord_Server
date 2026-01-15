@@ -49,7 +49,10 @@ public class CatalogController {
      */
     @Operation(summary = "카테고리 별 재료 목록 조회")
     @GetMapping("/ingredients")
-    public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false, defaultValue = "1") String userId, @RequestParam(name = "category", required = false) List<String> category) {
+    public List<IngredientResponse> readIngredientsByCategory(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestParam(name = "category", required = false) List<String> category
+    ) {
         return ingredientService.readIngredientsByCategory(Long.valueOf(userId), category);
     }
 
@@ -67,7 +70,6 @@ public class CatalogController {
 
     /**
      * 가격 변경 이력 목록 조회
-     * todo: 반환 시 id 추가 / unit -> unitCode로 변수명 수정
      */
     @Operation(summary = "재료 가격 변경 이력 목록 조회")
     @GetMapping("/ingredients/{ingredientId}/price-history")
@@ -81,7 +83,6 @@ public class CatalogController {
     /* -------------생성------------- */
     /**
      * 재료 생성
-     * todo: amount, price 변수명
      */
     @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
     @PostMapping("/ingredients")
@@ -107,32 +108,16 @@ public class CatalogController {
     }
 
     /**
-     * 재료 단가 수정
-     * todo: 반환 타입 수정
-     */
-    @Operation(summary = "재료 단가 수정")
-    @PatchMapping("/ingredients/{ingredientId}")
-    public IngredientUpdateResponse updateIngredient(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "ingredientId") Long ingredientId,
-            @Valid @RequestBody IngredientUpdateRequest request
-    ) {
-        return ingredientService.updateIngredient(Long.valueOf(userId), BigDecimal.valueOf(Long.valueOf(laborCost)), ingredientId, request);
-    }
-
-    /**
      * 재료 공급업체 수정
-     * todo: 반환 타입 수정
      */
     @Operation(summary = "메뉴 공급업체 수정")
     @PatchMapping("/ingredients/{ingredientId}/supplier")
-    public SupplierUpdateResponse updateIngredientSupplier(
+    public void updateIngredientSupplier(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "ingredientId") Long ingredientId,
             @RequestBody SupplierUpdateRequest request
     ) {
-        return ingredientService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
+        ingredientService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
     }
 
     /* -------------메뉴------------- */

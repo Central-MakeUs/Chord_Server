@@ -2,6 +2,7 @@ package com.coachcoach.catalog.api.response;
 
 import com.coachcoach.catalog.domain.entity.Ingredient;
 import com.coachcoach.catalog.domain.entity.IngredientPriceHistory;
+import com.coachcoach.catalog.domain.entity.Unit;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -18,18 +19,23 @@ public class IngredientDetailResponse {
     private String unitCode;                // 단위
     private String supplier;            // 공급업체
     private List<String> menus;         // 해당 메뉴를 사용 중인 메뉴 목록
-    private BigDecimal originalAmount;  // 구매량
-    private BigDecimal originalPrice;   // 구매가
+    private BigDecimal originalAmount;  // 구매량(최근)
+    private BigDecimal originalPrice;   // 구매가(최근)
     private Boolean isFavorite;         // 즐겨찾기 여부
 
-    public static IngredientDetailResponse of(Ingredient ingredient, Integer baseQuantity, List<String> menus, IngredientPriceHistory history) {
+    public static IngredientDetailResponse of(
+            Ingredient ingredient,
+            Unit unit,
+            List<String> menus,
+            IngredientPriceHistory history
+    ) {
         IngredientDetailResponse response = new IngredientDetailResponse();
 
         response.ingredientId = ingredient.getIngredientId();
         response.ingredientName = ingredient.getIngredientName();
         response.unitPrice = ingredient.getCurrentUnitPrice();
-        response.baseQuantity = baseQuantity;
-        response.unitCode = ingredient.getUnitCode();
+        response.baseQuantity = unit.getBaseQuantity();
+        response.unitCode = unit.getUnitCode();
         response.supplier = ingredient.getSupplier();
         response.menus = menus;
         response.originalAmount = history.getOriginalAmount();
