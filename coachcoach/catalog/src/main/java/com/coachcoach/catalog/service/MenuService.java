@@ -47,7 +47,7 @@ public class MenuService {
      * todo: 유사도 기반 나열
      */
     public List<SearchMenusResponse> searchMenus(String keyword) {
-        List<TemplateMenu> result = templateMenuRepository.findByKeywords(keyword);
+        List<TemplateMenu> result = templateMenuRepository.findByKeywordWithPriority(keyword);
 
         return result.stream()
                 .map(SearchMenusResponse::from)
