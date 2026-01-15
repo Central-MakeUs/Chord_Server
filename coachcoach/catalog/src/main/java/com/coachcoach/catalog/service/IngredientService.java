@@ -1,7 +1,6 @@
 package com.coachcoach.catalog.service;
 
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
-import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.api.response.*;
 import com.coachcoach.catalog.domain.entity.*;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.List;
 
 @Service
@@ -184,7 +182,5 @@ public class IngredientService {
     public void updateIngredientSupplier(Long userId, Long ingredientId, SupplierUpdateRequest request) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         ingredient.updateSupplier(request.getSupplier());
-
-        SupplierUpdateResponse.from(ingredient);
     }
 }

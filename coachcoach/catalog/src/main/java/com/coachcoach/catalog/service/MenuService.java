@@ -7,18 +7,11 @@ import com.coachcoach.catalog.global.exception.CatalogErrorCode;
 import com.coachcoach.catalog.global.util.Cache;
 import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
-import com.coachcoach.catalog.api.request.IngredientCreateRequest;
-import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
-import com.coachcoach.catalog.api.request.MenuCreateRequest;
 import com.coachcoach.common.exception.BusinessException;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Slf4j
@@ -72,7 +65,6 @@ public class MenuService {
 
     /**
      * 템플릿에 따른 재료 리스트 제공
-     * todo: 레시피 아이디는 반환에서 제외
      */
     public List<RecipeTemplateResponse> readTemplateIngredients(Long templateId) {
         List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
@@ -97,19 +89,18 @@ public class MenuService {
 
         List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(userId, categoryCode);
         return menus.stream()
-                .map(x -> MenuResponse.of(x, codeFinder.getMarginNameByCode(x.getMarginGradeCode())))
+                .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
                 .toList();
     }
 
     /**
      * 메뉴 상세 정보 반환
-     * todo: 변수명 통일 marginCode -> marginGradeCode/Name
      */
     public MenuDetailResponse readMenu(
             Long userId, Long menuId
     ) {
         Menu menu = menuRepository.findByUserIdAndMenuId(userId, menuId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
-        MarginGrade margin = codeFinder.findMarginCodeByCode(menu.getMarginGradeCode());
-        return MenuDetailResponse.of(menu, margin.getGradeName(), margin.getMessage());
+        MarginGrade marginGrade = codeFinder.findMarginCodeByCode(menu.getMarginGradeCode());
+        return MenuDetailResponse.of(menu, marginGrade);
     }
 }

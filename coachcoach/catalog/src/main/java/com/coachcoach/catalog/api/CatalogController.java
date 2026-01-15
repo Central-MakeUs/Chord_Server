@@ -1,11 +1,8 @@
 package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.api.response.*;
-import com.coachcoach.catalog.domain.entity.Ingredient;
 import com.coachcoach.catalog.service.MenuService;
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
-import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
-import com.coachcoach.catalog.api.request.MenuCreateRequest;
 import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,7 +11,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -80,6 +76,10 @@ public class CatalogController {
         return ingredientService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
     }
 
+    /**
+     * 재료 검색 (in template & users)
+     */
+
     /* -------------생성------------- */
     /**
      * 재료 생성
@@ -120,6 +120,15 @@ public class CatalogController {
         ingredientService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
     }
 
+    /**
+     * 재료 단가 수정 -> 해당 재료 사용하는 모든 메뉴에 대해 업데이트 필요
+     */
+
+    /* -------------삭제------------- */
+    /**
+     * 재료 삭제 -> 해당 재료 사용하는 모든 메뉴 업데이트 필요
+     */
+
     /* -------------메뉴------------- */
 
     /* -------------조회------------- */
@@ -153,7 +162,6 @@ public class CatalogController {
 
     /**
      * 템플릿에 따른 재료 리스트 제공
-     * todo: 레시피 아이디는 반환에서 제외
      */
     @Operation(summary = "템플릿에 따른 재료 리스트 제공")
     @GetMapping("/menus/templates/{templateId}/ingredients")
@@ -176,7 +184,6 @@ public class CatalogController {
 
     /**
      * 메뉴 상세 정보 조회
-     * todo: 변수명 통일 marginCode -> marginGradeCode/Name
      */
     @Operation(summary = "메뉴 상세 정보 조회")
     @GetMapping("/menus/{menuId}")
@@ -186,4 +193,53 @@ public class CatalogController {
     ) {
         return menuService.readMenu(Long.valueOf(userId), menuId);
     }
+
+    /**
+     * 메뉴 상세 정보 - 레시피 목록 조회
+     */
+
+    /* -------------생성------------- */
+
+    /**
+     * 메뉴 생성
+     */
+
+    /**
+     * 레시피 추가 (단일 / 기존 재료)
+     */
+
+    /**
+     * 레시피 추가 (단일 / 새 재료)
+     */
+
+    /* -------------수정------------- */
+
+    /**
+     * 메뉴명 수정
+     */
+
+    /**
+     * 메뉴 판매가 수정
+     */
+
+    /**
+     * 메뉴 카테고리 수정
+     */
+
+    /**
+     * 메뉴 제조시간 수정
+     */
+
+    /**
+     * 레시피 수정 (only 사용량)
+     */
+
+    /* -------------삭제------------- */
+    /**
+     * 레시피 삭제 (복수 선택 가능) -> 해당 메뉴 정보 업데이트 필요
+     */
+
+    /**
+     * 메뉴 삭제 (단일)
+     */
 }

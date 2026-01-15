@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.api.response;
 
+import com.coachcoach.catalog.domain.entity.MarginGrade;
 import com.coachcoach.catalog.domain.entity.Menu;
 import lombok.Getter;
 import lombok.ToString;
@@ -17,15 +18,15 @@ public class MenuResponse {
     private String marginGradeName;
     private BigDecimal marginRate;
 
-    public static MenuResponse of(Menu menu, String gradeName){
+    public static MenuResponse of(Menu menu, MarginGrade marginGrade){
         MenuResponse menuResponse = new MenuResponse();
 
         menuResponse.menuId = menu.getMenuId();
         menuResponse.menuName = menu.getMenuName();
         menuResponse.sellingPrice = menu.getSellingPrice();
         menuResponse.costRate = menu.getCostRate();
-        menuResponse.marginGradeCode = menu.getMarginGradeCode();
-        menuResponse.marginGradeName = gradeName;
+        menuResponse.marginGradeCode = marginGrade.getGradeCode();
+        menuResponse.marginGradeName = marginGrade.getGradeName();
         menuResponse.marginRate = menu.getMarginRate();
 
         return menuResponse;

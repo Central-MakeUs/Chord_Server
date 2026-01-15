@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 @Getter
 @ToString
 public class RecipeTemplateResponse {
-    private Long recipeId;
     private String ingredientName;
     private BigDecimal defaultUsageAmount;
     private BigDecimal defaultCost;
@@ -22,7 +21,6 @@ public class RecipeTemplateResponse {
     ) {
         RecipeTemplateResponse response = new RecipeTemplateResponse();
 
-        response.recipeId = recipe.getRecipeTemplateId();
         response.ingredientName = ingredient.getIngredientName();
         response.defaultUsageAmount = recipe.getDefaultUsageAmount();
         response.defaultCost = recipe.getDefaultCost();
