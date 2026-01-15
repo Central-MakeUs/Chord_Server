@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.api;
 
+import com.coachcoach.catalog.api.request.MenuCreateRequest;
 import com.coachcoach.catalog.api.response.*;
 import com.coachcoach.catalog.service.MenuService;
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 
@@ -203,6 +205,15 @@ public class CatalogController {
     /**
      * 메뉴 생성
      */
+    @Operation(summary = "메뉴 생성")
+    @PostMapping("/menus")
+    public void createMenu(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @Valid @RequestBody MenuCreateRequest request
+    ) {
+        menuService.createMenu(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), request);
+    }
 
     /**
      * 레시피 추가 (단일 / 기존 재료)
@@ -217,6 +228,15 @@ public class CatalogController {
     /**
      * 메뉴명 수정
      */
+    @Operation(summary = "메뉴명 수정")
+    @PatchMapping("/menus/{menuId}")
+    public void updateMenuName(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestParam(name = "menuName") String menuName
+    ) {
+        menuService.updateMenuName(Long.valueOf(userId), menuId, menuName);
+    }
 
     /**
      * 메뉴 판매가 수정
@@ -225,6 +245,15 @@ public class CatalogController {
     /**
      * 메뉴 카테고리 수정
      */
+    @Operation(summary = "메뉴 카테고리 수정")
+    @PatchMapping("/menus/{menuId}/category")
+    public void updateMenuCategory(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId,
+            @RequestParam(name = "category") String category
+    ) {
+        menuService.updateMenuCategory(Long.valueOf(userId), menuId, category);
+    }
 
     /**
      * 메뉴 제조시간 수정
@@ -242,4 +271,12 @@ public class CatalogController {
     /**
      * 메뉴 삭제 (단일)
      */
+    @Operation(summary = "메뉴 삭제(단일)")
+    @DeleteMapping("/menus/{menuId}")
+    public void deleteMenu(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId
+    ) {
+        menuService.deleteMenu(Long.valueOf(userId), menuId);
+    }
 }

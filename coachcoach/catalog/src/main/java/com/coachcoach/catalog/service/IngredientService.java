@@ -141,6 +141,11 @@ public class IngredientService {
         Unit unit = codeFinder.findUnitByCode(request.getUnitCode());
         BigDecimal unitPrice = calculator.calUnitPrice(unit, request.getPrice(), request.getAmount());
 
+        // 단가 유효성 검증 0.00 이상
+        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+        }
+
         // 재료 단가 입력
         Ingredient ingredient = ingredientRepository.save(
                 Ingredient.create(

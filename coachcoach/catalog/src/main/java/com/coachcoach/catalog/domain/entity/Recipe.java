@@ -21,7 +21,7 @@ public class Recipe {
     private Long menuId;
     private Long ingredientId;
     @Column(precision = 10, scale = 3)
-    private BigDecimal usageAmount;
+    private BigDecimal amount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -30,7 +30,7 @@ public class Recipe {
 
         recipe.menuId = menuId;
         recipe.ingredientId = ingredientId;
-        recipe.usageAmount = amount;
+        recipe.amount = amount;
 
         recipe.createdAt = LocalDateTime.now();
         recipe.updatedAt = LocalDateTime.now();

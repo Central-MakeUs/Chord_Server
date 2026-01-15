@@ -25,4 +25,6 @@ public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
             @Param("categoryCodes") List<String> categoryCodes
     );
     Optional<Ingredient> findByUserIdAndIngredientId(Long userId, Long ingredientId);
+    List<Ingredient> findByUserIdAndIngredientIdIn(Long userId, List<Long> ingredientIds);
+    List<Ingredient> findByUserIdAndIngredientNameIn(Long userId, List<String> ingredientNames);
 }
