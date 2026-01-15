@@ -25,7 +25,7 @@ public class Menu {
     private BigDecimal sellingPrice;        // 판매가
     @Column(precision = 10, scale = 2)
     private BigDecimal totalCost;           // 총 원가
-    @Column(precision = 5, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal costRate;            // 원가율(%)
     @Column(precision = 10, scale = 2)
     private BigDecimal contributionMargin;  // 공헌이익

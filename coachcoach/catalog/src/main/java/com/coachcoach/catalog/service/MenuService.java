@@ -51,6 +51,7 @@ public class MenuService {
 
     /**
      * 메뉴명 검색
+     * todo: 유사도 기반 나열
      */
     public List<SearchMenusResponse> searchMenus(String keyword) {
         List<TemplateMenu> result = templateMenuRepository.findByKeywords(keyword);
@@ -71,6 +72,7 @@ public class MenuService {
 
     /**
      * 템플릿에 따른 재료 리스트 제공
+     * todo: 레시피 아이디는 반환에서 제외
      */
     public List<RecipeTemplateResponse> readTemplateIngredients(Long templateId) {
         List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
@@ -82,160 +84,6 @@ public class MenuService {
                         templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT))
                 ))
                 .toList();
-    }
-
-    /**
-     * 레시피 추가
-     */
-    @Transactional
-    public IngredientResponse createRecipes(
-            Long userId, BigDecimal laborCost, Long menuId, IngredientCreateRequest request
-    ) {
-        // 유효성 검사
-        Menu menu = menuRepository
-                .findByUserIdAndMenuId(userId, menuId)
-                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
-
-        // 재료 등록/조회
-        Ingredient ingredient = null;
-
-        if(request.getIngredientId() != null) {
-            //기존 재료 수정
-            ingredient = ingredientService.updateIngredientReturnedEntity(
-                    userId,
-                    laborCost,
-                    request.getIngredientId(),
-                    IngredientUpdateRequest.of(request.getPrice(), request.getAmount(), request.getUnitCode()));
-        } else {
-            // 새로운 재료 등록
-            ingredient = ingredientService.createIngredientReturnedEntity(userId, IngredientCreateRequest.of(
-                    request.getCategoryCode(),
-                    request.getIngredientName(),
-                    request.getUnitCode(),
-                    request.getPrice(),
-                    request.getAmount(),
-                    request.getSupplier()
-            ));
-        }
-
-        //레시피 등록
-        createRecipe(userId, menu.getMenuId(), ingredient, request.getAmount(), request.getPrice());
-
-        // 메뉴 정보 수정
-        BigDecimal totalCost = menu.getTotalCost().add(request.getPrice());
-
-        MenuCostAnalysis analysis = calculator.calAnalysis(
-                totalCost,
-                menu.getSellingPrice(),
-                laborCost,
-                menu.getWorkTime()
-        );
-
-        menu.update(
-                totalCost,
-                analysis.getCostRate(),
-                analysis.getContributionMargin(),
-                analysis.getMarginRate(),
-                analysis.getMarginGradeCode(),
-                analysis.getRecommendedPrice()
-        );
-
-
-        return IngredientResponse.of(
-                ingredient,
-                codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity()
-        );
-    }
-
-    /**
-     * 레시피 등록
-     */
-    public IngredientResponse createRecipe(Long userId, Long menuId, Ingredient ingredient, BigDecimal amount, BigDecimal cost) {
-        // 유효성 검사
-        if(!menuRepository.existsByUserIdAndMenuId(userId, menuId)) {
-            throw new BusinessException(CatalogErrorCode.NOTFOUND_MENU);
-        } else if(recipeRepository.existsByMenuIdAndIngredientId(menuId, ingredient.getIngredientId())) {
-            // 해당 레시피에 이미 해당 재료가 존재하는 경우
-            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
-        }
-
-        Recipe recipe = recipeRepository.save(
-                Recipe.create(menuId, ingredient.getIngredientId(), amount, cost)
-        );
-
-        return IngredientResponse.of(
-                ingredient,
-                codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity()
-        );
-    }
-
-    /**
-     * 메뉴 등록
-     */
-    @Transactional
-    public void createMenu(Long userId, BigDecimal laborCost, MenuCreateRequest request) {
-        // 유효성 검사
-        if(!codeFinder.existsMenuCategory(request.getMenuCategoryCode())) {
-            throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
-        } else  if(menuRepository.existsByUserIdAndMenuName(userId, request.getMenuName())) {
-            // 메뉴명 중복 불가
-            throw  new BusinessException(CatalogErrorCode.DUP_MENU);
-        }
-
-        // 총 원가 계산
-        List<BigDecimal> costs = request.getIngredients().stream()
-                .map(IngredientCreateRequest::getPrice)
-                .toList();
-
-        BigDecimal totalCost = calculator.calTotalCost(costs);
-
-        MenuCostAnalysis analysis = calculator.calAnalysis(
-                totalCost,
-                request.getSellingPrice(),
-                laborCost,
-                request.getWorkTime()
-        );
-
-        // 메뉴 등록
-        Menu menu = menuRepository.save(
-                Menu.create(
-                userId,
-                request.getMenuCategoryCode(),
-                request.getMenuName(),
-                request.getSellingPrice(),
-                totalCost,
-                analysis.getCostRate(),
-                analysis.getContributionMargin(),
-                analysis.getMarginRate(),
-                analysis.getMarginGradeCode(),
-                request.getWorkTime(),
-                analysis.getRecommendedPrice()
-        ));
-
-        //재료 단가 계산 & 등록/수정
-        request.getIngredients()
-                .forEach(x -> {
-                    Ingredient ingredient = null;
-
-                    if(x.getIngredientId() != null) {
-                        //기존 재료 수정
-                        ingredient = ingredientService.updateIngredientReturnedEntity(userId, laborCost, x.getIngredientId(), IngredientUpdateRequest.of(x.getPrice(), x.getAmount(), x.getUnitCode()));
-                    } else {
-                        // 새로운 재료 등록
-                        ingredient = ingredientService.createIngredientReturnedEntity(userId, IngredientCreateRequest.of(
-                                x.getCategoryCode(),
-                                x.getIngredientName(),
-                                x.getUnitCode(),
-                                x.getPrice(),
-                                x.getAmount(),
-                                x.getSupplier()
-                        ));
-
-                    }
-
-                    //레시피 등록
-                    createRecipe(userId, menu.getMenuId(), ingredient, x.getAmount(), x.getPrice());
-                });
     }
 
     /**
@@ -255,6 +103,7 @@ public class MenuService {
 
     /**
      * 메뉴 상세 정보 반환
+     * todo: 변수명 통일 marginCode -> marginGradeCode/Name
      */
     public MenuDetailResponse readMenu(
             Long userId, Long menuId
@@ -262,116 +111,5 @@ public class MenuService {
         Menu menu = menuRepository.findByUserIdAndMenuId(userId, menuId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
         MarginGrade margin = codeFinder.findMarginCodeByCode(menu.getMarginGradeCode());
         return MenuDetailResponse.of(menu, margin.getGradeName(), margin.getMessage());
-    }
-
-    /**
-     * 재료 목록(레시피) 반환
-     */
-    public List<IngredientResponse> readRecipe(
-        Long userId, Long menuId
-    ) {
-        List<Recipe> result = recipeRepository.findByMenuIdOrderByIngredientIdAsc(menuId);
-
-        return result.stream()
-                .map(
-                x -> {
-                    Ingredient ingredient = ingredientRepository
-                            .findByUserIdAndIngredientId(userId, x.getIngredientId())
-                            .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
-                    return IngredientResponse.of(
-                            ingredient, codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity()
-                    );
-                })
-                .toList();
-    }
-
-    /**
-     * 메뉴명 수정
-     */
-    @Transactional
-    public void updateMenuName(
-            Long userId, Long menuId, String menuName
-    ) {
-        // 유효성 검사
-        Menu menu = menuRepository
-                .findByUserIdAndMenuId(userId, menuId)
-                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
-
-        menu.updateName(menuName);
-    }
-
-    /**
-     * 가격 수정
-     */
-    @Transactional
-    public void updateSellingPrice(
-            Long userId, BigDecimal laborCost, Long menuId, BigDecimal sellingPrice
-    ) {
-        // 원가율, 공헌이익률, 마진율, 마진 등급 코드 업데이트
-
-        // 유효성 검사
-        Menu menu = menuRepository
-                .findByUserIdAndMenuId(userId, menuId)
-                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
-
-        MenuCostAnalysis analysis = calculator.calAnalysis(
-                menu.getTotalCost(),
-                sellingPrice,
-                laborCost,
-                menu.getWorkTime()
-        );
-
-        menu.updateSellingPrice(
-                sellingPrice,
-                analysis.getCostRate(),
-                analysis.getContributionMargin(),
-                analysis.getMarginRate(),
-                analysis.getMarginGradeCode(),
-                analysis.getRecommendedPrice()
-        );
-    }
-
-    /**
-     * 카테고리 수정
-     */
-    @Transactional
-    public void updateMenuCategory(
-            Long userId, Long menuId, String category
-    ) {
-        // 유효성 검사
-        Menu menu = menuRepository
-                .findByUserIdAndMenuId(userId, menuId)
-                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
-
-        menu.updateCategory(category);
-    }
-
-    /**
-     * 제조 시간 수정
-     */
-    @Transactional
-    public void updateWorkTime(
-            Long userId, BigDecimal laborCost, Long menuId, Integer workTime
-    ) {
-        // 공헌이익률, 마진율, 마진 등급 코드 업데이트
-
-        // 유효성 검사
-        Menu menu = menuRepository
-                .findByUserIdAndMenuId(userId, menuId)
-                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
-
-        MenuCostAnalysis analysis = calculator.calAnalysis(
-                menu.getTotalCost(),
-                menu.getSellingPrice(),
-                laborCost,
-                workTime
-        );
-
-        menu.updateWorkTime(
-                workTime,
-                analysis.getContributionMargin(),
-                analysis.getMarginRate(),
-                analysis.getMarginGradeCode()
-        );
     }
 }

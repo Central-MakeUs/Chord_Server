@@ -32,6 +32,9 @@ public class CatalogController {
     private final MenuService menuService;
     private final IngredientService ingredientService;
 
+    /* -------------재료------------- */
+
+    /* -------------조회------------- */
     /**
      * 재료 카테고리 목록 조회
      */
@@ -42,16 +45,43 @@ public class CatalogController {
     }
 
     /**
-     * 카테고리 별 재료 목록 반환 (필터링, 복수 선택 가능)
+     * 카테고리 별 재료 목록 조회(필터링, 복수 선택 가능)
      */
-    @Operation(summary = "카테고리 별 재료 목록 반환")
+    @Operation(summary = "카테고리 별 재료 목록 조회")
     @GetMapping("/ingredients")
     public List<IngredientResponse> readIngredientsByCategory(@RequestHeader(name = "userId", required = false, defaultValue = "1") String userId, @RequestParam(name = "category", required = false) List<String> category) {
         return ingredientService.readIngredientsByCategory(Long.valueOf(userId), category);
     }
 
     /**
+     * 재료 상세 조회
+     */
+    @Operation(summary = "재료 상세 조회")
+    @GetMapping("/ingredients/{ingredientId}")
+    public IngredientDetailResponse readIngredientDetail(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId
+    ) {
+        return ingredientService.readIngredientDetail(Long.valueOf(userId), ingredientId);
+    }
+
+    /**
+     * 가격 변경 이력 목록 조회
+     * todo: 반환 시 id 추가 / unit -> unitCode로 변수명 수정
+     */
+    @Operation(summary = "재료 가격 변경 이력 목록 조회")
+    @GetMapping("/ingredients/{ingredientId}/price-history")
+    public List<PriceHistoryResponse> readIngredientPriceHistory(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "ingredientId") Long ingredientId
+    ) {
+        return ingredientService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
+    }
+
+    /* -------------생성------------- */
+    /**
      * 재료 생성
+     * todo: amount, price 변수명
      */
     @Operation(summary = "재료 생성", description = "📍인증 구현 X <br>📍유저가 중복 재료를 생성하려고 시도 시 CATALOG_002 에러 발생 (공백 구분 O)<br> 📍단위: G, KG, EA, ML")
     @PostMapping("/ingredients")
@@ -62,30 +92,7 @@ public class CatalogController {
         return ingredientService.createIngredient(Long.valueOf(userId), request);
     }
 
-    /**
-     * 재료 상세
-     */
-    @Operation(summary = "재료 상세")
-    @GetMapping("/ingredients/{ingredientId}")
-    public IngredientDetailResponse readIngredientDetail(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "ingredientId") Long ingredientId
-    ) {
-        return ingredientService.readIngredientDetail(Long.valueOf(userId), ingredientId);
-    }
-
-    /**
-     * 가격 변경 이력 목록
-     */
-    @Operation(summary = "재료 가격 변경 이력 목록")
-    @GetMapping("/ingredients/{ingredientId}/price-history")
-    public List<PriceHistoryResponse> readIngredientPriceHistory(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "ingredientId") Long ingredientId
-    ) {
-        return ingredientService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
-    }
-
+    /* -------------수정------------- */
     /**
      * 즐겨찾기 설정/해제
      */
@@ -101,6 +108,7 @@ public class CatalogController {
 
     /**
      * 재료 단가 수정
+     * todo: 반환 타입 수정
      */
     @Operation(summary = "재료 단가 수정")
     @PatchMapping("/ingredients/{ingredientId}")
@@ -115,6 +123,7 @@ public class CatalogController {
 
     /**
      * 재료 공급업체 수정
+     * todo: 반환 타입 수정
      */
     @Operation(summary = "메뉴 공급업체 수정")
     @PatchMapping("/ingredients/{ingredientId}/supplier")
@@ -126,6 +135,9 @@ public class CatalogController {
         return ingredientService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
     }
 
+    /* -------------메뉴------------- */
+
+    /* -------------조회------------- */
     /**
      * 메뉴 카테고리 목록 조회
      */
@@ -137,6 +149,7 @@ public class CatalogController {
 
     /**
      * 메뉴명 검색
+     * todo: 유사도 기반 나열
      */
     @Operation(summary = "메뉴명 검색")
     @GetMapping("/menus/search")
@@ -155,6 +168,7 @@ public class CatalogController {
 
     /**
      * 템플릿에 따른 재료 리스트 제공
+     * todo: 레시피 아이디는 반환에서 제외
      */
     @Operation(summary = "템플릿에 따른 재료 리스트 제공")
     @GetMapping("/menus/templates/{templateId}/ingredients")
@@ -162,17 +176,6 @@ public class CatalogController {
         return menuService.readTemplateIngredients(templateId);
     }
 
-    /**
-     * 메뉴 등록
-     */
-    @Operation(summary = "메뉴 등록")
-    @PostMapping("/menus")
-    public void createMenu(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @Valid @RequestBody MenuCreateRequest request) {
-        menuService.createMenu(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), request);
-    }
 
     /**
      * 카테고리 별 메뉴 목록 반환 (필터링)
@@ -187,94 +190,15 @@ public class CatalogController {
     }
 
     /**
-     * 메뉴 상세 정보 반환
+     * 메뉴 상세 정보 조회
+     * todo: 변수명 통일 marginCode -> marginGradeCode/Name
      */
-    @Operation(summary = "메뉴 상세 정보 반환")
+    @Operation(summary = "메뉴 상세 정보 조회")
     @GetMapping("/menus/{menuId}")
     public MenuDetailResponse readMenu(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "menuId") Long menuId
     ) {
         return menuService.readMenu(Long.valueOf(userId), menuId);
-    }
-
-    /**
-     * 재료 목록(레시피) 반환
-     */
-    @Operation(summary = "해당 메뉴의 재료 목록(레시피) 반환")
-    @GetMapping("/menus/{menuId}/recipes")
-    public List<IngredientResponse> readRecipe(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId
-    ) {
-        return menuService.readRecipe(Long.valueOf(userId), menuId);
-    }
-
-    /**
-     * 메뉴명 수정
-     */
-    @Operation(summary = "메뉴명 수정")
-    @PatchMapping("/menus/{menuId}")
-    public void updateMenuName(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId,
-            @RequestParam(name = "menuName") String menuName
-    ) {
-        menuService.updateMenuName(Long.valueOf(userId), menuId, menuName);
-    }
-
-    /**
-     * 가격 수정
-     */
-    @Operation(summary = "메뉴 가격 수정")
-    @PatchMapping("/menus/{menuId}/price")
-    public void updateSellingPrice(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
-            @RequestParam(name = "sellingPrice") BigDecimal sellingPrice
-    ) {
-        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, sellingPrice);
-    }
-
-    /**
-     * 카테고리 수정
-     */
-    @Operation(summary = "메뉴 카테고리 수정")
-    @PatchMapping("/menus/{menuId}/category")
-    public void updateMenuCategory(
-        @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-        @PathVariable(name = "menuId") Long menuId,
-        @RequestParam(name = "category") String category
-    ) {
-        menuService.updateMenuCategory(Long.valueOf(userId), menuId, category);
-    }
-
-    /**
-     * 제조 시간 수정
-     */
-    @Operation(summary = "메뉴 제조 시간 수정")
-    @PatchMapping("/menus/{menuId}/worktime")
-    public void updateWorkTime(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
-            @RequestParam(name = "worktime") Integer workTime
-    ) {
-        menuService.updateWorkTime(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, workTime);
-    }
-
-    /**
-     * 레시피 추가
-     */
-    @Operation(summary = "메뉴 레시피 추가")
-    @PostMapping("/menus/{menuId}/recipes")
-    public IngredientResponse createRecipes(
-            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
-            @RequestBody IngredientCreateRequest request
-    ) {
-        return menuService.createRecipes(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
     }
 }

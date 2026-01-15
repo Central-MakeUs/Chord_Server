@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 @Getter
 @ToString
 public class IngredientCreateRequest {
-    private Long ingredientId;
     @NotBlank(message = "카테고리 입력은 필수입니다.")
     private String categoryCode;        // INGREDIENTS / MATERIAL
     @NotBlank(message = "재료명 입력은 필수입니다.")
