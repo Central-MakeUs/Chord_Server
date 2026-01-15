@@ -402,27 +402,10 @@ public class MenuService {
         // 총 원가 재계산
         List<Recipe> recipes = recipeRepository.findByMenuId(menuId);
 
-        List<Long> ingredientIds = recipes.stream()
-                .map(Recipe::getIngredientId)
-                .toList();
-        Map<Long, Ingredient> ingredientMap = ingredientRepository.findByUserIdAndIngredientIdIn(userId, ingredientIds).stream()
-                .collect(Collectors.toMap(Ingredient::getIngredientId, Function.identity()));
-
-        BigDecimal totalCost = recipes.stream()
-                .map(x -> {
-                    Ingredient i = ingredientMap.get(x.getIngredientId());
-
-                    if(i == null) {
-                        throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
-                    }
-
-                    Unit unit = codeFinder.findUnitByCode(i.getUnitCode());
-
-                    return i.getCurrentUnitPrice()
-                            .divide(BigDecimal.valueOf(unit.getBaseQuantity()), 10, RoundingMode.HALF_UP)
-                            .multiply(x.getAmount());
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCost = calculator.calTotalCostWithRecipes(
+                userId,
+                recipes
+        );
 
         MenuCostAnalysis analysis = calculator.calAnalysis(
                 totalCost,
@@ -511,27 +494,10 @@ public class MenuService {
         // 총 원가 재계산
         List<Recipe> recipes = recipeRepository.findByMenuId(menuId);
 
-        List<Long> ingredientIds = recipes.stream()
-                .map(Recipe::getIngredientId)
-                .toList();
-        Map<Long, Ingredient> ingredientMap = ingredientRepository.findByUserIdAndIngredientIdIn(userId, ingredientIds).stream()
-                .collect(Collectors.toMap(Ingredient::getIngredientId, Function.identity()));
-
-        BigDecimal totalCost = recipes.stream()
-                .map(x -> {
-                    Ingredient i = ingredientMap.get(x.getIngredientId());
-
-                    if(i == null) {
-                        throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
-                    }
-
-                    Unit u = codeFinder.findUnitByCode(i.getUnitCode());
-
-                    return i.getCurrentUnitPrice()
-                            .divide(BigDecimal.valueOf(u.getBaseQuantity()), 10, RoundingMode.HALF_UP)
-                            .multiply(x.getAmount());
-                })
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalCost = calculator.calTotalCostWithRecipes(
+                userId,
+                recipes
+        );
 
         MenuCostAnalysis analysis = calculator.calAnalysis(
                 totalCost,

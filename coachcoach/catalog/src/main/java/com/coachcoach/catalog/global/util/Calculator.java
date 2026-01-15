@@ -1,7 +1,12 @@
 package com.coachcoach.catalog.global.util;
 
 import com.coachcoach.catalog.api.response.MenuCostAnalysis;
+import com.coachcoach.catalog.domain.entity.Ingredient;
+import com.coachcoach.catalog.domain.entity.Recipe;
 import com.coachcoach.catalog.domain.entity.Unit;
+import com.coachcoach.catalog.domain.repository.IngredientRepository;
+import com.coachcoach.catalog.global.exception.CatalogErrorCode;
+import com.coachcoach.common.exception.BusinessException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,10 +15,16 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 public class Calculator {
+    private final IngredientRepository ingredientRepository;
+    private final CodeFinder codeFinder;
+
     /**
      * 재료 단가 계산 (2자리 반올림)
      * 1kg, 100g, 1개, 100ml
@@ -57,6 +68,38 @@ public class Calculator {
             List<BigDecimal> costs
     ) {
         return costs.stream()
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 특정 메뉴의 총 원가 계산
+     * 입력 필드: userId, List<Recipe>
+     */
+    public BigDecimal calTotalCostWithRecipes(
+            Long userId,
+            List<Recipe> recipes
+    ) {
+        List<Long> ingredientIds = recipes.stream()
+                .map(Recipe::getIngredientId)
+                .toList();
+        Map<Long, Ingredient> ingredientMap = ingredientRepository.findByUserIdAndIngredientIdIn(userId, ingredientIds).stream()
+                .collect(Collectors.toMap(Ingredient::getIngredientId, Function.identity()));
+
+        return recipes.stream()
+                .map(x -> {
+                    Ingredient i = ingredientMap.get(x.getIngredientId());
+
+                    if(i == null) {
+                        throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
+                    }
+
+                    Unit unit = codeFinder.findUnitByCode(i.getUnitCode());
+
+                    return i.getCurrentUnitPrice()
+                            .divide(BigDecimal.valueOf(unit.getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                            .multiply(x.getAmount());
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add)
                 .setScale(2, RoundingMode.HALF_UP);
     }
