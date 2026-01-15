@@ -442,6 +442,114 @@ public class MenuService {
     }
 
     /**
+     * 레시피 추가 (단일 / 새 재료)
+     */
+    @Transactional
+    public void createRecipeWithNew(
+            Long userId,
+            BigDecimal laborCost,
+            Long menuId,
+            NewRecipeCreateRequest request
+    ) {
+        // 유효성 검증 (메뉴 존재 여부 & 재료 카테고리 코드 존재 여부 & 단위 존재 여부)
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        IngredientCategory ingredientCategoryByCode = codeFinder.findIngredientCategoryByCode(request.getIngredientCategoryCode());
+        Unit unit = codeFinder.findUnitByCode(request.getUnitCode());
+
+        // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
+        // todo: 중복 시 (1), (2), ...등으로 처리
+        if(ingredientRepository.existsByUserIdAndIngredientName(userId, request.getIngredientName())) {
+            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
+        }
+
+        // 재료 등록
+
+        // 단가 계산
+        BigDecimal unitPrice = calculator.calUnitPrice(unit, request.getPrice(), request.getAmount());
+
+        // 단가 유효성 검증 0.00 이상
+        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+        }
+
+        Ingredient ingredient = ingredientRepository.save(
+                Ingredient.create(
+                        userId,
+                        request.getIngredientCategoryCode(),
+                        request.getIngredientName(),
+                        request.getUnitCode(),
+                        unitPrice,
+                        request.getSupplier()
+                )
+        );
+
+        // 히스토리 등록
+        IngredientPriceHistory history = ingredientPriceHistoryRepository.save(
+                IngredientPriceHistory.create(
+                        ingredient.getIngredientId(),
+                        ingredient.getCurrentUnitPrice(),
+                        ingredient.getUnitCode(),
+                        request.getAmount(),
+                        request.getPrice(),
+                        null
+                )
+        );
+
+        // 레시피 등록
+        Recipe recipe = recipeRepository.save(
+                Recipe.create(
+                        menuId,
+                        ingredient.getIngredientId(),
+                        request.getAmount()
+                )
+        );
+
+        // analysis 재계산 + 업데이트
+        // 총 원가 재계산
+        List<Recipe> recipes = recipeRepository.findByMenuId(menuId);
+
+        List<Long> ingredientIds = recipes.stream()
+                .map(Recipe::getIngredientId)
+                .toList();
+        Map<Long, Ingredient> ingredientMap = ingredientRepository.findByUserIdAndIngredientIdIn(userId, ingredientIds).stream()
+                .collect(Collectors.toMap(Ingredient::getIngredientId, Function.identity()));
+
+        BigDecimal totalCost = recipes.stream()
+                .map(x -> {
+                    Ingredient i = ingredientMap.get(x.getIngredientId());
+
+                    if(i == null) {
+                        throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
+                    }
+
+                    Unit u = codeFinder.findUnitByCode(i.getUnitCode());
+
+                    return i.getCurrentUnitPrice()
+                            .divide(BigDecimal.valueOf(u.getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                            .multiply(x.getAmount());
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        MenuCostAnalysis analysis = calculator.calAnalysis(
+                totalCost,
+                menu.getSellingPrice(),
+                laborCost,
+                menu.getWorkTime()
+        );
+
+        menu.update(
+                totalCost,
+                analysis.getCostRate(),
+                analysis.getContributionMargin(),
+                analysis.getMarginRate(),
+                analysis.getMarginGradeCode(),
+                analysis.getRecommendedPrice()
+        );
+    }
+    /**
      * 메뉴명 수정
      */
     @Transactional

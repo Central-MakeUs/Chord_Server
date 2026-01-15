@@ -1,11 +1,8 @@
 package com.coachcoach.catalog.api;
 
-import com.coachcoach.catalog.api.request.MenuCreateRequest;
-import com.coachcoach.catalog.api.request.RecipeCreateRequest;
+import com.coachcoach.catalog.api.request.*;
 import com.coachcoach.catalog.api.response.*;
 import com.coachcoach.catalog.service.MenuService;
-import com.coachcoach.catalog.api.request.IngredientCreateRequest;
-import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -241,6 +238,16 @@ public class CatalogController {
     /**
      * 레시피 추가 (단일 / 새 재료)
      */
+    @Operation(summary = "레시피 추가(단일 / 새 재료)")
+    @PostMapping("/menus/{menuId}/new")
+    public void createRecipeWithNew(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @Valid @RequestBody NewRecipeCreateRequest request
+    ) {
+        menuService.createRecipeWithNew(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
+    }
 
     /* -------------수정------------- */
 
