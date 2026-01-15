@@ -22,6 +22,8 @@ public enum CatalogErrorCode implements ErrorCode {
     NOTFOUND_MARGINGRADE("CATALOG_011", "존재하지 않는 마진 등급입니다.", HttpStatus.NOT_FOUND),
 
     INVALID_UNIT_PRICE("CATALOG_012", "단가는 0보다 커야 합니다.", HttpStatus.BAD_REQUEST),
+    INVALID_MENU_NAME("CATALOG_013", "메뉴명을 변경해주세요.", HttpStatus.BAD_REQUEST),
+    INVALID_INGREDIENT_NAME("CATALOG_014", "재료명을 변경해주세요.", HttpStatus.BAD_REQUEST),
     ;
     private final String code;
     private final String message;

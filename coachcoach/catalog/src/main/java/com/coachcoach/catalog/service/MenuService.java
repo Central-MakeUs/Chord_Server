@@ -8,6 +8,7 @@ import com.coachcoach.catalog.global.exception.CatalogErrorCode;
 import com.coachcoach.catalog.global.util.Cache;
 import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
+import com.coachcoach.catalog.global.util.DuplicateNameResolver;
 import com.coachcoach.common.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
@@ -39,8 +40,7 @@ public class MenuService {
     private final TemplateMenuRepository templateMenuRepository;
     private final TemplateRecipeRepository templateRecipeRepository;
     private final TemplateIngredientRepository templateIngredientRepository;
-
-    private final IngredientService ingredientService;
+    private final DuplicateNameResolver nameResolver;
 
     /**
      * 메뉴 카테고리 목록 조회
@@ -192,6 +192,8 @@ public class MenuService {
         }
 
         // 메뉴 등록
+        // 메뉴 이름 중복 확인
+        request.setMenuName(nameResolver.createNonDupMenuName(userId, request.getMenuName()));
 
         // 총 원가 계산
         List<Long> ingredientIds = request.getRecipes().stream()
@@ -283,26 +285,15 @@ public class MenuService {
             if (!codeFinder.existsIngredientCategory(recipe.getIngredientCategoryCode())) {
                 throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
             }
-            if (!codeFinder.existsUnit(recipe.getUnitCode())) {
-                throw new BusinessException(CatalogErrorCode.NOTFOUND_UNIT);
-            }
         });
 
         // 2. 중복 조회 (배치)
         // todo: 중복 시 (1), (2), ...등으로 처리
-        List<String> ingredientNames =
-                newRecipes.stream()
-                        .map(NewRecipeCreateRequest::getIngredientName)
-                        .toList();
-        Set<String> existingNames = ingredientRepository
-                .findByUserIdAndIngredientNameIn(userId, ingredientNames)
-                .stream()
-                .map(Ingredient::getIngredientName)
-                .collect(Collectors.toSet());
-
-        if (!existingNames.isEmpty()) {
-            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
-        }
+        newRecipes.forEach(
+                recipe -> {
+                    recipe.setIngredientName(nameResolver.createNonDupIngredientName(userId, recipe.getIngredientName()));
+                }
+        );
 
         // 재료
         List<Ingredient> ingredients = newRecipes.stream()
@@ -439,10 +430,7 @@ public class MenuService {
         Unit unit = codeFinder.findUnitByCode(request.getUnitCode());
 
         // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
-        // todo: 중복 시 (1), (2), ...등으로 처리
-        if(ingredientRepository.existsByUserIdAndIngredientName(userId, request.getIngredientName())) {
-            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
-        }
+        request.setIngredientName(nameResolver.createNonDupIngredientName(userId, request.getIngredientName()));
 
         // 재료 등록
 

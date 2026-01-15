@@ -27,4 +27,8 @@ public class MenuCreateRequest {
     /* 레시피 정보 */
     List<RecipeCreateRequest> recipes;          // 기존 재료로 레시피 등록
     List<NewRecipeCreateRequest> newRecipes;    // 새로운 재료로 레시피 등록
+
+    public void setMenuName(String menuName) {
+        this.menuName = menuName;
+    }
 }

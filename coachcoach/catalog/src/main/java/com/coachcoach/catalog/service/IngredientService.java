@@ -9,6 +9,7 @@ import com.coachcoach.catalog.global.exception.CatalogErrorCode;
 import com.coachcoach.catalog.global.util.Cache;
 import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
+import com.coachcoach.catalog.global.util.DuplicateNameResolver;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,7 @@ public class IngredientService {
     private final TemplateMenuRepository templateMenuRepository;
     private final TemplateRecipeRepository templateRecipeRepository;
     private final TemplateIngredientRepository templateIngredientRepository;
+    private final DuplicateNameResolver nameResolver;
 
     /**
      * 재료 카테고리 목록 조회
@@ -120,7 +122,6 @@ public class IngredientService {
 
     /**
      * 재료 생성(재료명, 가격, 사용량, 단위, 카테고리)
-     * todo: 로직 검토
      */
     @Transactional
     public IngredientResponse createIngredient(Long userId, IngredientCreateRequest request) {
@@ -132,7 +133,7 @@ public class IngredientService {
         }
 
         // 중복 확인 (userId + ingredientName)
-        // todo: 중복 시 (1), (2), ...등으로 처리
+        request.setIngredientName(nameResolver.createNonDupIngredientName(userId, request.getIngredientName()));
         if(ingredientRepository.existsByUserIdAndIngredientName(userId, request.getIngredientName())) {
             throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
         }

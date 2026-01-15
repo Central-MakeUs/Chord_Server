@@ -28,4 +28,8 @@ public class NewRecipeCreateRequest {
     @NotBlank(message = "재료명 입력은 필수입니다.")
     private String ingredientName;
     private String supplier;
+
+    public void setIngredientName(String ingredientName) {
+        this.ingredientName = ingredientName;
+    }
 }

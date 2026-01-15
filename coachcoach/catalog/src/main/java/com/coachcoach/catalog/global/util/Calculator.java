@@ -187,14 +187,14 @@ public class Calculator {
      * 마진 등급 계산
      * 마진 코드 반환
      */
-    public String calMarginGrade(BigDecimal marginRate) {
-        if(marginRate.compareTo(BigDecimal.valueOf(25)) <= 0) {
+    public String calMarginGrade(BigDecimal costRate) {
+        if(costRate.compareTo(BigDecimal.valueOf(25)) <= 0) {
             // 25% 이하
             return "SAFE";
-        } else if(marginRate.compareTo(BigDecimal.valueOf(35)) <= 0) {
+        } else if(costRate.compareTo(BigDecimal.valueOf(35)) <= 0) {
             // 35% 이하
             return "NORMAL";
-        } else if(marginRate.compareTo(BigDecimal.valueOf(40)) <= 0) {
+        } else if(costRate.compareTo(BigDecimal.valueOf(40)) <= 0) {
             // 40% 이하
             return "CAUTION";
         } else {
@@ -229,7 +229,7 @@ public class Calculator {
         BigDecimal marginRate = calMarginRate(sellingPrice, totalCost, laborCostPerCup);
 
         // 마진 등급 코드 계산
-        String marginCode = calMarginGrade(marginRate);
+        String marginCode = calMarginGrade(costRate);
 
         // 권장 가격 계산
         BigDecimal recommendedPrice = calRecommendedPrice(totalCost);

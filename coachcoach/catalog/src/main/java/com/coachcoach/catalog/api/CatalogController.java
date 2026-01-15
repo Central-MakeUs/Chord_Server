@@ -80,6 +80,10 @@ public class CatalogController {
      * 재료 검색 (in template & users)
      */
 
+    /**
+     * 재료명 중복 확인
+     */
+
     /* -------------생성------------- */
     /**
      * 재료 생성
@@ -205,6 +209,10 @@ public class CatalogController {
     ) {
         return menuService.readRecipes(Long.valueOf(userId), menuId);
     }
+
+    /**
+     * 메뉴명 + 재료명 중복 확인 (일괄)
+     */
 
     /* -------------생성------------- */
 

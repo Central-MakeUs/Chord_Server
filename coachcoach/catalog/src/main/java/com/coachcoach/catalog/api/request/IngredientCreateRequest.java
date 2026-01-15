@@ -45,4 +45,8 @@ public class IngredientCreateRequest {
 
         return request;
     }
+
+    public void setIngredientName(String ingredientName) {
+        this.ingredientName = ingredientName;
+    }
 }
