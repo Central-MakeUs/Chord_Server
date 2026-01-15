@@ -1,9 +1,6 @@
 package com.coachcoach.catalog.service;
 
-import com.coachcoach.catalog.api.request.IngredientCreateRequest;
-import com.coachcoach.catalog.api.request.MenuCreateRequest;
-import com.coachcoach.catalog.api.request.NewRecipeCreateRequest;
-import com.coachcoach.catalog.api.request.RecipeCreateRequest;
+import com.coachcoach.catalog.api.request.*;
 import com.coachcoach.catalog.api.response.*;
 import com.coachcoach.catalog.domain.entity.*;
 import com.coachcoach.catalog.domain.repository.*;
@@ -57,7 +54,6 @@ public class MenuService {
 
     /**
      * 메뉴명 검색
-     * todo: 유사도 기반 나열
      */
     public List<SearchMenusResponse> searchMenus(String keyword) {
         List<TemplateMenu> result = templateMenuRepository.findByKeywordWithPriority(keyword);
@@ -576,6 +572,39 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         menu.updateCategory(category);
+    }
+
+    /**
+     * 메뉴 제조시간 수정
+     */
+    @Transactional
+    public void updateWorkTime(
+            Long userId,
+            BigDecimal laborCost,
+            Long menuId,
+            Integer workTime
+    ) {
+        // 유효성 검증
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        // 메뉴 analysis 재계산
+        MenuCostAnalysis analysis = calculator.calAnalysis(
+                menu.getTotalCost(),
+                menu.getSellingPrice(),
+                laborCost,
+                workTime
+        );
+
+        menu.updateWorkTime(
+                workTime,
+                analysis.getCostRate(),
+                analysis.getContributionMargin(),
+                analysis.getMarginRate(),
+                analysis.getMarginGradeCode(),
+                analysis.getRecommendedPrice()
+        );
     }
 
     /**

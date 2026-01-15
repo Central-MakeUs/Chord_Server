@@ -273,9 +273,9 @@ public class CatalogController {
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
             @PathVariable(name = "menuId") Long menuId,
-            @RequestParam(name = "price") BigDecimal price
+            @Valid @RequestBody MenuPriceUpdateRequest request
     ) {
-        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, price);
+        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.getSellingPrice());
     }
 
     /**
@@ -294,6 +294,16 @@ public class CatalogController {
     /**
      * 메뉴 제조시간 수정
      */
+    @Operation(summary = "메뉴 제조시간 수정")
+    @PatchMapping("/menus/{menuId}/worktime")
+    public void updateWorkTime(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @Valid @RequestBody MenuWorktimeUpdateRequest request
+    ) {
+        menuService.updateWorkTime(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.getWorkTime());
+    }
 
     /**
      * 레시피 수정 (only 사용량)

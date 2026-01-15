@@ -116,14 +116,18 @@ public class Menu {
 
     public void updateWorkTime(
             Integer workTime,
+            BigDecimal costRate,
             BigDecimal contributionMargin,
             BigDecimal marginRate,
-            String marginGradeCode
+            String marginGradeCode,
+            BigDecimal recommendedPrice
     ) {
         this.workTime = workTime;
+        this.costRate = costRate;
         this.contributionMargin = contributionMargin;
         this.marginRate = marginRate;
         this.marginGradeCode = marginGradeCode;
+        this.recommendedPrice = recommendedPrice;
         this.updatedAt = LocalDateTime.now();
     }
 }
