@@ -17,8 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -107,7 +106,7 @@ public class MenuService {
     }
 
     /**
-     * 메뉴 상세 정보 반환
+     * 메뉴 상세 정보 조회
      */
     public MenuDetailResponse readMenu(
             Long userId, Long menuId
@@ -116,6 +115,70 @@ public class MenuService {
         MarginGrade marginGrade = codeFinder.findMarginCodeByCode(menu.getMarginGradeCode());
         return MenuDetailResponse.of(menu, marginGrade);
     }
+
+    /**
+     * 메뉴 상세 정보 - 레시피 목록 조회
+     */
+    public RecipeListResponse readRecipes(
+            Long userId,
+            Long menuId
+    ) {
+        // 유효성 검증 (메뉴 존재 여부)
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        List<Recipe> recipes = recipeRepository
+                .findByMenuIdOrderByRecipeIdAsc(menu.getMenuId());
+        List<Long> ingredientIds = recipes.stream()
+                .map(Recipe::getIngredientId)
+                .toList();
+
+        List<Ingredient> ingredients = ingredientRepository.findByUserIdAndIngredientIdIn(userId, ingredientIds);
+
+        Map<Long, Ingredient> ingredientMap = ingredients.stream()
+                .collect(Collectors.toMap(Ingredient::getIngredientId, Function.identity()));
+
+
+        BigDecimal totalCost = BigDecimal.ZERO;
+        List<RecipeResponse> responses = new ArrayList<>();
+
+        for(int i = 0; i < recipes.size(); ++i) {
+            Recipe recipe = recipes.get(i);
+            Ingredient ingredient = ingredientMap.get(recipe.getIngredientId());
+
+            if(ingredient == null){
+                throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
+            }
+
+            Unit unit = codeFinder.findUnitByCode(ingredient.getUnitCode());
+
+            BigDecimal price = ingredient.getCurrentUnitPrice()
+                    .divide(BigDecimal.valueOf(unit.getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                    .multiply(recipe.getAmount())
+                    .setScale(2, RoundingMode.HALF_UP);
+
+            totalCost = totalCost.add(price);
+
+            responses.add(
+                    RecipeResponse.of(
+                            recipe.getRecipeId(),
+                            menuId,
+                            ingredient.getIngredientId(),
+                            ingredient.getIngredientName(),
+                            recipe.getAmount(),
+                            unit.getUnitCode(),
+                            price
+                    )
+            );
+        }
+
+        return RecipeListResponse.of(
+                responses,
+                totalCost
+        );
+    }
+
 
     /**
      * 메뉴 생성

@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 public class RecipeTemplateResponse {
     private String ingredientName;
     private BigDecimal defaultUsageAmount;
-    private BigDecimal defaultCost;
+    private BigDecimal defaultPrice;
     private String unitCode;
 
     public static RecipeTemplateResponse of(
@@ -23,7 +23,7 @@ public class RecipeTemplateResponse {
 
         response.ingredientName = ingredient.getIngredientName();
         response.defaultUsageAmount = recipe.getDefaultUsageAmount();
-        response.defaultCost = recipe.getDefaultCost();
+        response.defaultPrice = recipe.getDefaultPrice();
         response.unitCode = ingredient.getUnitCode();
 
         return response;

@@ -199,6 +199,14 @@ public class CatalogController {
     /**
      * 메뉴 상세 정보 - 레시피 목록 조회
      */
+    @Operation(summary = "메뉴 상세 정보 - 레시피 목록 조회")
+    @GetMapping("/menus/{menuId}/recipes")
+    public RecipeListResponse readRecipes(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @PathVariable(name = "menuId") Long menuId
+    ) {
+        return menuService.readRecipes(Long.valueOf(userId), menuId);
+    }
 
     /* -------------생성------------- */
 

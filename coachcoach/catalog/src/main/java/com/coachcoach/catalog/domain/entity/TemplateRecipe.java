@@ -23,7 +23,7 @@ public class TemplateRecipe {
     @Column(precision = 10, scale = 3)
     private BigDecimal defaultUsageAmount;
     @Column(precision = 10, scale = 2)
-    private BigDecimal defaultCost;
+    private BigDecimal defaultPrice;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
