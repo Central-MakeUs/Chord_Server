@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.api.request.MenuCreateRequest;
+import com.coachcoach.catalog.api.request.RecipeCreateRequest;
 import com.coachcoach.catalog.api.response.*;
 import com.coachcoach.catalog.service.MenuService;
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
@@ -226,6 +227,16 @@ public class CatalogController {
     /**
      * 레시피 추가 (단일 / 기존 재료)
      */
+    @Operation(summary = "레시피 추가 (단일 / 기존 재료)")
+    @PostMapping("/menus/{menuId}/existing")
+    public void createRecipe(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @Valid @RequestBody RecipeCreateRequest request
+    ) {
+        menuService.createRecipe(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
+    }
 
     /**
      * 레시피 추가 (단일 / 새 재료)

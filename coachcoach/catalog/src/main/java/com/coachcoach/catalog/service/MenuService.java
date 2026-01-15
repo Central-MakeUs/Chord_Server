@@ -13,6 +13,7 @@ import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.common.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -362,6 +363,82 @@ public class MenuService {
             ingredientPriceHistoryRepository.saveAll(histories);
             recipeRepository.saveAll(recipes);
         }
+    }
+
+    /**
+     * 레시피 추가 (단일 / 기존 재료)
+     */
+    @Transactional
+    public void createRecipe(
+            Long userId,
+            BigDecimal laborCost,
+            Long menuId,
+            RecipeCreateRequest request
+    ) {
+        // 유효성 검증 (메뉴 존재 여부 & 재료 존재 여부)
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        if(!ingredientRepository.existsByUserIdAndIngredientId(userId, request.getIngredientId())) {
+            throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
+        }
+
+        // 중복 확인 (해당 메뉴에 이미 해당 재료로 레시피가 존재하는지)
+        if(recipeRepository.existsByMenuIdAndIngredientId(menuId, request.getIngredientId())) {
+            throw new BusinessException(CatalogErrorCode.DUP_RECIPE);
+        }
+
+        // 레시피 등록
+        Recipe recipe = recipeRepository.save(
+                Recipe.create(
+                        menuId,
+                        request.getIngredientId(),
+                        request.getAmount()
+                )
+        );
+
+        // analysis 재계산 + 업데이트
+        // 총 원가 재계산
+        List<Recipe> recipes = recipeRepository.findByMenuId(menuId);
+
+        List<Long> ingredientIds = recipes.stream()
+                .map(Recipe::getIngredientId)
+                .toList();
+        Map<Long, Ingredient> ingredientMap = ingredientRepository.findByUserIdAndIngredientIdIn(userId, ingredientIds).stream()
+                .collect(Collectors.toMap(Ingredient::getIngredientId, Function.identity()));
+
+        BigDecimal totalCost = recipes.stream()
+                .map(x -> {
+                    Ingredient i = ingredientMap.get(x.getIngredientId());
+
+                    if(i == null) {
+                        throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
+                    }
+
+                    Unit unit = codeFinder.findUnitByCode(i.getUnitCode());
+
+                    return i.getCurrentUnitPrice()
+                            .divide(BigDecimal.valueOf(unit.getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                            .multiply(x.getAmount());
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        MenuCostAnalysis analysis = calculator.calAnalysis(
+                totalCost,
+                menu.getSellingPrice(),
+                laborCost,
+                menu.getWorkTime()
+        );
+
+        menu.update(
+                totalCost,
+                analysis.getCostRate(),
+                analysis.getContributionMargin(),
+                analysis.getMarginRate(),
+                analysis.getMarginGradeCode(),
+                analysis.getRecommendedPrice()
+        );
     }
 
     /**

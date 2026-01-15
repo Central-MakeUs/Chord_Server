@@ -12,6 +12,7 @@ import java.util.Optional;
 @Repository
 public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
     boolean existsByUserIdAndIngredientName(Long userId, String ingredientName);
+    boolean existsByUserIdAndIngredientId(Long userId, Long ingredientId);
     List<Ingredient> findAllByUserIdOrderByIngredientIdDesc(Long userId);
     List<Ingredient> findByUserIdAndIngredientCategoryCodeInOrderByIngredientIdDesc(Long userId, List<String> categoryCodes);
     @Query(
