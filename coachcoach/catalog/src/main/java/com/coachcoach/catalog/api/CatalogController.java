@@ -79,6 +79,11 @@ public class CatalogController {
     /**
      * 재료 검색 (in template & users)
      */
+    @Operation(summary = "재료 검색 (템플릿 & 유저가 등록한 재료 내)")
+    @GetMapping("/ingredients/search")
+    public List<SearchIngredientsResponse> searchIngredients(@RequestParam(name = "keyword") String keyword) {
+        return ingredientService.searchIngredients(keyword);
+    }
 
     /**
      * 재료명 중복 확인

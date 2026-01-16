@@ -11,11 +11,15 @@ import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.catalog.global.util.DuplicateNameResolver;
 import com.coachcoach.common.exception.BusinessException;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -118,6 +122,33 @@ public class IngredientService {
                         codeFinder.findUnitByCode(x.getUnitCode())
                 ))
                 .toList();
+    }
+
+    /**
+     * 재료 검색 (in template & users)
+     * 정렬 기준
+     * 1. 템플릿 우선
+     * 2. 같은 템플릿/유저목록 내에서는 유사도 순 나열 & ingredientName 오름차순
+     */
+    public List<SearchIngredientsResponse> searchIngredients(String keyword) {
+        List<TemplateIngredient> templates = templateIngredientRepository.findByKeywordOrderByIngredientNameAsc(keyword);
+        List<Ingredient> ingredients = ingredientRepository.findByKeywordOrderByIngredientNameAsc(keyword);
+
+        List<SearchIngredientsResponse> response = new ArrayList<>();
+
+        templates.forEach(template -> {
+            response.add(
+                    SearchIngredientsResponse.from(template)
+            );
+        });
+
+        ingredients.forEach(ingredient -> {
+            response.add(
+                    SearchIngredientsResponse.from(ingredient)
+            );
+        });;
+
+        return response;
     }
 
     /**
