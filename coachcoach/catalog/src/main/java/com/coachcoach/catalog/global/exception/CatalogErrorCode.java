@@ -20,6 +20,7 @@ public enum CatalogErrorCode implements ErrorCode {
     NOTFOUND_TEMPLATE("CATALOG_009", "존재하지 않는 템플릿입니다.", HttpStatus.NOT_FOUND),
     NOTFOUND_MENU("CATALOG_010", "존재하지 않는 메뉴입니다.", HttpStatus.NOT_FOUND),
     NOTFOUND_MARGINGRADE("CATALOG_011", "존재하지 않는 마진 등급입니다.", HttpStatus.NOT_FOUND),
+    NOTFOUND_RECIPE("CATALOG_012", "등록되지 않은 재료입니다.", HttpStatus.NOT_FOUND),
 
     INVALID_UNIT_PRICE("CATALOG_012", "단가는 0보다 커야 합니다.", HttpStatus.BAD_REQUEST),
     INVALID_MENU_NAME("CATALOG_013", "메뉴명을 변경해주세요.", HttpStatus.BAD_REQUEST),

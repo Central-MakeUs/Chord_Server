@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,7 @@ public class MenuService {
     private final TemplateRecipeRepository templateRecipeRepository;
     private final TemplateIngredientRepository templateIngredientRepository;
     private final DuplicateNameResolver nameResolver;
+    private final ConversionService conversionService;
 
     /**
      * 메뉴 카테고리 목록 조회
@@ -603,6 +605,109 @@ public class MenuService {
 
         menu.updateWorkTime(
                 workTime,
+                analysis.getCostRate(),
+                analysis.getContributionMargin(),
+                analysis.getMarginRate(),
+                analysis.getMarginGradeCode(),
+                analysis.getRecommendedPrice()
+        );
+    }
+
+    /**
+     * 레시피 수정 (only 사용량)
+     */
+    @Transactional
+    public void updateRecipe(
+            Long userId, BigDecimal laborCost, Long menuId, Long recipeId, BigDecimal amount
+    ) {
+        // 레시피 존재 여부 확인
+        Recipe recipe = recipeRepository
+                .findByRecipeId(recipeId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_RECIPE));
+
+        if(recipe.getAmount().compareTo(amount) == 0) {
+            return;
+        }
+
+        // 메뉴 존재 여부 확인
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        // 레시피 수정
+
+        // 레시피 & 메뉴 analysis 수정 (레시피 amount가 바뀐 경우만)
+        recipe.updateAmount(amount);
+
+
+        List<Recipe> recipes = recipeRepository.findByMenuId(menuId);
+        BigDecimal totalCost = calculator.calTotalCostWithRecipes(userId, recipes);
+
+        MenuCostAnalysis analysis = calculator.calAnalysis(
+                totalCost,
+                menu.getSellingPrice(),
+                laborCost,
+                menu.getWorkTime()
+        );
+
+        menu.update(
+                totalCost,
+                analysis.getCostRate(),
+                analysis.getContributionMargin(),
+                analysis.getMarginRate(),
+                analysis.getMarginGradeCode(),
+                analysis.getRecommendedPrice()
+        );
+    }
+
+    /**
+     * 레시피 삭제 (복수 선택 가능) -> 해당 메뉴 정보 업데이트 필요
+     */
+    @Transactional
+    public void deleteRecipes(
+            Long userId, BigDecimal laborCost, Long menuId, DeleteRecipesRequest request
+    ) {
+        //메뉴 존재 여부 확인
+        Menu menu = menuRepository
+                .findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        // 레시피 존재 여부 확인
+        if(request.getRecipeIds().isEmpty()) {
+            return;
+        }
+
+        List<Recipe> targets = recipeRepository.findAllById(request.getRecipeIds());
+
+        // 요청한 ID와 실제 조회된 개수 비교
+        if(request.getRecipeIds().size() != targets.size()) {
+            throw new BusinessException(CatalogErrorCode.NOTFOUND_RECIPE);
+        }
+
+        // 모든 레시피가 해당 메뉴에 속하는지 검증
+        boolean allBelongToMenu = targets.stream()
+                .allMatch(recipe -> recipe.getMenuId().equals(menuId));
+
+        if (!allBelongToMenu) {
+            throw new BusinessException(CatalogErrorCode.NOTFOUND_RECIPE);
+        }
+
+        // 레시피 삭제 (배치)
+        recipeRepository.deleteAll(targets);
+
+        // 메뉴 analysis 업데이트
+        List<Recipe> nonTargets = recipeRepository.findByMenuId(menuId);
+        BigDecimal totalCost = calculator.calTotalCostWithRecipes(userId, nonTargets);
+
+        MenuCostAnalysis analysis = calculator.calAnalysis(
+                totalCost,
+                menu.getSellingPrice(),
+                laborCost,
+                menu.getWorkTime()
+        );
+
+        menu.update(
+                totalCost,
                 analysis.getCostRate(),
                 analysis.getContributionMargin(),
                 analysis.getMarginRate(),

@@ -254,7 +254,7 @@ public class CatalogController {
      * 레시피 추가 (단일 / 기존 재료)
      */
     @Operation(summary = "레시피 추가 (단일 / 기존 재료)")
-    @PostMapping("/menus/{menuId}/existing")
+    @PostMapping("/menus/{menuId}/recipes/existing")
     public void createRecipe(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
@@ -268,7 +268,7 @@ public class CatalogController {
      * 레시피 추가 (단일 / 새 재료)
      */
     @Operation(summary = "레시피 추가(단일 / 새 재료)")
-    @PostMapping("/menus/{menuId}/new")
+    @PostMapping("/menus/{menuId}/recipes/new")
     public void createRecipeWithNew(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
@@ -337,11 +337,32 @@ public class CatalogController {
     /**
      * 레시피 수정 (only 사용량)
      */
+    @Operation(summary = "레시피 수정 (only 사용량)")
+    @PatchMapping("/menus/{menuId}/recipes/{recipeId}")
+    public void updateRecipe(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "recipeId") Long recipeId,
+            @RequestBody AmountUpdateRequest request
+    ) {
+        menuService.updateRecipe(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, recipeId, request.getAmount());
+    }
 
     /* -------------삭제------------- */
     /**
      * 레시피 삭제 (복수 선택 가능) -> 해당 메뉴 정보 업데이트 필요
      */
+    @Operation(summary = "레시피 삭제 (복수 선택 가능)")
+    @DeleteMapping("/menus/{menuId}/recipes")
+    public void deleteRecipes(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "menuId") Long menuId,
+            @Valid @RequestBody DeleteRecipesRequest request
+    ) {
+        menuService.deleteRecipes(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
+    }
 
     /**
      * 메뉴 삭제 (단일)

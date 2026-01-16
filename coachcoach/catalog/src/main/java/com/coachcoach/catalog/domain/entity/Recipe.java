@@ -37,4 +37,8 @@ public class Recipe {
 
         return recipe;
     }
+
+    public void updateAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
 }
