@@ -176,6 +176,22 @@ public class MenuService {
         );
     }
 
+    /**
+     * 메뉴명 + 재료명 중복 확인 (일괄)
+     */
+    public CheckDupResponse checkDupNames(Long userId, CheckDupRequest request) {
+        // 메뉴명 중복 확인
+        Boolean menuNameDuplicate = menuRepository.existsByUserIdAndMenuName(userId, request.getMenuName());
+
+        // 재료명 중복 확인
+        List<String> dupIngredientNames = ingredientRepository
+                .findByUserIdAndIngredientNameIn(userId, request.getIngredientNames())
+                .stream()
+                .map(Ingredient::getIngredientName)
+                .toList();
+
+        return CheckDupResponse.of(menuNameDuplicate, dupIngredientNames);
+    }
 
     /**
      * 메뉴 생성

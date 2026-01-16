@@ -152,6 +152,15 @@ public class IngredientService {
     }
 
     /**
+     * 재료명 중복 확인
+     */
+    public void checkDupIngredientName(Long userId, String ingredientName) {
+        if(ingredientRepository.existsByUserIdAndIngredientName(userId, ingredientName)) {
+            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
+        }
+    }
+
+    /**
      * 재료 생성(재료명, 가격, 사용량, 단위, 카테고리)
      */
     @Transactional

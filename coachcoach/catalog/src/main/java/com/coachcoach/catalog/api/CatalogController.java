@@ -88,6 +88,14 @@ public class CatalogController {
     /**
      * 재료명 중복 확인
      */
+    @Operation(summary = "재료명 중복 확인")
+    @GetMapping("/ingredients/check-dup")
+    public void checkDupIngredientName(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestParam(name = "name") String ingredientName
+    ) {
+        ingredientService.checkDupIngredientName(Long.valueOf(userId), ingredientName);
+    }
 
     /* -------------생성------------- */
     /**
@@ -218,6 +226,14 @@ public class CatalogController {
     /**
      * 메뉴명 + 재료명 중복 확인 (일괄)
      */
+    @Operation(summary = "메뉴명 + 재료명 중복 확인 (일괄)")
+    @PostMapping("/menus/check-dup")
+    public CheckDupResponse checkDupNames(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @Valid @RequestBody CheckDupRequest request
+    ) {
+        return menuService.checkDupNames(Long.valueOf(userId), request);
+    }
 
     /* -------------생성------------- */
 
