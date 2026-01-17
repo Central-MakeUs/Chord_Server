@@ -155,6 +155,15 @@ public class CatalogController {
     /**
      * 재료 삭제 -> 해당 재료 사용하는 모든 메뉴 업데이트 필요
      */
+    @Operation(summary = "재료 삭제")
+    @DeleteMapping("/ingredients/{ingredientId}")
+    public void deleteIngredient(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "ingredientId") Long ingredientId
+    ) {
+        ingredientService.deleteIngredient(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), ingredientId);
+    }
 
     /* -------------메뉴------------- */
 

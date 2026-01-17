@@ -272,10 +272,10 @@ public class IngredientService {
         // 해당 재료 사용하는 모든 메뉴 정보 수정
 
         // 레시피 테이블에서 ingredientId로 menuId 목록 조회
-        List<Recipe> menus = recipeRepository.findByIngredientId(ingredientId);
+        List<Recipe> recipesToUpdate = recipeRepository.findByIngredientId(ingredientId);
 
         // 목록 순회 -> 메뉴마다 레시피 목록 조회 -> analysis 재계산 + 업데이트 (배치)
-        menus.forEach(recipe -> {
+        recipesToUpdate.forEach(recipe -> {
             Menu menu = menuRepository
                     .findByUserIdAndMenuId(userId, recipe.getMenuId())
                     .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
@@ -293,6 +293,57 @@ public class IngredientService {
             );
 
             log.info("update menu " + menu.getMenuName());
+
+            menu.update(
+                    totalCost,
+                    analysis.getCostRate(),
+                    analysis.getContributionMargin(),
+                    analysis.getMarginRate(),
+                    analysis.getMarginGradeCode(),
+                    analysis.getRecommendedPrice()
+            );
+        });
+    }
+
+    /**
+     * 재료 삭제 -> 해당 재료 사용하는 모든 메뉴 업데이트 필요
+     */
+    @Transactional
+    public void deleteIngredient(
+            Long userId, BigDecimal laborCost, Long ingredientId
+    ) {
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+
+        // 해당 재료 포함 레시피 모두 삭제
+        List<Recipe> recipesToUpdate = recipeRepository.findByIngredientId(ingredientId);
+        recipeRepository.deleteAll(recipesToUpdate);
+
+        // 히스토리 + 재료 삭제
+        List<IngredientPriceHistory> histories = ingredientPriceHistoryRepository.findByIngredientId(ingredientId);
+        ingredientPriceHistoryRepository.deleteAll(histories);
+
+        ingredientRepository.delete(ingredient);
+
+        // 메뉴 정보 일괄 업데이트
+        recipesToUpdate.forEach(recipe -> {
+            Menu menu = menuRepository
+                    .findByUserIdAndMenuId(userId, recipe.getMenuId())
+                    .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+            BigDecimal totalCost = calculator.calTotalCostWithRecipes(
+                    userId,
+                    recipeRepository.findByMenuId(recipe.getMenuId())
+            );
+
+            log.info("이전 총 원가: " + menu.getTotalCost() + " 변경된 총 원가: " + totalCost);
+            MenuCostAnalysis analysis = calculator.calAnalysis(
+                    totalCost,
+                    menu.getSellingPrice(),
+                    laborCost,
+                    menu.getWorkTime()
+            );
+
+            log.info("update menu: " + menu.getMenuName());
 
             menu.update(
                     totalCost,

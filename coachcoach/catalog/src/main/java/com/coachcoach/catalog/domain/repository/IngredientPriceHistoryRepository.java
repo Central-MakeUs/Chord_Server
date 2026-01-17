@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface IngredientPriceHistoryRepository extends JpaRepository<IngredientPriceHistory,Long> {
     Optional<IngredientPriceHistory> findFirstByIngredientIdOrderByHistoryIdDesc(Long ingredientId);
     List<IngredientPriceHistory> findByIngredientIdOrderByHistoryIdDesc(Long ingredientId);
+    List<IngredientPriceHistory> findByIngredientId(Long ingredientId);
 }
