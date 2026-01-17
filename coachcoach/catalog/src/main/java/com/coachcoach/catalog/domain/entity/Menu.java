@@ -25,7 +25,7 @@ public class Menu {
     private BigDecimal sellingPrice;        // 판매가
     @Column(precision = 10, scale = 2)
     private BigDecimal totalCost;           // 총 원가
-    @Column(precision = 5, scale = 2)
+    @Column(precision = 10, scale = 2)
     private BigDecimal costRate;            // 원가율(%)
     @Column(precision = 10, scale = 2)
     private BigDecimal contributionMargin;  // 공헌이익
@@ -116,14 +116,18 @@ public class Menu {
 
     public void updateWorkTime(
             Integer workTime,
+            BigDecimal costRate,
             BigDecimal contributionMargin,
             BigDecimal marginRate,
-            String marginGradeCode
+            String marginGradeCode,
+            BigDecimal recommendedPrice
     ) {
         this.workTime = workTime;
+        this.costRate = costRate;
         this.contributionMargin = contributionMargin;
         this.marginRate = marginRate;
         this.marginGradeCode = marginGradeCode;
+        this.recommendedPrice = recommendedPrice;
         this.updatedAt = LocalDateTime.now();
     }
 }

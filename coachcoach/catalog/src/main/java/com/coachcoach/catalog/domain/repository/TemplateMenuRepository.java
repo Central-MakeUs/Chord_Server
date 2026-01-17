@@ -13,9 +13,12 @@ public interface TemplateMenuRepository extends JpaRepository<TemplateMenu, Long
             value = "SELECT * " +
                     "FROM tb_template_menu t " +
                     "WHERE t.is_active = true " +
-                    "AND t.search_keywords LIKE CONCAT('%', :keyword, '%') " +
-                    "ORDER BY t.menu_name ASC",
+                    "AND (t.menu_name LIKE CONCAT('%', :keyword, '%') OR t.search_keywords LIKE CONCAT('%', :keyword, '%')) " +
+                    "ORDER BY " +
+                    "   CASE WHEN t.menu_name LIKE CONCAT('%', :keyword, '%') THEN 0 ELSE 1 END, " +
+                    "   t.menu_name ASC",
             nativeQuery = true
     )
-    List<TemplateMenu> findByKeywords(String keyword);
+    List<TemplateMenu> findByKeywordWithPriority(String keyword);
+
 }

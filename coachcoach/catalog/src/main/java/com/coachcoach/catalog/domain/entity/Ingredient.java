@@ -27,6 +27,18 @@ public class Ingredient {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    public void update(
+            String ingredientCategoryCode,
+            BigDecimal currentUnitPrice,
+            String unitCode
+
+    ) {
+        this.ingredientCategoryCode = ingredientCategoryCode;
+        this.currentUnitPrice = currentUnitPrice;
+        this.unitCode = unitCode;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     public static Ingredient create(
             Long userId,
             String ingredientCategoryCode,
@@ -56,11 +68,5 @@ public class Ingredient {
 
     public void updateSupplier(String supplier) {
         this.supplier = supplier;
-    }
-
-    public void update(BigDecimal unitPrice, String unitCode) {
-        this.currentUnitPrice = unitPrice;
-        this.unitCode = unitCode;
-        this.updatedAt = LocalDateTime.now();
     }
 }

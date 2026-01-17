@@ -21,19 +21,16 @@ public class Recipe {
     private Long menuId;
     private Long ingredientId;
     @Column(precision = 10, scale = 3)
-    private BigDecimal usageAmount;
-    @Column(precision = 10, scale = 2)
-    private BigDecimal cost;
+    private BigDecimal amount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static Recipe create(Long menuId, Long ingredientId, BigDecimal amount, BigDecimal cost) {
+    public static Recipe create(Long menuId, Long ingredientId, BigDecimal amount) {
         Recipe recipe = new Recipe();
 
         recipe.menuId = menuId;
         recipe.ingredientId = ingredientId;
-        recipe.usageAmount = amount;
-        recipe.cost = cost;
+        recipe.amount = amount;
 
         recipe.createdAt = LocalDateTime.now();
         recipe.updatedAt = LocalDateTime.now();
@@ -41,8 +38,7 @@ public class Recipe {
         return recipe;
     }
 
-    public void update(BigDecimal cost) {
-        this.cost = cost;
-        this.updatedAt = LocalDateTime.now();
+    public void updateAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 }

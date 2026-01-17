@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.api.response;
 
 import com.coachcoach.catalog.domain.entity.IngredientPriceHistory;
+import com.coachcoach.catalog.domain.entity.Unit;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -16,19 +17,17 @@ public class IngredientUpdateResponse {
 
     public static IngredientUpdateResponse of(
             BigDecimal unitPrice,
-            Integer baseQuantity,
-            String unitCode,
+            Unit unit,
             IngredientPriceHistory newHistory
     ) {
         IngredientUpdateResponse response = new IngredientUpdateResponse();
 
         response.unitPrice = unitPrice;
-        response.baseQuantity = baseQuantity;
-        response.unitCode = unitCode;
+        response.baseQuantity = unit.getBaseQuantity();
+        response.unitCode = unit.getUnitCode();
         response.newHistory = PriceHistoryResponse.of(
                 newHistory,
-                unitCode,
-                baseQuantity
+                unit
         );
 
         return response;
