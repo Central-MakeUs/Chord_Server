@@ -140,6 +140,16 @@ public class CatalogController {
     /**
      * 재료 단가 수정 -> 해당 재료 사용하는 모든 메뉴에 대해 업데이트 필요
      */
+    @Operation(summary = "재료 단가 수정")
+    @PatchMapping("/ingredients/{ingredientId}")
+    public void updateIngredientPrice(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
+            @PathVariable(name = "ingredientId") Long ingredientId,
+            @Valid @RequestBody IngredientUpdateRequest request
+    ) {
+        ingredientService.updateIngredientPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), ingredientId, request);
+    }
 
     /* -------------삭제------------- */
     /**

@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.service;
 
 import com.coachcoach.catalog.api.request.IngredientCreateRequest;
+import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
 import com.coachcoach.catalog.api.response.*;
 import com.coachcoach.catalog.domain.entity.*;
@@ -12,16 +13,19 @@ import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.catalog.global.util.DuplicateNameResolver;
 import com.coachcoach.common.exception.BusinessException;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class IngredientService {
@@ -228,5 +232,76 @@ public class IngredientService {
     public void updateIngredientSupplier(Long userId, Long ingredientId, SupplierUpdateRequest request) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         ingredient.updateSupplier(request.getSupplier());
+    }
+
+    /**
+     * 재료 단가 수정 -> 해당 재료 사용하는 모든 메뉴에 대해 업데이트 필요
+     */
+    @Transactional
+    public void updateIngredientPrice(
+            Long userId, BigDecimal laborCost, Long ingredientId, IngredientUpdateRequest request
+    ) {
+        Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+
+        // 카테고리 유효성 검증
+        if(!codeFinder.existsIngredientCategory(request.getCategory())) {
+            throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
+        }
+
+        Unit previousUnit = codeFinder.findUnitByCode(ingredient.getUnitCode());
+        Unit currentUnit = codeFinder.findUnitByCode(request.getUnitCode());
+
+        // 단가/변동률 계산 + 재료 업데이트
+        BigDecimal unitPrice = calculator.calUnitPrice(currentUnit, request.getPrice(), request.getAmount());
+        BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calculator.calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
+
+        ingredient.update(request.getCategory(), unitPrice, request.getUnitCode());
+
+        // 히스토리 업데이트
+        IngredientPriceHistory history = ingredientPriceHistoryRepository.save(
+                IngredientPriceHistory.create(
+                        ingredient.getIngredientId(),
+                        ingredient.getCurrentUnitPrice(),
+                        currentUnit.getUnitCode(),
+                        request.getAmount(),
+                        request.getPrice(),
+                        changeRate
+                )
+        );
+
+        // 해당 재료 사용하는 모든 메뉴 정보 수정
+
+        // 레시피 테이블에서 ingredientId로 menuId 목록 조회
+        List<Recipe> menus = recipeRepository.findByIngredientId(ingredientId);
+
+        // 목록 순회 -> 메뉴마다 레시피 목록 조회 -> analysis 재계산 + 업데이트 (배치)
+        menus.forEach(recipe -> {
+            Menu menu = menuRepository
+                    .findByUserIdAndMenuId(userId, recipe.getMenuId())
+                    .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+            BigDecimal totalCost = calculator.calTotalCostWithRecipes(
+                    userId,
+                    recipeRepository.findByMenuId(recipe.getMenuId())
+            );
+
+            MenuCostAnalysis analysis = calculator.calAnalysis(
+                    totalCost,
+                    menu.getSellingPrice(),
+                    laborCost,
+                    menu.getWorkTime()
+            );
+
+            log.info("update menu " + menu.getMenuName());
+
+            menu.update(
+                    totalCost,
+                    analysis.getCostRate(),
+                    analysis.getContributionMargin(),
+                    analysis.getMarginRate(),
+                    analysis.getMarginGradeCode(),
+                    analysis.getRecommendedPrice()
+            );
+        });
     }
 }
