@@ -92,13 +92,22 @@ public class MenuService {
     /**
      * 카테고리 별 메뉴 목록 반환 (필터링)
      */
-    public List<MenuResponse> readMenusByCategory(Long userId, String categoryCode) {
+    public List<MenuResponse> readMenusByCategory(Long userId, String category) {
+        // null이면 전체 조회
+        if(category == null || category.isBlank()) {
+            List<Menu> menus = menuRepository.findByUserIdOrderByMenuIdDesc(userId);
+
+            return menus.stream()
+                    .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
+                    .toList();
+        }
+
         // 유효성 검사
-        if(!codeFinder.existsMenuCategory(categoryCode)){
+        if(!codeFinder.existsMenuCategory(category)){
             throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
         }
 
-        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(userId, categoryCode);
+        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(userId, category);
         return menus.stream()
                 .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
                 .toList();

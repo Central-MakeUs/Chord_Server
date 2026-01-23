@@ -12,18 +12,14 @@ import com.coachcoach.catalog.global.util.Calculator;
 import com.coachcoach.catalog.global.util.CodeFinder;
 import com.coachcoach.catalog.global.util.DuplicateNameResolver;
 import com.coachcoach.common.exception.BusinessException;
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -134,9 +130,9 @@ public class IngredientService {
      * 1. 템플릿 우선
      * 2. 같은 템플릿/유저목록 내에서는 유사도 순 나열 & ingredientName 오름차순
      */
-    public List<SearchIngredientsResponse> searchIngredients(String keyword) {
+    public List<SearchIngredientsResponse> searchIngredients(Long userId, String keyword) {
         List<TemplateIngredient> templates = templateIngredientRepository.findByKeywordOrderByIngredientNameAsc(keyword);
-        List<Ingredient> ingredients = ingredientRepository.findByKeywordOrderByIngredientNameAsc(keyword);
+        List<Ingredient> ingredients = ingredientRepository.findByUserIdAndKeywordOrderByIngredientNameAsc(userId, keyword);
 
         List<SearchIngredientsResponse> response = new ArrayList<>();
 
@@ -162,6 +158,17 @@ public class IngredientService {
         if(ingredientRepository.existsByUserIdAndIngredientName(userId, ingredientName)) {
             throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
         }
+    }
+
+    /**
+     * 재료 검색 (with 재료명, 메뉴명)
+     */
+    public List<SearchMyIngredientsResponse> searchMyIngredients(Long userId, String keyword) {
+        List<Ingredient> ingredients = ingredientRepository.findByUserIdAndMenuNameAndIngredientNameOrderByIngredientNameAsc(userId, keyword);
+
+        return ingredients.stream()
+                .map(SearchMyIngredientsResponse::from)
+                .toList();
     }
 
     /**

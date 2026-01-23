@@ -26,4 +26,5 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     boolean existsByUserIdAndMenuId(Long userId, Long menuId);
     boolean existsByUserIdAndMenuName(Long userId, String menuName);
     List<Menu> findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(Long userId, String categoryCode);
+    List<Menu> findByUserIdOrderByMenuIdDesc(Long userId);
 }
