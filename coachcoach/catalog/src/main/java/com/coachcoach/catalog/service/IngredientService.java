@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -131,6 +132,10 @@ public class IngredientService {
      * 2. 같은 템플릿/유저목록 내에서는 유사도 순 나열 & ingredientName 오름차순
      */
     public List<SearchIngredientsResponse> searchIngredients(Long userId, String keyword) {
+        if(keyword == null || keyword.isBlank()) {
+            return Collections.emptyList();
+        }
+
         List<TemplateIngredient> templates = templateIngredientRepository.findByKeywordOrderByIngredientNameAsc(keyword);
         List<Ingredient> ingredients = ingredientRepository.findByUserIdAndKeywordOrderByIngredientNameAsc(userId, keyword);
 
@@ -164,6 +169,10 @@ public class IngredientService {
      * 재료 검색 (with 재료명, 메뉴명)
      */
     public List<SearchMyIngredientsResponse> searchMyIngredients(Long userId, String keyword) {
+        if(keyword == null || keyword.isBlank()) {
+            return Collections.emptyList();
+        }
+
         List<Ingredient> ingredients = ingredientRepository.findByUserIdAndMenuNameAndIngredientNameOrderByIngredientNameAsc(userId, keyword);
 
         return ingredients.stream()
@@ -260,6 +269,12 @@ public class IngredientService {
 
         // 단가/변동률 계산 + 재료 업데이트
         BigDecimal unitPrice = calculator.calUnitPrice(currentUnit, request.getPrice(), request.getAmount());
+
+        // 단가 유효성 검증 0.00 이상
+        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+        }
+
         BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calculator.calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
 
         ingredient.update(request.getCategory(), unitPrice, request.getUnitCode());

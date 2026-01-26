@@ -58,6 +58,10 @@ public class MenuService {
      * 메뉴명 검색
      */
     public List<SearchMenusResponse> searchMenus(String keyword) {
+        if(keyword == null || keyword.isBlank()) {
+            return Collections.emptyList();
+        }
+
         List<TemplateMenu> result = templateMenuRepository.findByKeywordWithPriority(keyword);
 
         return result.stream()
@@ -538,7 +542,8 @@ public class MenuService {
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
-        menu.updateName(menuName);
+        // 메뉴명 중복 해결 후 수정
+        menu.updateName(nameResolver.createNonDupMenuName(userId, menuName));
     }
 
     /**
@@ -585,6 +590,8 @@ public class MenuService {
         Menu menu = menuRepository
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        if(!codeFinder.existsMenuCategory(category)) throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
 
         menu.updateCategory(category);
     }
