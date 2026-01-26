@@ -9,8 +9,7 @@ COPY build.gradle .
 COPY settings.gradle .
 
 COPY common common
-COPY auth auth
-COPY user-store user-store
+COPY user user
 COPY catalog catalog
 COPY insight insight
 COPY app app

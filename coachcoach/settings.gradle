@@ -2,8 +2,7 @@ rootProject.name = 'coachcoach'
 
 include 'common'
 
-include 'auth'
-include 'user-store'
+include 'user'
 include 'catalog'
 include 'insight'
 

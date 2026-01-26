@@ -1,5 +1,12 @@
-spring:
+app:
   datasource:
-    url:  ${DATASOURCE_URL}
-    username: ${DATASOURCE_USERNAME}
-    password: ${DATASOURCE_PASSWORD}
+    catalog:
+      url: jdbc:postgresql://${DATASOURCE_HOST}:${DATASOURCE_PORT}/${CATALOG_DB_NAME}
+      username: ${DATASOURCE_USERNAME}
+      password: ${DATASOURCE_PASSWORD}
+      driver-class-name: org.postgresql.Driver
+    user:
+      url: jdbc:postgresql://${DATASOURCE_HOST}:${DATASOURCE_PORT}/${USER_DB_NAME}
+      username: ${DATASOURCE_USERNAME}
+      password: ${DATASOURCE_PASSWORD}
+      driver-class-name: org.postgresql.Driver
