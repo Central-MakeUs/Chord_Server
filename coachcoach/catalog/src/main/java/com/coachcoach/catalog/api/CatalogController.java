@@ -86,7 +86,7 @@ public class CatalogController {
     @GetMapping("/ingredients/search")
     public List<SearchIngredientsResponse> searchIngredients(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestParam(name = "keyword") @NotBlank @Size(min = 1, max = 100) String keyword
+            @RequestParam(name = "keyword", required = false) String keyword
     ) {
         return ingredientService.searchIngredients(Long.valueOf(userId), keyword);
     }
@@ -110,7 +110,7 @@ public class CatalogController {
     @GetMapping("/ingredients/search/my")
     public List<SearchMyIngredientsResponse> searchMyIngredients(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestParam(name = "keyword") @NotBlank @Size(min = 1, max = 100) String keyword
+            @RequestParam(name = "keyword", required = false) String keyword
     ) {
         return ingredientService.searchMyIngredients(Long.valueOf(userId), keyword);
     }
@@ -145,7 +145,7 @@ public class CatalogController {
     /**
      * 재료 공급업체 수정
      */
-    @Operation(summary = "메뉴 공급업체 수정")
+    @Operation(summary = "재료 공급업체 수정")
     @PatchMapping("/ingredients/{ingredientId}/supplier")
     public void updateIngredientSupplier(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
@@ -201,7 +201,7 @@ public class CatalogController {
      */
     @Operation(summary = "메뉴명 검색")
     @GetMapping("/menus/search")
-    public List<SearchMenusResponse> searchMenus(@RequestParam(name = "keyword") @NotBlank @Size(min = 1, max = 100) String keyword) {
+    public List<SearchMenusResponse> searchMenus(@RequestParam(name = "keyword", required = false) String keyword) {
         return menuService.searchMenus(keyword);
     }
 

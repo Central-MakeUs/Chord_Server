@@ -58,6 +58,10 @@ public class MenuService {
      * 메뉴명 검색
      */
     public List<SearchMenusResponse> searchMenus(String keyword) {
+        if(keyword == null || keyword.isBlank()) {
+            return Collections.emptyList();
+        }
+
         List<TemplateMenu> result = templateMenuRepository.findByKeywordWithPriority(keyword);
 
         return result.stream()
