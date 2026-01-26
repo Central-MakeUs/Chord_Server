@@ -325,7 +325,7 @@ public class CatalogController {
     public void updateMenuName(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @PathVariable(name = "menuId") @Positive Long menuId,
-            @Valid @RequestBody MenuCreateRequest request
+            @Valid @RequestBody MenuNameUpdateRequest request
     ) {
         menuService.updateMenuName(Long.valueOf(userId), menuId, request.getMenuName());
     }

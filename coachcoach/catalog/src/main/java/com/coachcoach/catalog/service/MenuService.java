@@ -538,7 +538,8 @@ public class MenuService {
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
-        menu.updateName(menuName);
+        // 메뉴명 중복 해결 후 수정
+        menu.updateName(nameResolver.createNonDupMenuName(userId, menuName));
     }
 
     /**
