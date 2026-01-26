@@ -31,9 +31,24 @@ public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
     @Query(
             value = "SELECT * " +
                     "FROM tb_ingredient i " +
-                    "WHERE i.ingredient_name LIKE CONCAT('%', :keyword, '%') " +
+                    "WHERE i.user_id = :userId AND i.ingredient_name LIKE CONCAT('%', :keyword, '%') " +
                     "ORDER BY i.ingredient_name ASC",
             nativeQuery = true
     )
-    List<Ingredient> findByKeywordOrderByIngredientNameAsc(String keyword);
+    List<Ingredient> findByUserIdAndKeywordOrderByIngredientNameAsc(Long userId, String keyword);
+
+    @Query(
+            value = "SELECT DISTINCT i.* " +  // DISTINCT 추가!
+                    "FROM tb_ingredient i " +
+                    "LEFT JOIN tb_recipe r ON i.ingredient_id = r.ingredient_id " +
+                    "LEFT JOIN tb_menu m ON r.menu_id = m.menu_id " +  // r.menu_id 맞죠?
+                    "WHERE i.user_id = :userId " +
+                    "AND (i.ingredient_name LIKE CONCAT('%', :keyword, '%') " +
+                    "       OR m.menu_name LIKE CONCAT('%', :keyword, '%')) " +
+                    "ORDER BY i.ingredient_name ASC",
+            nativeQuery = true
+    )
+    List<Ingredient> findByUserIdAndMenuNameAndIngredientNameOrderByIngredientNameAsc(
+            Long userId,String keyword
+    );
 }

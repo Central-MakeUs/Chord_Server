@@ -32,7 +32,7 @@ jobs:
         working-directory: coachcoach
         run: ./gradlew :app:clean :app:bootJar -x test
 
-      # 저장소 로그인
+      # Quay 로그인
       - name: Login to Quay
         run: echo "${{ secrets.QUAY_TOKEN }}" | docker login quay.io -u bread0930 --password-stdin
 
@@ -44,11 +44,9 @@ jobs:
           docker build \
             -f Dockerfile \
             -t quay.io/bread0930/coachcoach:latest \
-            -t quay.io/bread0930/coachcoach:${{ github.sha }} \
             .
 
           docker push quay.io/bread0930/coachcoach:latest
-          docker push quay.io/bread0930/coachcoach:${{ github.sha }}
 
           echo "Image pushed successfully"
 
@@ -66,11 +64,16 @@ jobs:
 
             cd /home/ubuntu/coachcoach
 
+            echo "Stopping existing containers..."
+            docker-compose down --remove-orphans
+
+            echo "Pulling latest images..."
             docker-compose pull
 
+            echo "Starting containers..."
             docker-compose up -d
 
-            sleep 10
+            sleep 30
             for i in {1..10}; do
               if curl -f http://localhost:8080/actuator/health > /dev/null 2>&1; then
                 echo "Application is healthy!"

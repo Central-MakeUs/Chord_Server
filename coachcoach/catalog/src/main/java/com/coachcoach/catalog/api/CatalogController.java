@@ -7,6 +7,9 @@ import com.coachcoach.catalog.service.IngredientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -59,7 +62,7 @@ public class CatalogController {
     @GetMapping("/ingredients/{ingredientId}")
     public IngredientDetailResponse readIngredientDetail(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "ingredientId") Long ingredientId
+            @PathVariable(name = "ingredientId") @Positive Long ingredientId
     ) {
         return ingredientService.readIngredientDetail(Long.valueOf(userId), ingredientId);
     }
@@ -71,7 +74,7 @@ public class CatalogController {
     @GetMapping("/ingredients/{ingredientId}/price-history")
     public List<PriceHistoryResponse> readIngredientPriceHistory(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "ingredientId") Long ingredientId
+            @PathVariable(name = "ingredientId") @Positive Long ingredientId
     ) {
         return ingredientService.readIngredientPriceHistory(Long.valueOf(userId), ingredientId);
     }
@@ -81,8 +84,11 @@ public class CatalogController {
      */
     @Operation(summary = "재료 검색 (템플릿 & 유저가 등록한 재료 내)")
     @GetMapping("/ingredients/search")
-    public List<SearchIngredientsResponse> searchIngredients(@RequestParam(name = "keyword") String keyword) {
-        return ingredientService.searchIngredients(keyword);
+    public List<SearchIngredientsResponse> searchIngredients(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestParam(name = "keyword") @NotBlank @Size(min = 1, max = 100) String keyword
+    ) {
+        return ingredientService.searchIngredients(Long.valueOf(userId), keyword);
     }
 
     /**
@@ -92,9 +98,21 @@ public class CatalogController {
     @GetMapping("/ingredients/check-dup")
     public void checkDupIngredientName(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestParam(name = "name") String ingredientName
+            @RequestParam(name = "name") @NotBlank @Size(max = 100) String ingredientName
     ) {
         ingredientService.checkDupIngredientName(Long.valueOf(userId), ingredientName);
+    }
+
+    /**
+     * 재료 검색 (with 재료명, 메뉴명)
+     */
+    @Operation(summary = "재료 검색(with 재료명, 메뉴명)")
+    @GetMapping("/ingredients/search/my")
+    public List<SearchMyIngredientsResponse> searchMyIngredients(
+            @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
+            @RequestParam(name = "keyword") @NotBlank @Size(min = 1, max = 100) String keyword
+    ) {
+        return ingredientService.searchMyIngredients(Long.valueOf(userId), keyword);
     }
 
     /* -------------생성------------- */
@@ -118,7 +136,7 @@ public class CatalogController {
     @PatchMapping("/ingredients/{ingredientId}/favorite")
     public void updateFavorite(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "ingredientId") Long ingredientId,
+            @PathVariable(name = "ingredientId") @Positive Long ingredientId,
             @RequestParam(name = "favorite") Boolean favorite
     ) {
         ingredientService.updateFavorite(Long.valueOf(userId), ingredientId, favorite);
@@ -131,7 +149,7 @@ public class CatalogController {
     @PatchMapping("/ingredients/{ingredientId}/supplier")
     public void updateIngredientSupplier(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "ingredientId") Long ingredientId,
+            @PathVariable(name = "ingredientId") @Positive Long ingredientId,
             @RequestBody SupplierUpdateRequest request
     ) {
         ingredientService.updateIngredientSupplier(Long.valueOf(userId), ingredientId, request);
@@ -145,7 +163,7 @@ public class CatalogController {
     public void updateIngredientPrice(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "ingredientId") Long ingredientId,
+            @PathVariable(name = "ingredientId") @Positive Long ingredientId,
             @Valid @RequestBody IngredientUpdateRequest request
     ) {
         ingredientService.updateIngredientPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), ingredientId, request);
@@ -160,7 +178,7 @@ public class CatalogController {
     public void deleteIngredient(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "ingredientId") Long ingredientId
+            @PathVariable(name = "ingredientId") @Positive Long ingredientId
     ) {
         ingredientService.deleteIngredient(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), ingredientId);
     }
@@ -183,7 +201,7 @@ public class CatalogController {
      */
     @Operation(summary = "메뉴명 검색")
     @GetMapping("/menus/search")
-    public List<SearchMenusResponse> searchMenus(@RequestParam(name = "keyword") String keyword) {
+    public List<SearchMenusResponse> searchMenus(@RequestParam(name = "keyword") @NotBlank @Size(min = 1, max = 100) String keyword) {
         return menuService.searchMenus(keyword);
     }
 
@@ -192,7 +210,7 @@ public class CatalogController {
      */
     @Operation(summary = "템플릿에 따른 메뉴 기본 정보 제공 (메뉴명+가격+카테고리+제조시간)")
     @GetMapping("/menus/templates/{templateId}")
-    public TemplateBasicResponse readMenuTemplate(@PathVariable(name = "templateId") Long templateId) {
+    public TemplateBasicResponse readMenuTemplate(@PathVariable(name = "templateId") @Positive Long templateId) {
         return menuService.readMenuTemplate(templateId);
     }
 
@@ -201,7 +219,7 @@ public class CatalogController {
      */
     @Operation(summary = "템플릿에 따른 재료 리스트 제공")
     @GetMapping("/menus/templates/{templateId}/ingredients")
-    public List<RecipeTemplateResponse> readTemplateIngredients(@PathVariable(name = "templateId") Long templateId) {
+    public List<RecipeTemplateResponse> readTemplateIngredients(@PathVariable(name = "templateId") @Positive Long templateId) {
         return menuService.readTemplateIngredients(templateId);
     }
 
@@ -213,9 +231,9 @@ public class CatalogController {
     @GetMapping("/menus")
     public List<MenuResponse> readMenusByCategory(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @RequestParam(name = "categoryCode") String categoryCode
+            @RequestParam(name = "category", required = false) String category
     ) {
-        return menuService.readMenusByCategory(Long.valueOf(userId), categoryCode);
+        return menuService.readMenusByCategory(Long.valueOf(userId), category);
     }
 
     /**
@@ -225,7 +243,7 @@ public class CatalogController {
     @GetMapping("/menus/{menuId}")
     public MenuDetailResponse readMenu(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId
+            @PathVariable(name = "menuId") @Positive Long menuId
     ) {
         return menuService.readMenu(Long.valueOf(userId), menuId);
     }
@@ -237,7 +255,7 @@ public class CatalogController {
     @GetMapping("/menus/{menuId}/recipes")
     public RecipeListResponse readRecipes(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId
+            @PathVariable(name = "menuId") @Positive Long menuId
     ) {
         return menuService.readRecipes(Long.valueOf(userId), menuId);
     }
@@ -277,7 +295,7 @@ public class CatalogController {
     public void createRecipe(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody RecipeCreateRequest request
     ) {
         menuService.createRecipe(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
@@ -291,7 +309,7 @@ public class CatalogController {
     public void createRecipeWithNew(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody NewRecipeCreateRequest request
     ) {
         menuService.createRecipeWithNew(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
@@ -306,7 +324,7 @@ public class CatalogController {
     @PatchMapping("/menus/{menuId}")
     public void updateMenuName(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuCreateRequest request
     ) {
         menuService.updateMenuName(Long.valueOf(userId), menuId, request.getMenuName());
@@ -320,7 +338,7 @@ public class CatalogController {
     public void updateSellingPrice(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuPriceUpdateRequest request
     ) {
         menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.getSellingPrice());
@@ -333,7 +351,7 @@ public class CatalogController {
     @PatchMapping("/menus/{menuId}/category")
     public void updateMenuCategory(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuCategoryUpdateRequest request
     ) {
         menuService.updateMenuCategory(Long.valueOf(userId), menuId, request.getCategory());
@@ -347,7 +365,7 @@ public class CatalogController {
     public void updateWorkTime(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuWorktimeUpdateRequest request
     ) {
         menuService.updateWorkTime(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.getWorkTime());
@@ -361,8 +379,8 @@ public class CatalogController {
     public void updateRecipe(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
-            @PathVariable(name = "recipeId") Long recipeId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
+            @PathVariable(name = "recipeId") @Positive Long recipeId,
             @RequestBody AmountUpdateRequest request
     ) {
         menuService.updateRecipe(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, recipeId, request.getAmount());
@@ -377,7 +395,7 @@ public class CatalogController {
     public void deleteRecipes(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
             @RequestHeader(name = "laborCost", required = false, defaultValue = "10320") String laborCost,
-            @PathVariable(name = "menuId") Long menuId,
+            @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody DeleteRecipesRequest request
     ) {
         menuService.deleteRecipes(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request);
@@ -390,7 +408,7 @@ public class CatalogController {
     @DeleteMapping("/menus/{menuId}")
     public void deleteMenu(
             @RequestHeader(name = "userId", required = false, defaultValue = "1") String userId,
-            @PathVariable(name = "menuId") Long menuId
+            @PathVariable(name = "menuId") @Positive Long menuId
     ) {
         menuService.deleteMenu(Long.valueOf(userId), menuId);
     }
