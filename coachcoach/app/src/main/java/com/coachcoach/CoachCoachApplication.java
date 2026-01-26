@@ -8,8 +8,7 @@ import org.springframework.cache.annotation.EnableCaching;
 @SpringBootApplication(
         scanBasePackages = {
                 "com.coachcoach"
-        },
-        exclude = {DataSourceAutoConfiguration.class}
+        }
 )
 @EnableCaching
 public class CoachCoachApplication {
