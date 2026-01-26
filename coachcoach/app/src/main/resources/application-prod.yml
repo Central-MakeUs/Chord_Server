@@ -10,3 +10,8 @@ app:
       username: ${DATASOURCE_USERNAME}
       password: ${DATASOURCE_PASSWORD}
       driver-class-name: org.postgresql.Driver
+    insight:
+      url: jdbc:postgresql://${DATASOURCE_HOST}:${DATASOURCE_PORT}/${INSIGHT_DB_NAME}
+      username: ${DATASOURCE_USERNAME}
+      password: ${DATASOURCE_PASSWORD}
+      driver-class-name: org.postgresql.Driver

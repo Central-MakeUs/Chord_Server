@@ -49,8 +49,8 @@ logging:
     org.springframework.web: INFO
     org.springframework.cloud: INFO
 #    org.springframework.orm.jpa: DEBUG
-    com.zaxxer.hikari.HikariConfig: DEBUG
-    com.zaxxer.hikari.HikariDataSource: DEBUG
+#    com.zaxxer.hikari.HikariConfig: DEBUG
+#    com.zaxxer.hikari.HikariDataSource: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 
