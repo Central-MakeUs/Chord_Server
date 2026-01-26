@@ -587,6 +587,8 @@ public class MenuService {
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
+        if(!codeFinder.existsMenuCategory(category)) throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
+
         menu.updateCategory(category);
     }
 
