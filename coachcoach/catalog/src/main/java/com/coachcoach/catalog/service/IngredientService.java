@@ -260,6 +260,12 @@ public class IngredientService {
 
         // 단가/변동률 계산 + 재료 업데이트
         BigDecimal unitPrice = calculator.calUnitPrice(currentUnit, request.getPrice(), request.getAmount());
+
+        // 단가 유효성 검증 0.00 이상
+        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+        }
+
         BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calculator.calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
 
         ingredient.update(request.getCategory(), unitPrice, request.getUnitCode());
