@@ -6,8 +6,10 @@ import com.coachcoach.user.api.request.LoginRequest;
 import com.coachcoach.user.api.request.SignUpRequest;
 import com.coachcoach.user.api.response.LoginResponse;
 import com.coachcoach.user.domain.entity.RefreshToken;
+import com.coachcoach.user.domain.entity.Store;
 import com.coachcoach.user.domain.entity.Users;
 import com.coachcoach.user.domain.repository.RefreshTokenRepository;
+import com.coachcoach.user.domain.repository.StoreRepository;
 import com.coachcoach.user.domain.repository.UsersRepository;
 import com.coachcoach.user.global.exception.UserErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class AuthService {
 
     private final UsersRepository usersRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final StoreRepository storeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -47,7 +50,9 @@ public class AuthService {
         );
 
         // 스토어 로우 등록
-
+        Store store = storeRepository.save(
+                Store.create(user.getUserId())
+        );
     }
 
     /**
@@ -78,6 +83,6 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        return LoginResponse.of(accessToken);
+        return LoginResponse.of(accessToken, refreshToken);
     }
 }
