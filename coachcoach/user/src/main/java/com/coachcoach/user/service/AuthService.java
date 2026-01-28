@@ -35,18 +35,18 @@ public class AuthService {
     @Transactional
     public void signUp(SignUpRequest request) {
         // 아이디 고유성 확인
-        if(usersRepository.existsByLoginId(request.getLoginId())) {
+        if(usersRepository.existsByLoginId(request.loginId())) {
             throw new BusinessException(UserErrorCode.DUP_LOGIN_ID);
         }
 
         // 아이디 != 비밀번호 확인
-        if(request.getPassword().contains(request.getLoginId())) {
+        if(request.password().contains(request.loginId())) {
             throw new BusinessException(UserErrorCode.INVALID_PASSWORD);
         }
 
         // 회원가입
         Users user = usersRepository.save(
-                Users.create(request.getLoginId(), passwordEncoder.encode(request.getPassword()))
+                Users.create(request.loginId(), passwordEncoder.encode(request.password()))
         );
 
         // 스토어 로우 등록
@@ -60,10 +60,10 @@ public class AuthService {
      */
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        Users user = usersRepository.findByLoginId(request.getLoginId())
+        Users user = usersRepository.findByLoginId(request.loginId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_LOGIN_ID));
 
-        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        if(!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new BusinessException(UserErrorCode.INVALID_PASSWORD);
         }
 
@@ -83,6 +83,6 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        return LoginResponse.of(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken);
     }
 }

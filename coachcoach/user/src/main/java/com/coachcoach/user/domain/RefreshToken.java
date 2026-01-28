@@ -1,17 +1,16 @@
 package com.coachcoach.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Table(name = "tb_refresh_token")
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 public class RefreshToken {
 
@@ -31,14 +30,14 @@ public class RefreshToken {
             String refreshToken,
             LocalDateTime expiredAt
     ) {
-        RefreshToken refreshtoken = new RefreshToken();
+        LocalDateTime now = LocalDateTime.now();
 
-        refreshtoken.userId = userId;
-        refreshtoken.refreshToken = refreshToken;
-        refreshtoken.expiredAt = expiredAt;
-        refreshtoken.createdAt = LocalDateTime.now();
-        refreshtoken.updatedAt = LocalDateTime.now();
-
-        return refreshtoken;
+        return RefreshToken.builder()
+                .userId(userId)
+                .refreshToken(refreshToken)
+                .expiredAt(expiredAt)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 }

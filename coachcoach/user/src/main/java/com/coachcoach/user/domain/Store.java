@@ -1,20 +1,18 @@
 package com.coachcoach.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-
+@Builder
 @Table(name = "tb_store")
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 public class Store {
 
@@ -32,12 +30,12 @@ public class Store {
     private LocalDateTime updatedAt;
 
     public static Store create(Long userId) {
-        Store store = new Store();
+        LocalDateTime now = LocalDateTime.now();
 
-        store.userId = userId;
-        store.createdAt = LocalDateTime.now();
-        store.updatedAt = LocalDateTime.now();
-
-        return store;
+        return Store.builder()
+                .userId(userId)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 }

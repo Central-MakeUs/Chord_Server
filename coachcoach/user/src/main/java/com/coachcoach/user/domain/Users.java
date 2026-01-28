@@ -1,18 +1,17 @@
 package com.coachcoach.user.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import java.time.LocalDateTime;
 
+@Builder
 @Table(name = "tb_user")
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
 @Entity
 public class Users {
 
@@ -29,14 +28,14 @@ public class Users {
     private LocalDateTime updatedAt;
 
     public static Users create(String loginId, String password) {
-        Users user = new Users();
+        LocalDateTime now = LocalDateTime.now();
 
-        user.loginId = loginId;
-        user.password = password;
-        user.createdAt = LocalDateTime.now();
-        user.updatedAt = LocalDateTime.now();
-
-        return user;
+        return Users.builder()
+                .loginId(loginId)
+                .password(password)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 
     public void updateLastLoginAt() {
