@@ -1,23 +1,20 @@
 package com.coachcoach.catalog.service;
 
-import com.coachcoach.catalog.api.request.*;
-import com.coachcoach.catalog.api.response.*;
-import com.coachcoach.catalog.domain.entity.*;
-import com.coachcoach.catalog.domain.repository.*;
-import com.coachcoach.catalog.global.exception.CatalogErrorCode;
-import com.coachcoach.catalog.global.util.Cache;
-import com.coachcoach.catalog.global.util.Calculator;
-import com.coachcoach.catalog.global.util.CodeFinder;
-import com.coachcoach.catalog.global.util.DuplicateNameResolver;
+import com.coachcoach.catalog.domain.*;
+import com.coachcoach.catalog.dto.request.*;
+import com.coachcoach.catalog.dto.response.*;
+import com.coachcoach.catalog.exception.CatalogErrorCode;
+import com.coachcoach.catalog.util.Cache;
+import com.coachcoach.catalog.util.Calculator;
+import com.coachcoach.catalog.util.CodeFinder;
+import com.coachcoach.catalog.util.DuplicateNameResolver;
+import com.coachcoach.catalog.repository.*;
 import com.coachcoach.common.exception.BusinessException;
-import io.swagger.v3.oas.annotations.Operation;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

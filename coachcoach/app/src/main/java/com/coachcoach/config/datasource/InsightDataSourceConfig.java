@@ -1,7 +1,5 @@
 package com.coachcoach.config.datasource;
 
-import com.coachcoach.config.HikariConfigProperties;
-import com.coachcoach.config.JpaProperties;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;

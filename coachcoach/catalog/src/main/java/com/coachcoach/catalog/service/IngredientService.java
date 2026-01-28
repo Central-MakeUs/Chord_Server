@@ -1,16 +1,16 @@
 package com.coachcoach.catalog.service;
 
-import com.coachcoach.catalog.api.request.IngredientCreateRequest;
-import com.coachcoach.catalog.api.request.IngredientUpdateRequest;
-import com.coachcoach.catalog.api.request.SupplierUpdateRequest;
-import com.coachcoach.catalog.api.response.*;
-import com.coachcoach.catalog.domain.entity.*;
-import com.coachcoach.catalog.domain.repository.*;
-import com.coachcoach.catalog.global.exception.CatalogErrorCode;
-import com.coachcoach.catalog.global.util.Cache;
-import com.coachcoach.catalog.global.util.Calculator;
-import com.coachcoach.catalog.global.util.CodeFinder;
-import com.coachcoach.catalog.global.util.DuplicateNameResolver;
+import com.coachcoach.catalog.domain.*;
+import com.coachcoach.catalog.dto.request.IngredientCreateRequest;
+import com.coachcoach.catalog.dto.request.IngredientUpdateRequest;
+import com.coachcoach.catalog.dto.request.SupplierUpdateRequest;
+import com.coachcoach.catalog.dto.response.*;
+import com.coachcoach.catalog.exception.CatalogErrorCode;
+import com.coachcoach.catalog.util.Cache;
+import com.coachcoach.catalog.util.Calculator;
+import com.coachcoach.catalog.util.CodeFinder;
+import com.coachcoach.catalog.util.DuplicateNameResolver;
+import com.coachcoach.catalog.repository.*;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
