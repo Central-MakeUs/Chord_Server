@@ -1,14 +1,13 @@
 package com.coachcoach.catalog.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Builder
+@AllArgsConstructor
 @Table(name = "tb_ingredient_price_history")
 @Entity
 @ToString

@@ -1,12 +1,12 @@
 package com.coachcoach.catalog.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@Builder
+@AllArgsConstructor
 @Table(name = "tb_menu_category")
 @Getter
 @Entity

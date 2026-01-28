@@ -327,7 +327,7 @@ public class CatalogController {
             @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuNameUpdateRequest request
     ) {
-        menuService.updateMenuName(Long.valueOf(userId), menuId, request.getMenuName());
+        menuService.updateMenuName(Long.valueOf(userId), menuId, request.menuName());
     }
 
     /**
@@ -341,7 +341,7 @@ public class CatalogController {
             @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuPriceUpdateRequest request
     ) {
-        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.getSellingPrice());
+        menuService.updateSellingPrice(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.sellingPrice());
     }
 
     /**
@@ -354,7 +354,7 @@ public class CatalogController {
             @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuCategoryUpdateRequest request
     ) {
-        menuService.updateMenuCategory(Long.valueOf(userId), menuId, request.getCategory());
+        menuService.updateMenuCategory(Long.valueOf(userId), menuId, request.category());
     }
 
     /**
@@ -368,7 +368,7 @@ public class CatalogController {
             @PathVariable(name = "menuId") @Positive Long menuId,
             @Valid @RequestBody MenuWorktimeUpdateRequest request
     ) {
-        menuService.updateWorkTime(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.getWorkTime());
+        menuService.updateWorkTime(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, request.workTime());
     }
 
     /**
@@ -383,7 +383,7 @@ public class CatalogController {
             @PathVariable(name = "recipeId") @Positive Long recipeId,
             @RequestBody AmountUpdateRequest request
     ) {
-        menuService.updateRecipe(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, recipeId, request.getAmount());
+        menuService.updateRecipe(Long.valueOf(userId), BigDecimal.valueOf(Long.parseLong(laborCost)), menuId, recipeId, request.amount());
     }
 
     /* -------------삭제------------- */

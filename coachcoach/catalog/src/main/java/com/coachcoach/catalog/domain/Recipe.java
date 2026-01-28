@@ -1,14 +1,13 @@
 package com.coachcoach.catalog.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Builder
+@AllArgsConstructor
 @Table(name = "tb_recipe")
 @Getter
 @ToString
@@ -26,16 +25,15 @@ public class Recipe {
     private LocalDateTime updatedAt;
 
     public static Recipe create(Long menuId, Long ingredientId, BigDecimal amount) {
-        Recipe recipe = new Recipe();
+        LocalDateTime now = LocalDateTime.now();
 
-        recipe.menuId = menuId;
-        recipe.ingredientId = ingredientId;
-        recipe.amount = amount;
-
-        recipe.createdAt = LocalDateTime.now();
-        recipe.updatedAt = LocalDateTime.now();
-
-        return recipe;
+        return Recipe.builder()
+                .menuId(menuId)
+                .ingredientId(ingredientId)
+                .amount(amount)
+                .createdAt(now)
+                .updatedAt(now)
+                .build();
     }
 
     public void updateAmount(BigDecimal amount) {

@@ -1,16 +1,11 @@
 package com.coachcoach.catalog.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 import java.math.BigDecimal;
 
-@Getter
-@AllArgsConstructor
-public class MenuCostAnalysis {
-    private BigDecimal costRate;             // 원가율
-    private BigDecimal contributionMargin;   // 공헌이익률
-    private BigDecimal marginRate;           // 마진율
-    private String marginGradeCode;      // 마진 등급 코드
-    private BigDecimal recommendedPrice;    // 권장 가격
-}
+public record MenuCostAnalysis(
+    BigDecimal costRate,             // 원가율
+    BigDecimal contributionMargin,   // 공헌이익률
+    BigDecimal marginRate,           // 마진율
+    String marginGradeCode,      // 마진 등급 코드
+    BigDecimal recommendedPrice    // 권장 가격
+) {}
