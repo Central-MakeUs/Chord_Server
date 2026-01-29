@@ -1,13 +1,16 @@
 package com.coachcoach.user.service;
 
 import com.coachcoach.common.exception.BusinessException;
+import com.coachcoach.common.exception.CommonErrorCode;
 import com.coachcoach.common.security.jwt.JwtUtil;
 import com.coachcoach.user.dto.request.LoginRequest;
 import com.coachcoach.user.dto.request.SignUpRequest;
+import com.coachcoach.user.dto.request.TokenRefreshRequest;
 import com.coachcoach.user.dto.response.LoginResponse;
 import com.coachcoach.user.domain.RefreshToken;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
+import com.coachcoach.user.dto.response.TokenRefreshResponse;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
@@ -84,5 +87,27 @@ public class AuthService {
         user.updateLastLoginAt();
 
         return new LoginResponse(accessToken, refreshToken);
+    }
+
+    /**
+     * new access token 발급 요청
+     */
+    public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
+        // 토큰 유효기간, 타입 확인
+        if(jwtUtil.validateRefreshToken(request.refreshToken())) {
+            throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
+        }
+
+        // DB와 일치 여부 확인
+        Long userId = jwtUtil.getUserId(request.refreshToken());
+
+        if(!refreshTokenRepository.existsByUserIdAndRefreshToken(userId, request.refreshToken())) {
+            throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
+        }
+
+        // 새 Access token 발급
+        String newAccessToken = jwtUtil.createAccessToken(userId);
+
+        return new TokenRefreshResponse(newAccessToken);
     }
 }

@@ -1,9 +1,6 @@
 package com.coachcoach.common.security.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -42,6 +39,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("type", "access_token")
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(key)  // 알고리즘 자동 선택 (HS512)
@@ -57,6 +55,7 @@ public class JwtUtil {
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("type", "refresh_token")
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(key)
@@ -64,14 +63,19 @@ public class JwtUtil {
     }
 
     /**
-     * 토큰 검증
+     * Access token 토큰 검증
      */
-    public boolean validateToken(String token) {
+    public boolean validateAccessToken(String token) {
         try {
-            Jwts.parser()
+            Jws<Claims> claims = Jwts.parser()
                     .verifyWith(key)
                     .build()
                     .parseSignedClaims(token);
+
+            Object tokenType = claims.getPayload().get("token_type");
+            if(tokenType == null || !tokenType.equals("access_token")) {
+                throw new JwtException("Invalid Access token");
+            }
 
             return true;
         } catch (JwtException | IllegalArgumentException e) {
@@ -79,6 +83,29 @@ public class JwtUtil {
             return false;
         }
     }
+
+    /**
+     * Refresh token 토큰 검증
+     */
+    public boolean validateRefreshToken(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parser()
+                    .verifyWith(key)
+                    .build()
+                    .parseSignedClaims(token);
+
+            Object tokenType = claims.getPayload().get("token_type");
+            if(tokenType == null || !tokenType.equals("refresh_token")) {
+                throw new JwtException("Invalid Refresh token");
+            }
+
+            return true;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.debug("Invalid JWT token: {}", e.getMessage());
+            return false;
+        }
+    }
+
 
     /**
      * Jwt Claims 추출

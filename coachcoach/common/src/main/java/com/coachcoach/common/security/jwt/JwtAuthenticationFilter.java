@@ -32,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String token = authorizationHeader.substring(7);
 
                 //유효성 검증
-                if (jwtUtil.validateToken(token)) {
+                if (jwtUtil.validateAccessToken(token)) {
                     Long userId = jwtUtil.getUserId(token);
 
                     UserDetails userDetails = userDetailsLoader.loadUserById(userId);
