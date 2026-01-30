@@ -72,7 +72,7 @@ public class JwtUtil {
                     .build()
                     .parseSignedClaims(token);
 
-            Object tokenType = claims.getPayload().get("token_type");
+            Object tokenType = claims.getPayload().get("type");
             if(tokenType == null || !tokenType.equals("access_token")) {
                 throw new JwtException("Invalid Access token");
             }
@@ -94,7 +94,7 @@ public class JwtUtil {
                     .build()
                     .parseSignedClaims(token);
 
-            Object tokenType = claims.getPayload().get("token_type");
+            Object tokenType = claims.getPayload().get("type");
             if(tokenType == null || !tokenType.equals("refresh_token")) {
                 throw new JwtException("Invalid Refresh token");
             }

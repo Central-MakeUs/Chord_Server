@@ -9,6 +9,8 @@ import com.coachcoach.catalog.util.Calculator;
 import com.coachcoach.catalog.util.CodeFinder;
 import com.coachcoach.catalog.util.DuplicateNameResolver;
 import com.coachcoach.catalog.repository.*;
+import com.coachcoach.common.api.UserQueryApi;
+import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +42,7 @@ public class MenuService {
     private final TemplateIngredientRepository templateIngredientRepository;
     private final DuplicateNameResolver nameResolver;
     private final ConversionService conversionService;
+    private final UserQueryApi userQueryApi;
 
     /**
      * 메뉴 카테고리 목록 조회
@@ -212,13 +215,15 @@ public class MenuService {
     @Transactional
     public void createMenu(
             Long userId,
-            BigDecimal laborCost,
             MenuCreateRequest request
     ) {
         // 유효성 검증(메뉴 카테고리)
         if(!codeFinder.existsMenuCategory(request.menuCategoryCode())) {
             throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
         }
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 메뉴 등록
         // 메뉴 이름 중복 확인
@@ -392,7 +397,6 @@ public class MenuService {
     @Transactional
     public void createRecipe(
             Long userId,
-            BigDecimal laborCost,
             Long menuId,
             RecipeCreateRequest request
     ) {
@@ -404,6 +408,9 @@ public class MenuService {
         if(!ingredientRepository.existsByUserIdAndIngredientId(userId, request.ingredientId())) {
             throw new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT);
         }
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 중복 확인 (해당 메뉴에 이미 해당 재료로 레시피가 존재하는지)
         if(recipeRepository.existsByMenuIdAndIngredientId(menuId, request.ingredientId())) {
@@ -451,7 +458,6 @@ public class MenuService {
     @Transactional
     public void createRecipeWithNew(
             Long userId,
-            BigDecimal laborCost,
             Long menuId,
             NewRecipeCreateRequest request
     ) {
@@ -462,6 +468,9 @@ public class MenuService {
 
         IngredientCategory ingredientCategoryByCode = codeFinder.findIngredientCategoryByCode(request.ingredientCategoryCode());
         Unit unit = codeFinder.findUnitByCode(request.unitCode());
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
         String ingredientName = nameResolver.createNonDupIngredientName(userId, request.ingredientName());
@@ -555,7 +564,6 @@ public class MenuService {
     @Transactional
     public void updateSellingPrice(
             Long userId,
-            BigDecimal laborCost,
             Long menuId,
             BigDecimal sellingPrice
     ) {
@@ -563,6 +571,9 @@ public class MenuService {
         Menu menu = menuRepository
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 메뉴 analysis 재계산
         MenuCostAnalysis analysis = calculator.calAnalysis(
@@ -605,7 +616,6 @@ public class MenuService {
     @Transactional
     public void updateWorkTime(
             Long userId,
-            BigDecimal laborCost,
             Long menuId,
             Integer workTime
     ) {
@@ -613,6 +623,9 @@ public class MenuService {
         Menu menu = menuRepository
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 메뉴 analysis 재계산
         MenuCostAnalysis analysis = calculator.calAnalysis(
@@ -637,7 +650,7 @@ public class MenuService {
      */
     @Transactional
     public void updateRecipe(
-            Long userId, BigDecimal laborCost, Long menuId, Long recipeId, BigDecimal amount
+            Long userId, Long menuId, Long recipeId, BigDecimal amount
     ) {
         // 레시피 존재 여부 확인
         Recipe recipe = recipeRepository
@@ -652,6 +665,9 @@ public class MenuService {
         Menu menu = menuRepository
                 .findByUserIdAndMenuId(userId, menuId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 레시피 수정
 
@@ -684,7 +700,7 @@ public class MenuService {
      */
     @Transactional
     public void deleteRecipes(
-            Long userId, BigDecimal laborCost, Long menuId, DeleteRecipesRequest request
+            Long userId, Long menuId, DeleteRecipesRequest request
     ) {
         //메뉴 존재 여부 확인
         Menu menu = menuRepository
@@ -695,6 +711,9 @@ public class MenuService {
         if(request.recipeIds().isEmpty()) {
             return;
         }
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         List<Recipe> targets = recipeRepository.findAllById(request.recipeIds());
 

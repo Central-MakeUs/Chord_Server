@@ -17,7 +17,6 @@ import java.time.LocalDateTime;
 public class Store {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
     @Length(max = 20, min = 1)
     private String name;

@@ -33,6 +33,7 @@ public class Users {
         return Users.builder()
                 .loginId(loginId)
                 .password(password)
+                .onboardingCompleted(false)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();

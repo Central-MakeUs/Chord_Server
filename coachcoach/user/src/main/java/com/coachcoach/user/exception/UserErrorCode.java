@@ -14,7 +14,10 @@ public enum UserErrorCode implements ErrorCode {
 
     // 로그인
     NOTFOUND_LOGIN_ID("USER_010", "존재하지 않는 아이디입니다.", HttpStatus.UNAUTHORIZED),
-    INVALID_PASSWORD("USER_021", "비밀번호가 일치하지 않습니다.", HttpStatus.UNAUTHORIZED)
+    INVALID_PASSWORD("USER_021", "비밀번호가 일치하지 않습니다.", HttpStatus.UNAUTHORIZED),
+
+    NOTFOUND_STORE("USER_011", "스토어가 존재하지 않습니다.", HttpStatus.NOT_FOUND),
+    NOTFOUND_USER("USER_012", "유저가 존재하지 않습니다.", HttpStatus.NOT_FOUND)
     ;
     private final String code;
     private final String message;

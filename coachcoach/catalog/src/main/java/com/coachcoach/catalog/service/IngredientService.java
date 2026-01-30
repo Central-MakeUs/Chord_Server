@@ -11,6 +11,8 @@ import com.coachcoach.catalog.util.Calculator;
 import com.coachcoach.catalog.util.CodeFinder;
 import com.coachcoach.catalog.util.DuplicateNameResolver;
 import com.coachcoach.catalog.repository.*;
+import com.coachcoach.common.api.UserQueryApi;
+import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +41,7 @@ public class IngredientService {
     private final TemplateRecipeRepository templateRecipeRepository;
     private final TemplateIngredientRepository templateIngredientRepository;
     private final DuplicateNameResolver nameResolver;
+    private final UserQueryApi userQueryApi;
 
     /**
      * 재료 카테고리 목록 조회
@@ -252,9 +255,12 @@ public class IngredientService {
      */
     @Transactional
     public void updateIngredientPrice(
-            Long userId, BigDecimal laborCost, Long ingredientId, IngredientUpdateRequest request
+            Long userId, Long ingredientId, IngredientUpdateRequest request
     ) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 카테고리 유효성 검증
         if(!codeFinder.existsIngredientCategory(request.category())) {
@@ -329,9 +335,12 @@ public class IngredientService {
      */
     @Transactional
     public void deleteIngredient(
-            Long userId, BigDecimal laborCost, Long ingredientId
+            Long userId, Long ingredientId
     ) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal laborCost = storeInfo.laborCost();
 
         // 해당 재료 포함 레시피 모두 삭제
         List<Recipe> recipesToUpdate = recipeRepository.findByIngredientId(ingredientId);
