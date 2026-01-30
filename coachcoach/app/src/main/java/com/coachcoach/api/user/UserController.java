@@ -16,46 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "유저", description = "유저 관리 API")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/user")
 public class UserController {
-
-    private final AuthService authService;
     private final UserService userService;
-
-    /**
-     * 회원가입
-     */
-    @Operation(summary = "회원가입")
-    @PostMapping("/auth/sign-up")
-    public void signUp(
-            @Valid @RequestBody SignUpRequest request
-    ) {
-        authService.signUp(request);
-    }
-
-    /**
-     * 로그인
-     */
-    @Operation(summary = "로그인")
-    @PostMapping("/auth/login")
-    public LoginResponse login(
-            @Valid @RequestBody LoginRequest request
-    ) {
-        return authService.login(request);
-    }
-
-    /**
-     * new access token 발급 요청
-     */
-    @Operation(summary = "토큰 refresh 요청")
-    @PostMapping("/auth/refresh")
-    public TokenRefreshResponse refreshToken(
-            @Valid @RequestBody TokenRefreshRequest request
-    ) {
-        return authService.refreshToken(request);
-    }
-
-    /**
-     * 온보딩
-     */
 }

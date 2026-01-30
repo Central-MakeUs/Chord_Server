@@ -44,7 +44,7 @@ public class AuthService {
 
         // 아이디 != 비밀번호 확인
         if(request.password().contains(request.loginId())) {
-            throw new BusinessException(UserErrorCode.INVALID_PASSWORD);
+            throw new BusinessException(UserErrorCode.PASSWORD_CONTAINS_LOGIN_ID);
         }
 
         // 회원가입
