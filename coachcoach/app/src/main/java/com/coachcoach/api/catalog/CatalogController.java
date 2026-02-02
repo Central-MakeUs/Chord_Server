@@ -168,7 +168,6 @@ public class CatalogController {
             @PathVariable(name = "ingredientId") @Positive Long ingredientId,
             @Valid @RequestBody IngredientUpdateRequest request
     ) {
-        // todo: laborCost 수정
         ingredientService.updateIngredientPrice(Long.valueOf(details.getUserId()), ingredientId, request);
     }
 

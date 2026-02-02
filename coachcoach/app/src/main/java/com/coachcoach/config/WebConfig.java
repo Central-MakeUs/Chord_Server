@@ -43,6 +43,6 @@ public class WebConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new OnboardingCheckInterceptor(userQueryApi))
                 .addPathPatterns("/**")
-                .excludePathPatterns("/api/v1/auth/**", "api/v1/users/onboarding/**");
+                .excludePathPatterns("/api/v1/auth/**", "/api/v1/users/onboarding");
     }
 }
