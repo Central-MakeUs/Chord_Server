@@ -19,3 +19,14 @@ app:
       username: ${DATASOURCE_USERNAME}
       password: ${DATASOURCE_PASSWORD}
       driver-class-name: org.postgresql.Driver
+
+logging:
+  level:
+    com.coachcoach: INFO  # 프로젝트 로그 레벨
+    org.hibernate.SQL: INFO  # SQL 로그
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 파라미터
+    org.springframework.web: INFO
+    org.springframework.cloud: INFO
+    org.springframework.web.servlet.resource: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

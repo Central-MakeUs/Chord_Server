@@ -35,7 +35,7 @@ public class AuthService {
     /**
      * 회원가입
      */
-    @Transactional
+    @Transactional(transactionManager = "userTransactionManager")
     public void signUp(SignUpRequest request) {
         // 아이디 고유성 확인
         if(usersRepository.existsByLoginId(request.loginId())) {
@@ -61,7 +61,7 @@ public class AuthService {
     /**
      * 로그인
      */
-    @Transactional
+    @Transactional(transactionManager = "userTransactionManager")
     public LoginResponse login(LoginRequest request) {
         Users user = usersRepository.findByLoginId(request.loginId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_LOGIN_ID));
@@ -92,6 +92,7 @@ public class AuthService {
     /**
      * new access token 발급 요청
      */
+    @Transactional(transactionManager = "userTransactionManager")
     public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
         // 토큰 유효기간, 타입 확인
         if(jwtUtil.validateRefreshToken(request.refreshToken())) {

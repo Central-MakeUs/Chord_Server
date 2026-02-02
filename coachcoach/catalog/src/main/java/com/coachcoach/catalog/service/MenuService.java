@@ -194,7 +194,7 @@ public class MenuService {
     /**
      * 메뉴명 + 재료명 중복 확인 (일괄)
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public CheckDupResponse checkDupNames(Long userId, CheckDupRequest request) {
         // 메뉴명 중복 확인
         Boolean menuNameDuplicate = menuRepository.existsByUserIdAndMenuName(userId, request.menuName());
@@ -212,7 +212,7 @@ public class MenuService {
     /**
      * 메뉴 생성
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void createMenu(
             Long userId,
             MenuCreateRequest request
@@ -394,7 +394,7 @@ public class MenuService {
     /**
      * 레시피 추가 (단일 / 기존 재료)
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void createRecipe(
             Long userId,
             Long menuId,
@@ -455,7 +455,7 @@ public class MenuService {
     /**
      * 레시피 추가 (단일 / 새 재료)
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void createRecipeWithNew(
             Long userId,
             Long menuId,
@@ -545,7 +545,7 @@ public class MenuService {
     /**
      * 메뉴명 수정
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void updateMenuName(
             Long userId, Long menuId, String menuName
     ) {
@@ -561,7 +561,7 @@ public class MenuService {
     /**
      * 메뉴 판매가 수정
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void updateSellingPrice(
             Long userId,
             Long menuId,
@@ -596,7 +596,7 @@ public class MenuService {
     /**
      * 카테고리 수정
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void updateMenuCategory(
             Long userId, Long menuId, String category
     ) {
@@ -613,7 +613,7 @@ public class MenuService {
     /**
      * 메뉴 제조시간 수정
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void updateWorkTime(
             Long userId,
             Long menuId,
@@ -648,7 +648,7 @@ public class MenuService {
     /**
      * 레시피 수정 (only 사용량)
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void updateRecipe(
             Long userId, Long menuId, Long recipeId, BigDecimal amount
     ) {
@@ -698,7 +698,7 @@ public class MenuService {
     /**
      * 레시피 삭제 (복수 선택 가능) -> 해당 메뉴 정보 업데이트 필요
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void deleteRecipes(
             Long userId, Long menuId, DeleteRecipesRequest request
     ) {
@@ -757,7 +757,7 @@ public class MenuService {
     /**
      * 메뉴 삭제 (단일)
      */
-    @Transactional
+    @Transactional(transactionManager = "catalogTransactionManager")
     public void deleteMenu(
             Long userId,
             Long menuId
