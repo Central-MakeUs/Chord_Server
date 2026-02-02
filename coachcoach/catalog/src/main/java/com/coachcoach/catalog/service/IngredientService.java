@@ -260,7 +260,7 @@ public class IngredientService {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 카테고리 유효성 검증
         if(!codeFinder.existsIngredientCategory(request.category())) {
@@ -340,7 +340,7 @@ public class IngredientService {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 해당 재료 포함 레시피 모두 삭제
         List<Recipe> recipesToUpdate = recipeRepository.findByIngredientId(ingredientId);

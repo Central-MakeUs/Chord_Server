@@ -223,7 +223,7 @@ public class MenuService {
         }
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 메뉴 등록
         // 메뉴 이름 중복 확인
@@ -410,7 +410,7 @@ public class MenuService {
         }
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 중복 확인 (해당 메뉴에 이미 해당 재료로 레시피가 존재하는지)
         if(recipeRepository.existsByMenuIdAndIngredientId(menuId, request.ingredientId())) {
@@ -470,7 +470,7 @@ public class MenuService {
         Unit unit = codeFinder.findUnitByCode(request.unitCode());
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
         String ingredientName = nameResolver.createNonDupIngredientName(userId, request.ingredientName());
@@ -573,7 +573,7 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 메뉴 analysis 재계산
         MenuCostAnalysis analysis = calculator.calAnalysis(
@@ -625,7 +625,7 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 메뉴 analysis 재계산
         MenuCostAnalysis analysis = calculator.calAnalysis(
@@ -667,7 +667,7 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 레시피 수정
 
@@ -713,7 +713,7 @@ public class MenuService {
         }
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         List<Recipe> targets = recipeRepository.findAllById(request.recipeIds());
 

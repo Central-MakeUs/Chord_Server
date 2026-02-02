@@ -24,6 +24,18 @@ public class Calculator {
     private final CodeFinder codeFinder;
 
     /**
+     * laborcost (시급) 계산
+     */
+    public BigDecimal calLaborCost(Boolean includeWeeklyHolidayPay, BigDecimal laborCost){
+        if(includeWeeklyHolidayPay == Boolean.FALSE) {
+            return laborCost;
+        }
+
+        return laborCost.multiply(BigDecimal.valueOf(1.2))
+                .setScale(1, RoundingMode.HALF_UP);
+    }
+
+    /**
      * 재료 단가 계산 (2자리 반올림)
      * 1kg, 100g, 1개, 100ml
      * 구매가격 / 구매량 * 기준량
@@ -145,16 +157,15 @@ public class Calculator {
 
     /**
      * 1잔 당 인건비 계산
-     * 제조시간(초) / 60 x (시간 당 인건비 / 360)
+     * (시간 당 인건비 / 3600) * 한 잔 제조 시간
      */
     public BigDecimal calLaborCostPerCup(
             Integer workTime,
             BigDecimal laborCostPerHour
     ) {
-        return BigDecimal.valueOf(workTime)
-                .divide(BigDecimal.valueOf(60), 10, RoundingMode.HALF_UP)
-                .multiply(laborCostPerHour)
-                .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
+        return laborCostPerHour
+                .divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(workTime))
                 .setScale(2, RoundingMode.HALF_UP);
     }
 

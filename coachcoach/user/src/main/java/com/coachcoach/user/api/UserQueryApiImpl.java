@@ -29,6 +29,7 @@ public class UserQueryApiImpl implements UserQueryApi {
                 .employees(store.getEmployees())
                 .laborCost(store.getLaborCost())
                 .rentCost(store.getRentCost())
+                .includeWeeklyHolidayPay(store.getIncludeWeeklyHolidayPay())
                 .createdAt(store.getCreatedAt())
                 .updatedAt(store.getUpdatedAt())
                 .build();
