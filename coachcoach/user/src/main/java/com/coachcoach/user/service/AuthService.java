@@ -86,7 +86,7 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
 
     /**
