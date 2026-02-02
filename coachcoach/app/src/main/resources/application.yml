@@ -11,7 +11,11 @@ server:
     include-message: always       # 에러 메시지 항상 포함
     include-binding-errors: always  # Validation 에러 항상 포함
     include-stacktrace: on_param
-
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
 spring:
   application:
     name: app
@@ -51,6 +55,7 @@ logging:
 #    org.springframework.orm.jpa: DEBUG
 #    com.zaxxer.hikari.HikariConfig: DEBUG
 #    com.zaxxer.hikari.HikariDataSource: DEBUG
+    org.springframework.web.servlet.resource: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 

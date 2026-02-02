@@ -58,6 +58,7 @@ public class Ingredient {
                 .unitCode(unitCode)
                 .currentUnitPrice(currentUnitPrice)
                 .supplier(supplier)
+                .favorite(false)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();

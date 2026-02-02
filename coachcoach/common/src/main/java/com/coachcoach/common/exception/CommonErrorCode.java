@@ -20,6 +20,9 @@ public enum CommonErrorCode implements ErrorCode {
     UNAUTHORIZED("AUTH_001", "인증이 필요합니다", HttpStatus.UNAUTHORIZED),
     FORBIDDEN("AUTH_002", "접근 권한이 없습니다", HttpStatus.FORBIDDEN),
     INVALID_TOKEN("AUTH_003", "유효하지 않은 토큰입니다", HttpStatus.UNAUTHORIZED),
+
+    // 온보딩
+    ONBOARDING_NOT_COMPLETED("COMMON_008", "온보딩을 완료해주세요.", HttpStatus.FORBIDDEN),
     ;
 
     private final String code;
