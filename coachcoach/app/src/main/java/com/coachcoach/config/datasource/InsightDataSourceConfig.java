@@ -50,7 +50,7 @@ public class InsightDataSourceConfig {
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.insight.domain.entity")
+                .packages("com.coachcoach.insight.domain")
                 .persistenceUnit("insight")
                 .properties(JpaProperties.getHibernateProperties())
                 .build();

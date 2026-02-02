@@ -50,7 +50,7 @@ public class UserDataSourceConfig {
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.user.domain.entity")
+                .packages("com.coachcoach.user.domain")
                 .persistenceUnit("user")
                 .properties(JpaProperties.getHibernateProperties())
                 .build();

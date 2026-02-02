@@ -54,7 +54,7 @@ public class CatalogDataSourceConfig {
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.catalog.domain.entity")
+                .packages("com.coachcoach.catalog.domain")
                 .persistenceUnit("catalog")
                 .properties(JpaProperties.getHibernateProperties())
                 .build();
