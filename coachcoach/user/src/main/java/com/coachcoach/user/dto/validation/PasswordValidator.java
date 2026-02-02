@@ -49,17 +49,17 @@ public class PasswordValidator implements ConstraintValidator<ValidPassword, Str
             return false;
         }
 
-        // 대소문자, 숫자, 특수문자 중 3가지 이상 포함
+        // 대소문자, 숫자, 특수문자 중 2가지 이상 포함
         int typesCount = 0;
         if (LOWERCASE_PATTERN.matcher(password).find()) typesCount++;
         if (UPPERCASE_PATTERN.matcher(password).find()) typesCount++;
         if (DIGIT_PATTERN.matcher(password).find()) typesCount++;
         if (SPECIAL_CHAR_PATTERN.matcher(password).find()) typesCount++;
 
-        if (typesCount < 3) {
+        if (typesCount < 2) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
-                    "비밀번호는 대소문자, 숫자, 특수문자 중 3가지 이상을 포함해야 합니다."
+                    "비밀번호는 대소문자, 숫자, 특수문자 중 2가지 이상을 포함해야 합니다."
             ).addConstraintViolation();
             return false;
         }

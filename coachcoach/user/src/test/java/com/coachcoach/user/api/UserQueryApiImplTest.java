@@ -3,7 +3,6 @@ package com.coachcoach.user.api;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.user.domain.Store;
-import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.repository.StoreRepository;
 import org.junit.jupiter.api.DisplayName;
