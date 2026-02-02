@@ -18,7 +18,7 @@ public record RecipeTemplateResponse (
         return new RecipeTemplateResponse(
             ingredient.getIngredientName(),
             recipe.getDefaultUsageAmount(),
-            recipe.getDefaultPrice(),
+            recipe.getDefaultCost(),
             ingredient.getUnitCode()
         );
     }
