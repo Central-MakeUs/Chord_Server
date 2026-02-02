@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @Profile("prod")
 @Configuration(proxyBeanMethods = false)
 @EnableJpaRepositories(
-        basePackages = "com.coachcoach.insight.domain.repository",
+        basePackages = "com.coachcoach.insight.repository",
         entityManagerFactoryRef = "insightEntityManagerFactory",
         transactionManagerRef = "insightTransactionManager"
 )

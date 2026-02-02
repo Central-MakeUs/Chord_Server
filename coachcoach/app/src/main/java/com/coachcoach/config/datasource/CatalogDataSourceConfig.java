@@ -19,7 +19,7 @@ import javax.sql.DataSource;
 @Profile("prod")
 @Configuration(proxyBeanMethods = false)
 @EnableJpaRepositories(
-        basePackages = "com.coachcoach.catalog.domain.repository",
+        basePackages = "com.coachcoach.catalog.repository",
         entityManagerFactoryRef = "catalogEntityManagerFactory",
         transactionManagerRef = "catalogTransactionManager"
 )
