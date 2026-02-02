@@ -1,7 +1,5 @@
 package com.coachcoach.config.datasource;
 
-import com.coachcoach.config.HikariConfigProperties;
-import com.coachcoach.config.JpaProperties;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -20,7 +18,7 @@ import javax.sql.DataSource;
 @Profile("prod")
 @Configuration(proxyBeanMethods = false)
 @EnableJpaRepositories(
-        basePackages = "com.coachcoach.insight.domain.repository",
+        basePackages = "com.coachcoach.insight.repository",
         entityManagerFactoryRef = "insightEntityManagerFactory",
         transactionManagerRef = "insightTransactionManager"
 )
@@ -52,7 +50,7 @@ public class InsightDataSourceConfig {
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.insight.domain.entity")
+                .packages("com.coachcoach.insight.domain")
                 .persistenceUnit("insight")
                 .properties(JpaProperties.getHibernateProperties())
                 .build();

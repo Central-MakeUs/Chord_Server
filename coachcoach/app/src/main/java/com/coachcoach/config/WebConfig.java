@@ -1,15 +1,29 @@
 package com.coachcoach.config;
 
+import com.coachcoach.common.api.UserQueryApi;
+import com.coachcoach.common.interceptor.OnboardingCheckInterceptor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
+@RequiredArgsConstructor
 @Configuration
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer {
+
+    private static final String[] INTERCEPTOR_WHITELIST = {
+            "/api/v1/auth/**", "api/v1/users/onboarding",
+            "/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/actuator/**"
+    };
+
+    private final UserQueryApi userQueryApi;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -23,5 +37,12 @@ public class WebConfig {
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();
         src.registerCorsConfiguration("/**", cfg);
         return src;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new OnboardingCheckInterceptor(userQueryApi))
+                .addPathPatterns("/**")
+                .excludePathPatterns("/api/v1/auth/**", "api/v1/users/onboarding/**");
     }
 }

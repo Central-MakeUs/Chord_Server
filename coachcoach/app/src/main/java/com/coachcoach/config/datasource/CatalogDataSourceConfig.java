@@ -1,7 +1,5 @@
 package com.coachcoach.config.datasource;
 
-import com.coachcoach.config.HikariConfigProperties;
-import com.coachcoach.config.JpaProperties;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
@@ -21,7 +19,7 @@ import javax.sql.DataSource;
 @Profile("prod")
 @Configuration(proxyBeanMethods = false)
 @EnableJpaRepositories(
-        basePackages = "com.coachcoach.catalog.domain.repository",
+        basePackages = "com.coachcoach.catalog.repository",
         entityManagerFactoryRef = "catalogEntityManagerFactory",
         transactionManagerRef = "catalogTransactionManager"
 )
@@ -56,7 +54,7 @@ public class CatalogDataSourceConfig {
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.catalog.domain.entity")
+                .packages("com.coachcoach.catalog.domain")
                 .persistenceUnit("catalog")
                 .properties(JpaProperties.getHibernateProperties())
                 .build();
