@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.repository;
 
+import com.coachcoach.catalog.domain.MarginGrade;
 import com.coachcoach.catalog.domain.Menu;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,4 +27,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     boolean existsByUserIdAndMenuName(Long userId, String menuName);
     List<Menu> findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(Long userId, String categoryCode);
     List<Menu> findByUserIdOrderByMenuIdDesc(Long userId);
+    int countByUserIdAndMarginGradeCode(Long userId, String marginGradeCode);
+
 }
