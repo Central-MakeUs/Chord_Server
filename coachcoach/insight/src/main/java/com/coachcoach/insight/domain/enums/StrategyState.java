@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum StrategyState {
     BEFORE("before"),
     ONGOING("ongoing"),
-    COMPLETED("completed");
+    COMPLETED("");
 
     private final String value;
 

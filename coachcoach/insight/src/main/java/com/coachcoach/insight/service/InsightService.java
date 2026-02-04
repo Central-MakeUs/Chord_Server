@@ -1,13 +1,23 @@
 package com.coachcoach.insight.service;
 
 import com.coachcoach.common.api.CatalogQueryApi;
+import com.coachcoach.common.exception.BusinessException;
+import com.coachcoach.insight.domain.CautionMenuStrategy;
 import com.coachcoach.insight.domain.DangerMenuStrategy;
+import com.coachcoach.insight.domain.HighMarginMenuStrategy;
+import com.coachcoach.insight.domain.enums.StrategyState;
+import com.coachcoach.insight.domain.enums.StrategyType;
+import com.coachcoach.insight.dto.response.CompletionPhraseResponse;
 import com.coachcoach.insight.dto.response.DangerMenuBriefCard;
 import com.coachcoach.insight.dto.response.HomeStrategyCardResponse;
+import com.coachcoach.insight.exception.InsightErrorCode;
+import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
 import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
+import com.coachcoach.insight.repository.HighMarginMenuStrategyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.WeekFields;
@@ -20,6 +30,8 @@ import java.util.Locale;
 public class InsightService {
 
     private final DangerMenuStrategyRepository dangerMenuStrategyRepository;
+    private final CautionMenuStrategyRepository cautionMenuStrategyRepository;
+    private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
     private final CatalogQueryApi catalogQueryApi;
 
     /**
@@ -62,16 +74,90 @@ public class InsightService {
 
     /**
      * 전략 상태 변경 (실행 전 -> 실행 중)
+     * 조건: state == "before"
      */
+    @Transactional(transactionManager = "insightTransactionManager")
+    public void changeStateToOngoing(Long userId, Long strategyId, StrategyType strategyType) {
+
+        if(strategyType.equals(StrategyType.DANGER)) {
+            // type == DANGER
+            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkStartCondition(strategy.getState());
+            strategy.updateStateToOngoing();
+        } else if(strategyType.equals(StrategyType.CAUTION)) {
+            // type == CAUTION
+            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkStartCondition(strategy.getState());
+            strategy.updateStateToOngoing();
+        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
+            // type == HIGH_MARGIN
+            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkStartCondition(strategy.getState());
+            strategy.updateStateToOngoing();
+        }
+    }
 
     /**
      * 전략 상태 변경 (실행 중 -> 실행 완료)
      * 실행 완료 문구 노출
+     * 조건: state == "ongoing"
      */
+    @Transactional(transactionManager = "insightTransactionManager")
+    public CompletionPhraseResponse changeStateToCompleted(Long userId, Long strategyId, StrategyType strategyType) {
+        StringBuilder completionPhrase = new StringBuilder();
+
+        if(strategyType.equals(StrategyType.DANGER)) {
+            // type == DANGER
+            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+            completionPhrase.append(strategy.getCompletionPhrase());
+        } else if(strategyType.equals(StrategyType.CAUTION)) {
+            // type == CAUTION
+            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+            completionPhrase.append(strategy.getCompletionPhrase());
+        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
+            // type == HIGH_MARGIN
+            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+            completionPhrase.append(strategy.getCompletionPhrase());
+        }
+
+        return new CompletionPhraseResponse(completionPhrase.toString());
+    }
 
     /**
      * 전략 저장
      */
+    @Transactional(transactionManager = "insightTransactionManager")
+    public void saveStrategy(Long userId, Long strategyId,  StrategyType strategyType, Boolean saved) {
+
+        if(strategyType.equals(StrategyType.DANGER)) {
+            // type == DANGER
+            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            strategy.updateSaved(saved);
+        } else if(strategyType.equals(StrategyType.CAUTION)) {
+            // type == CAUTION
+            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            strategy.updateSaved(saved);
+        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
+            // type == HIGH_MARGIN
+            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            strategy.updateSaved(saved);
+        }
+    }
 
     /**
      * 주차 별 전략 리스트
@@ -110,5 +196,21 @@ public class InsightService {
         LocalDate endOfWeek = dateInWeek.with(weekFields.dayOfWeek(), 7);
 
         return new LocalDate[]{startOfWeek, endOfWeek};
+    }
+
+    private void checkStartCondition(StrategyState state) {
+        if(state.equals(StrategyState.ONGOING)) {
+            throw new BusinessException(InsightErrorCode.STRATEGY_ALREADY_STARTED);
+        } else if(state.equals(StrategyState.COMPLETED)) {
+            throw new BusinessException(InsightErrorCode.STRATEGY_ALREADY_COMPLETED);
+        }
+    }
+
+    private void checkCompletionCondition(StrategyState state) {
+        if(state.equals(StrategyState.COMPLETED)) {
+            throw new BusinessException(InsightErrorCode.STRATEGY_ALREADY_COMPLETED);
+        } else if(state.equals(StrategyState.BEFORE)) {
+            throw new BusinessException(InsightErrorCode.STRATEGY_NOT_STARTED);
+        }
     }
 }

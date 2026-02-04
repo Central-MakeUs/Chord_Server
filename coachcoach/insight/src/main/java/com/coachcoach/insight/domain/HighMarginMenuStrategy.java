@@ -1,7 +1,6 @@
 package com.coachcoach.insight.domain;
 
 import com.coachcoach.insight.domain.enums.StrategyState;
-import com.coachcoach.insight.domain.enums.StrategyStateConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -40,7 +39,7 @@ public class HighMarginMenuStrategy {
 
     private LocalDate completionDate;
 
-    @Convert(converter = StrategyStateConverter.class)
+    @Enumerated(EnumType.STRING)
     private StrategyState state;
 
     @Column(name = "is_saved")
@@ -49,4 +48,21 @@ public class HighMarginMenuStrategy {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    public void updateSaved(boolean saved) {
+        this.saved = saved;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateStateToOngoing() {
+        this.state = StrategyState.ONGOING;
+        this.startDate = LocalDate.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateStateToCompleted() {
+        this.state = StrategyState.COMPLETED;
+        this.completionDate = LocalDate.now();
+        this.updatedAt = LocalDateTime.now();
+    }
 }
