@@ -4,6 +4,7 @@ import com.coachcoach.common.security.handler.JwtAccessDeniedHandler;
 import com.coachcoach.common.security.handler.JwtAuthenticationEntryPoint;
 import com.coachcoach.common.security.jwt.JwtAuthenticationFilter;
 import com.coachcoach.common.security.jwt.JwtUtil;
+import com.coachcoach.common.security.logging.LoggerFilter;
 import com.coachcoach.user.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
