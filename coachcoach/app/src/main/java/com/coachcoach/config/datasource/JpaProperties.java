@@ -24,7 +24,7 @@ public class JpaProperties {
         properties.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 
         // SQL Logging
-        properties.put("hibernate.show_sql", "true");
+        properties.put("hibernate.show_sql", false);
 
         // Performance
         properties.put("hibernate.format_sql", "true");
