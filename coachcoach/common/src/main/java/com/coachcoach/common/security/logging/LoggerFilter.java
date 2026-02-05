@@ -38,8 +38,7 @@ public class LoggerFilter implements Filter {
         var reqJson = new String(req.getContentAsByteArray(), servletRequest.getCharacterEncoding());
         var resJson = new String(res.getContentAsByteArray(), servletResponse.getCharacterEncoding());
 
-        log.info("Request: {}", reqJson);
-        log.info("Response: {}", resJson);
+        log.info("Request: {}", reqJson.isBlank() ? "Empty Request Body" : reqJson);
 
         // 응답 데이터 복원
         res.copyBodyToResponse();
