@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.service;
 
 import com.coachcoach.catalog.domain.*;
+import com.coachcoach.catalog.dto.MenuInUse;
 import com.coachcoach.catalog.dto.request.IngredientCreateRequest;
 import com.coachcoach.catalog.dto.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.dto.request.SupplierUpdateRequest;
@@ -98,8 +99,10 @@ public class IngredientService {
         Unit unit = codeFinder.findUnitByCode(ingredient.getUnitCode());
 
         //사용 중인 메뉴 조회
-        List<String> menus = menuRepository.findMenusByUserIdAndIngredientId(userId, ingredientId);
-
+        List<MenuInUse> menus = menuRepository.findMenusByUserIdAndIngredientId(userId, ingredientId);
+        List<MenusInUse> menusInUse = menus.stream()
+                .map(m -> new MenusInUse(m.getMenuName(), m.getAmount(), unit.getUnitCode()))
+                .toList();
         // 히스토리 조회 (가장 최신)
         IngredientPriceHistory iph = ingredientPriceHistoryRepository.findFirstByIngredientIdOrderByHistoryIdDesc(ingredientId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_PRICEHISTORY));
@@ -107,7 +110,7 @@ public class IngredientService {
         return IngredientDetailResponse.of(
                 ingredient,
                 unit,
-                menus,
+                menusInUse,
                 iph
         );
     }
