@@ -95,7 +95,7 @@ public class AuthService {
     @Transactional(transactionManager = "userTransactionManager")
     public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
         // 토큰 유효기간, 타입 확인
-        if(jwtUtil.validateRefreshToken(request.refreshToken())) {
+        if(!jwtUtil.validateRefreshToken(request.refreshToken())) {
             throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
         }
 
