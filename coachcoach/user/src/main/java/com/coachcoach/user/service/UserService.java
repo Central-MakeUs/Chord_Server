@@ -7,12 +7,10 @@ import com.coachcoach.user.dto.request.OnboardingRequest;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 @Slf4j
 @Service

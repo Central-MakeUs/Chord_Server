@@ -1,4 +1,4 @@
-package com.coachcoach.config;
+package com.coachcoach.app.config;
 
 import com.coachcoach.common.api.UserQueryApi;
 import com.coachcoach.common.interceptor.OnboardingCheckInterceptor;
@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 

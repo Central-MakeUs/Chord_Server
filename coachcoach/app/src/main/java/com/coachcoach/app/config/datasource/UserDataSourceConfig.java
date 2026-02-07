@@ -1,4 +1,4 @@
-package com.coachcoach.config.datasource;
+package com.coachcoach.app.config.datasource;
 
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
@@ -19,23 +18,21 @@ import javax.sql.DataSource;
 @Profile("prod")
 @Configuration(proxyBeanMethods = false)
 @EnableJpaRepositories(
-        basePackages = "com.coachcoach.catalog.repository",
-        entityManagerFactoryRef = "catalogEntityManagerFactory",
-        transactionManagerRef = "catalogTransactionManager"
+        basePackages = "com.coachcoach.user.repository",
+        entityManagerFactoryRef = "userEntityManagerFactory",
+        transactionManagerRef = "userTransactionManager"
 )
-public class CatalogDataSourceConfig {
-
-    @Primary
+public class UserDataSourceConfig {
+    
     @Bean
-    @ConfigurationProperties("app.datasource.catalog")
-    public DataSourceProperties catalogDataSourceProperties() {
+    @ConfigurationProperties("app.datasource.user")
+    public DataSourceProperties userDataSourceProperties() {
         return new DataSourceProperties();
     }
 
-    @Primary
     @Bean
-    public HikariDataSource catalogDataSource(
-            @Qualifier("catalogDataSourceProperties") DataSourceProperties props
+    public HikariDataSource userDataSource(
+            @Qualifier("userDataSourceProperties") DataSourceProperties props
     ) {
         HikariDataSource dataSource = props.initializeDataSourceBuilder()
                 .type(HikariDataSource.class)
@@ -46,24 +43,22 @@ public class CatalogDataSourceConfig {
         return dataSource;
     }
 
-    @Primary
     @Bean
-    public LocalContainerEntityManagerFactoryBean catalogEntityManagerFactory(
+    public LocalContainerEntityManagerFactoryBean userEntityManagerFactory(
             EntityManagerFactoryBuilder builder,
-            @Qualifier("catalogDataSource") DataSource dataSource
+            @Qualifier("userDataSource") DataSource dataSource
     ) {
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.catalog.domain")
-                .persistenceUnit("catalog")
+                .packages("com.coachcoach.user.domain")
+                .persistenceUnit("user")
                 .properties(JpaProperties.getHibernateProperties())
                 .build();
     }
 
-    @Primary
     @Bean
-    public PlatformTransactionManager catalogTransactionManager(
-            @Qualifier("catalogEntityManagerFactory")
+    public PlatformTransactionManager userTransactionManager(
+            @Qualifier("userEntityManagerFactory")
             LocalContainerEntityManagerFactoryBean entityManagerFactory
     ) {
         return new JpaTransactionManager(entityManagerFactory.getObject());

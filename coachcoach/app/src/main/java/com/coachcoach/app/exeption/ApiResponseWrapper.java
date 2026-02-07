@@ -1,4 +1,4 @@
-package com.coachcoach.exeption;
+package com.coachcoach.app.exeption;
 
 import com.coachcoach.common.dto.ApiResponse;
 import com.coachcoach.common.dto.ErrorResponse;

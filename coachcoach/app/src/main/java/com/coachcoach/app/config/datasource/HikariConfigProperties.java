@@ -1,4 +1,4 @@
-package com.coachcoach.config.datasource;
+package com.coachcoach.app.config.datasource;
 
 import com.zaxxer.hikari.HikariDataSource;
 

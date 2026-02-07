@@ -1,4 +1,4 @@
-package com.coachcoach.config.datasource;
+package com.coachcoach.app.config.datasource;
 
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy;

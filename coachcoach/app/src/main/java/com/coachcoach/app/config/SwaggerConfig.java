@@ -1,4 +1,4 @@
-package com.coachcoach.config;
+package com.coachcoach.app.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
