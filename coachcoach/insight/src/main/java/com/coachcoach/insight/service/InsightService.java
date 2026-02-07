@@ -170,6 +170,13 @@ public class InsightService {
      * 정렬: 실행 중 -> 전 -> 완
      */
 
+    /**
+     * 전략 카드 생성 - AI 사용 X
+     */
+    public void createStrategyCards(Long userId) {
+        
+    }
+
     /*-----------------------*/
 
     /**
