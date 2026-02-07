@@ -12,4 +12,5 @@ public interface IngredientPriceHistoryRepository extends JpaRepository<Ingredie
     Optional<IngredientPriceHistory> findFirstByIngredientIdOrderByHistoryIdDesc(Long ingredientId);
     List<IngredientPriceHistory> findByIngredientIdOrderByHistoryIdDesc(Long ingredientId);
     List<IngredientPriceHistory> findByIngredientId(Long ingredientId);
+    void deleteByIngredientIdIn(List<Long> ingredientIds);
 }

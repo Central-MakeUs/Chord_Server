@@ -1,5 +1,7 @@
 package com.coachcoach.user.service;
 
+import com.coachcoach.common.api.CatalogQueryApi;
+import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.CommonErrorCode;
 import com.coachcoach.common.security.jwt.JwtUtil;
@@ -31,7 +33,8 @@ public class AuthService {
     private final StoreRepository storeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
+    private final CatalogQueryApi catalogQueryApi;
+    private final InsightQueryApi insightQueryApi;
     /**
      * 회원가입
      */
@@ -110,5 +113,24 @@ public class AuthService {
         String newAccessToken = jwtUtil.createAccessToken(userId);
 
         return new TokenRefreshResponse(newAccessToken);
+    }
+
+    /**
+     * 회원 탈퇴
+     * insights -> recipes -> menus -> ingredients -> ingredient price histories -> refresh tokens -> stores -> users
+     */
+    @Transactional
+    public void deleteUser(Long userId) {
+
+        // delete insights
+        insightQueryApi.deleteByUserId(userId);
+
+        // delete catalogs
+        catalogQueryApi.deleteByUserId(userId);
+
+        // delete user information
+        refreshTokenRepository.deleteByUserId(userId);
+        storeRepository.deleteByUserId(userId);
+        usersRepository.deleteByUserId(userId);
     }
 }

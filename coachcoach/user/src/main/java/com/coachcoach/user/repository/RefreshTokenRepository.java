@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken,Long> {
     boolean existsByUserIdAndRefreshToken(Long userId, String refreshToken);
+    void deleteByUserId(Long userId);
 }

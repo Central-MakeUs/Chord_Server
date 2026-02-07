@@ -27,4 +27,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     boolean existsByUserIdAndMenuName(Long userId, String menuName);
     List<Menu> findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(Long userId, String categoryCode);
     List<Menu> findByUserIdOrderByMenuIdDesc(Long userId);
+    List<Menu> findByUserId(Long userId); // 회원 탈퇴용 (정렬 X)
+    void deleteByUserId(Long userId);
 }
