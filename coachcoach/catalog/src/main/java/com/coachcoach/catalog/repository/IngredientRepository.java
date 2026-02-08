@@ -51,4 +51,6 @@ public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
     List<Ingredient> findByUserIdAndMenuNameAndIngredientNameOrderByIngredientNameAsc(
             Long userId,String keyword
     );
+    void deleteByUserId(Long userId);
+    List<Ingredient> findByUserId(Long userId);
 }

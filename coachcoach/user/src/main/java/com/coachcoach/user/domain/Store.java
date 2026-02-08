@@ -19,6 +19,12 @@ public class Store {
 
     @Id
     private Long userId;
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "user_id")
+    private Users user;
+
     @Length(max = 20, min = 1)
     private String name;
     private Integer employees;
@@ -30,11 +36,11 @@ public class Store {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static Store create(Long userId) {
+    public static Store create(Users user) {
         LocalDateTime now = LocalDateTime.now();
 
         return Store.builder()
-                .userId(userId)
+                .user(user)
                 .includeWeeklyHolidayPay(false)
                 .createdAt(now)
                 .updatedAt(now)

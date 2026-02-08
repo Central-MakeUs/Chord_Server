@@ -189,7 +189,7 @@ public class IngredientService {
     /**
      * 재료 생성(재료명, 가격, 사용량, 단위, 카테고리)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public IngredientResponse createIngredient(Long userId, IngredientCreateRequest request) {
         // 재료 카테고리 & 유닛 유효성 검증
         if(!codeFinder.existsIngredientCategory(request.categoryCode())) {
@@ -238,7 +238,7 @@ public class IngredientService {
     /**
      * 즐겨찾기 설정/해제
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateFavorite(Long userId, Long ingredientId, Boolean favorite) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         ingredient.updateFavorite(favorite);
@@ -247,7 +247,7 @@ public class IngredientService {
     /**
      * 재료 공급업체 수정
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateIngredientSupplier(Long userId, Long ingredientId, SupplierUpdateRequest request) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         ingredient.updateSupplier(request.supplier());
@@ -256,7 +256,7 @@ public class IngredientService {
     /**
      * 재료 단가 수정 -> 해당 재료 사용하는 모든 메뉴에 대해 업데이트 필요
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateIngredientPrice(
             Long userId, Long ingredientId, IngredientUpdateRequest request
     ) {
@@ -336,7 +336,7 @@ public class IngredientService {
     /**
      * 재료 삭제 -> 해당 재료 사용하는 모든 메뉴 업데이트 필요
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void deleteIngredient(
             Long userId, Long ingredientId
     ) {
