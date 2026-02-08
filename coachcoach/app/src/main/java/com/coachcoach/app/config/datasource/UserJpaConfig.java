@@ -29,6 +29,7 @@ public class UserJpaConfig {
                 .packages("com.coachcoach.user.domain")
                 .persistenceUnit("user")
                 .properties(JpaProperties.getHibernateProperties())
+                .jta(true)
                 .build();
     }
 }

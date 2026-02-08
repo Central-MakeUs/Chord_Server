@@ -29,6 +29,7 @@ public class InsightJpaConfig {
                 .packages("com.coachcoach.insight.domain")
                 .persistenceUnit("insight")
                 .properties(JpaProperties.getHibernateProperties())
+                .jta(true)
                 .build();
     }
 }

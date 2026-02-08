@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
+    /**
+     * 온보딩
+     */
     @Operation(summary = "온보딩")
     @PatchMapping("/onboarding")
     public void onboarding(
@@ -24,5 +27,17 @@ public class UserController {
             @Valid @RequestBody OnboardingRequest request
     ) {
         userService.onboarding(Long.valueOf(details.getUserId()), request);
+    }
+
+
+    /**
+     * 회원 탈퇴
+     */
+    @Operation(summary = "회원 탈퇴")
+    @DeleteMapping("/me")
+    public void deleteUser(
+            @AuthenticationPrincipal CustomUserDetails details
+    ) {
+       userService.deleteUser(Long.valueOf(details.getUserId()));
     }
 }

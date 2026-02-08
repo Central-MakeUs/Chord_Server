@@ -31,6 +31,7 @@ public class CatalogJpaConfig {
                 .packages("com.coachcoach.catalog.domain")
                 .persistenceUnit("catalog")
                 .properties(JpaProperties.getHibernateProperties())
+                .jta(true)
                 .build();
     }
 }

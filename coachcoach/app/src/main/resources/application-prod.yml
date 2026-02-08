@@ -4,12 +4,12 @@ spring:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   jta:
     enabled: true
-atomikos:
-  properties:
-    max-timeout: 900000
-    default-jta-timeout: 300000
-    enable-logging: true
-    log-base-dir: ./atomikos-logs
+    atomikos:
+      properties:
+        max-timeout: 900000
+        default-jta-timeout: 300000
+        enable-logging: true
+        log-base-dir: ./atomikos-logs
 app:
   datasource:
     catalog:
