@@ -4,6 +4,7 @@ import com.coachcoach.catalog.domain.Menu;
 import com.coachcoach.catalog.dto.MenuInUse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,7 +21,10 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
                     "ORDER BY m.menu_id ASC",
             nativeQuery = true
     )
-    List<MenuInUse> findMenusByUserIdAndIngredientId(Long userId, Long ingredientId);
+    List<MenuInUse> findMenusByUserIdAndIngredientId(
+            @Param("userId") Long userId,
+            @Param("ingredientId") Long ingredientId
+    );
 
     Optional<Menu> findByUserIdAndMenuId(Long userId, Long menuId);
     boolean existsByUserIdAndMenuId(Long userId, Long menuId);
