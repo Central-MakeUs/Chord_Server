@@ -1,6 +1,7 @@
 package com.coachcoach.app.api.insight;
 
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
+import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.SavedStrategyResponse;
 import com.coachcoach.insight.dto.response.StrategyBriefResponse;
@@ -82,8 +83,27 @@ public class InsightController {
     /**
      * 전략 시작
      */
+    @Operation(summary = "전략 시작")
+    @PatchMapping("/strategies/{strategyId}/start")
+    public void changeStateToOngoing(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @PathVariable Long strategyId,
+            @RequestParam StrategyType type
+    ) {
+        insightService.changeStateToOngoing(Long.valueOf(details.getUserId()), strategyId, type);
+    }
 
     /**
      * 전략 완료
      */
+//    @Operation(summary = "전략 완료")
+//    @PatchMapping("/strategies/{strategyId}/start")
+//    public void completeStrategy(
+//            @AuthenticationPrincipal CustomUserDetails details,
+//            @PathVariable Long strategyId,
+//            @RequestParam StrategyType type
+//    ) {
+//
+//    }
+
 }

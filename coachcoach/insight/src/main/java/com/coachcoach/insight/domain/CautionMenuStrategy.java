@@ -31,7 +31,7 @@ public class CautionMenuStrategy {
     private String guide;
 
     @Column(columnDefinition = "TEXT")
-    private String expected_effect;
+    private String expectedEffect;
 
     @Enumerated(EnumType.STRING)
     private StrategyState state;
@@ -48,6 +48,8 @@ public class CautionMenuStrategy {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private String guideCode;
 
     public void updateSaved(boolean saved) {
         this.saved = saved;

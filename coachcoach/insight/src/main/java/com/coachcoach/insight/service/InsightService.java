@@ -8,6 +8,7 @@ import com.coachcoach.insight.domain.HighMarginMenuStrategy;
 import com.coachcoach.insight.domain.StrategyBaselines;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
+import com.coachcoach.insight.dto.response.CompletionPhraseResponse;
 import com.coachcoach.insight.dto.response.SavedStrategyResponse;
 import com.coachcoach.insight.dto.response.StrategyBriefResponse;
 import com.coachcoach.insight.exception.InsightErrorCode;
@@ -227,8 +228,76 @@ public class InsightService {
      */
 
     /**
-     * 전략 완료
+     * 전략 시작
      */
+    @Transactional(transactionManager = "transactionManager")
+    public void changeStateToOngoing(Long userId, Long strategyId, StrategyType strategyType) {
+
+        if(strategyType.equals(StrategyType.DANGER)) {
+            // type == DANGER
+            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkStartCondition(strategy.getState());
+            strategy.updateStateToOngoing();
+            return;
+        } else if(strategyType.equals(StrategyType.CAUTION)) {
+            // type == CAUTION
+            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkStartCondition(strategy.getState());
+            strategy.updateStateToOngoing();
+            return;
+        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
+            // type == HIGH_MARGIN
+            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkStartCondition(strategy.getState());
+            strategy.updateStateToOngoing();
+            return;
+        }
+        throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
+    }
+
+    /**
+     * 전략 완료
+     * 조건: state == "ongoing"
+     */
+//    @Transactional(transactionManager = "transactionManager")
+//    public CompletionPhraseResponse changeStateToCompleted(Long userId, Long strategyId, StrategyType strategyType) {
+//        StringBuilder completionPhrase = new StringBuilder();
+//
+//        if(strategyType.equals(StrategyType.DANGER)) {
+//            // type == DANGER
+//            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+//                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+//            checkCompletionCondition(strategy.getState());
+//            strategy.updateStateToCompleted();
+//
+//            if(strategy.getGuideCode().equals("REMOVE_MENU")) {
+//                String completionPhraseTemplate = "좋은 판단이에요. 이 조치는 카페 수익 구조를 분명히 개선했어요. {메뉴명}은 이전 구조에서는 판매될수록 전체 수익에 부담이 되는 메뉴였어요. 이번 전략을 적용하면서, {카페명}의 평균 마진률이 약 {}%p 개선되었고, 이 메뉴가 전체 수익성에 미치던 영향도 줄어들었어요. 같은 매출을 만들더라도, 이전보다 더 남는 구조에 가까워졌어요.";
+//            } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
+//
+//            }
+//
+//            completionPhrase.append("");
+//        } else if(strategyType.equals(StrategyType.CAUTION)) {
+//            // type == CAUTION
+//            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+//                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+//            checkCompletionCondition(strategy.getState());
+//            strategy.updateStateToCompleted();
+//            completionPhrase.append("");
+//        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
+//            // type == HIGH_MARGIN
+//            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+//                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+//            checkCompletionCondition(strategy.getState());
+//            strategy.updateStateToCompleted();
+//            completionPhrase.append(strategy.getCompletionPhrase());
+//        }
+//
+//        return new CompletionPhraseResponse(completionPhrase.toString());
+//    }
     /*-----------------------*/
 
     /**

@@ -31,7 +31,10 @@ public class HighMarginMenuStrategy {
     private String guide;
 
     @Column(columnDefinition = "TEXT")
-    private String expected_effect;
+    private String expectedEffect;
+
+    @Column(columnDefinition = "TEXT")
+    private String completionPhrase;
 
     @Enumerated(EnumType.STRING)
     private StrategyState state;
