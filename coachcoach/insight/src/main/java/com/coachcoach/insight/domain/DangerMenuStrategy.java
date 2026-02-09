@@ -39,9 +39,9 @@ public class DangerMenuStrategy {
     @Column(name = "is_saved")
     private Boolean saved;
 
-    private LocalDate startDate;
+    private LocalDateTime startDate;
 
-    private LocalDate completionDate;
+    private LocalDateTime completionDate;
 
     private Long menuId;    // fk
 
@@ -56,13 +56,13 @@ public class DangerMenuStrategy {
 
     public void updateStateToOngoing() {
         this.state = StrategyState.ONGOING;
-        this.startDate = LocalDate.now();
+        this.startDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public void updateStateToCompleted() {
         this.state = StrategyState.COMPLETED;
-        this.completionDate = LocalDate.now();
+        this.completionDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 }

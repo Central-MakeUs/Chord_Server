@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Table(name = "tb_caution_menu_strategy")
+@Table(name = "tb_strategy_baselines")
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
@@ -28,7 +28,7 @@ public class StrategyBaselines {
     private BigDecimal avgCostRate;
 
     @Column(scale = 10, precision = 2)
-    private BigDecimal avgContributionRate;
+    private BigDecimal avgContributionMargin;
 
     private LocalDate strategyDate;
 

@@ -4,9 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum StrategyState {
-    BEFORE("before"),
-    ONGOING("ongoing"),
-    COMPLETED("completed");
+    BEFORE("BEFORE"),
+    ONGOING("ONGOING"),
+    COMPLETED("COMPLETED");
 
     private final String value;
 
