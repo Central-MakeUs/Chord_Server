@@ -19,6 +19,8 @@ public class DangerMenuStrategy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long strategyId;
 
+    private Long baselineId;
+
     @Column(columnDefinition = "TEXT")
     private String summary;         // 한 줄 요약
 
@@ -29,23 +31,19 @@ public class DangerMenuStrategy {
     private String guide;
 
     @Column(columnDefinition = "TEXT")
-    private String completionPhrase;
-
-    private Long menuId;    // fk
-
-    private Long userId;
-
-    private LocalDate strategyDate;
-
-    private LocalDate startDate;
-
-    private LocalDate completionDate;
+    private String expected_effect;
 
     @Enumerated(EnumType.STRING)
     private StrategyState state;
 
     @Column(name = "is_saved")
     private Boolean saved;
+
+    private LocalDate startDate;
+
+    private LocalDate completionDate;
+
+    private Long menuId;    // fk
 
     private LocalDateTime createdAt;
 
