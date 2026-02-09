@@ -6,6 +6,7 @@ import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.dto.request.OnboardingRequest;
+import com.coachcoach.user.dto.request.UpdateStoreRequest;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
@@ -62,5 +63,21 @@ public class UserService {
         refreshTokenRepository.deleteByUserId(userId);
         storeRepository.deleteByUserId(userId);
         usersRepository.deleteByUserId(userId);
+    }
+
+    /**
+     * 매장 정보 수정 (매장 이름 + 인건비 + 직원 수)
+     */
+    @Transactional(transactionManager = "transactionManager")
+    public void updateStore(Long userId, UpdateStoreRequest request) {
+        Store store = storeRepository.findByUserId(userId).orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_STORE));
+
+        store.updateInformation(
+                request.name(),
+                request.employees(),
+                request.laborCost(),
+                request.rentCost(),
+                request.includeWeeklyHolidayPay()
+        );
     }
 }
