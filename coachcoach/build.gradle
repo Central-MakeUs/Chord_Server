@@ -1,7 +1,7 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.2.7' apply false
     id 'io.spring.dependency-management' version '1.1.7' apply false
-    id 'org.springframework.boot' version '3.3.2' apply false
 }
 
 allprojects {
@@ -15,27 +15,24 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
 
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
-
-    configurations {
-        compileOnly {
-            extendsFrom annotationProcessor
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:3.2.7"
         }
     }
 
-    dependencies {
-        compileOnly 'org.projectlombok:lombok'
-        annotationProcessor 'org.projectlombok:lombok'
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 
-        testCompileOnly 'org.projectlombok:lombok'
-        testAnnotationProcessor 'org.projectlombok:lombok'
+    dependencies {
+        compileOnly 'org.projectlombok:lombok:1.18.32'
+        annotationProcessor 'org.projectlombok:lombok:1.18.32'
 
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
-        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
 
     tasks.named('test') {

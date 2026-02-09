@@ -1,4 +1,4 @@
-package com.coachcoach.config;
+package com.coachcoach.app.config;
 
 import com.coachcoach.common.security.handler.JwtAccessDeniedHandler;
 import com.coachcoach.common.security.handler.JwtAuthenticationEntryPoint;

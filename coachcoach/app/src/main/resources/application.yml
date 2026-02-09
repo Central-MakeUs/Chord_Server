@@ -48,8 +48,8 @@ logging:
   level:
     com.coachcoach: INFO  # 프로젝트 로그 레벨
 #    org.hibernate: DEBUG
-    org.hibernate.SQL: DEBUG  # SQL 로그
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 파라미터
+    org.hibernate.SQL: INFO  # SQL 로그
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO  # 바인딩 파라미터
     org.springframework.web: INFO
     org.springframework.cloud: INFO
 #    org.springframework.orm.jpa: DEBUG

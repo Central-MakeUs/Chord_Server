@@ -2,6 +2,14 @@ spring:
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+  jta:
+    enabled: true
+    atomikos:
+      properties:
+        max-timeout: 900000
+        default-jta-timeout: 300000
+        enable-logging: true
+        log-base-dir: ./atomikos-logs
 app:
   datasource:
     catalog:
@@ -24,7 +32,7 @@ logging:
   level:
     com.coachcoach: INFO  # 프로젝트 로그 레벨
     org.hibernate.SQL: INFO  # SQL 로그
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 파라미터
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO  # 바인딩 파라미터
     org.springframework.web: INFO
     org.springframework.cloud: INFO
     org.springframework.web.servlet.resource: WARN

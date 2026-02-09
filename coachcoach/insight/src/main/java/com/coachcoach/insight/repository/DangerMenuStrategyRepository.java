@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface DangerMenuStrategyRepository extends JpaRepository<DangerMenuStrategy, Long> {
     List<DangerMenuStrategy> findByUserIdAndStrategyDateBetweenOrderByStrategyId(Long userId, LocalDate startDate, LocalDate endDate);
     Optional<DangerMenuStrategy> findByUserIdAndStrategyId(Long userId, Long strategyId);
+    void deleteByUserId(Long userId);
 }

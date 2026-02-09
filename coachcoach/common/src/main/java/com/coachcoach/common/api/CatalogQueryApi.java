@@ -5,4 +5,6 @@ import com.coachcoach.common.dto.internal.UserInfo;
 
 public interface CatalogQueryApi {
     int countByUserIdAndMarginGradeCode(Long userId, String marginGradeCode);
+
+    void deleteByUserId(Long userId);
 }

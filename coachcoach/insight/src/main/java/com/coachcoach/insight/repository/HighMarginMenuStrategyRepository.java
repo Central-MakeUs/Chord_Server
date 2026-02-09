@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface HighMarginMenuStrategyRepository extends JpaRepository<HighMarginMenuStrategy, Long> {
     Optional<HighMarginMenuStrategy> findByUserIdAndStrategyId(Long userId, Long strategyId);
+    void deleteByUserId(Long userId);
 }

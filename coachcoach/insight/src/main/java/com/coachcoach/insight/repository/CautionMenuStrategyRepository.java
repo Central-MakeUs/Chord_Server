@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface CautionMenuStrategyRepository extends JpaRepository<CautionMenuStrategy, Long> {
     Optional<CautionMenuStrategy> findByUserIdAndStrategyId(Long userId, Long strategyId);
+    void deleteByUserId(Long userId);
 }

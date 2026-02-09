@@ -1,5 +1,7 @@
 package com.coachcoach.user.service;
 
+import com.coachcoach.common.api.CatalogQueryApi;
+import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.CommonErrorCode;
 import com.coachcoach.common.security.jwt.JwtUtil;
@@ -35,7 +37,7 @@ public class AuthService {
     /**
      * 회원가입
      */
-    @Transactional(transactionManager = "userTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void signUp(SignUpRequest request) {
         // 아이디 고유성 확인
         if(usersRepository.existsByLoginId(request.loginId())) {
@@ -54,14 +56,14 @@ public class AuthService {
 
         // 스토어 로우 등록
         Store store = storeRepository.save(
-                Store.create(user.getUserId())
+                Store.create(user)
         );
     }
 
     /**
      * 로그인
      */
-    @Transactional(transactionManager = "userTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public LoginResponse login(LoginRequest request) {
         Users user = usersRepository.findByLoginId(request.loginId())
                 .orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_LOGIN_ID));
@@ -92,10 +94,10 @@ public class AuthService {
     /**
      * new access token 발급 요청
      */
-    @Transactional(transactionManager = "userTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public TokenRefreshResponse refreshToken(TokenRefreshRequest request) {
         // 토큰 유효기간, 타입 확인
-        if(jwtUtil.validateRefreshToken(request.refreshToken())) {
+        if(!jwtUtil.validateRefreshToken(request.refreshToken())) {
             throw new BusinessException(CommonErrorCode.INVALID_TOKEN);
         }
 

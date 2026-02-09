@@ -1,4 +1,4 @@
-package com.coachcoach.api.catalog;
+package com.coachcoach.app.api.catalog;
 
 import com.coachcoach.catalog.dto.request.*;
 import com.coachcoach.catalog.dto.response.*;
@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 

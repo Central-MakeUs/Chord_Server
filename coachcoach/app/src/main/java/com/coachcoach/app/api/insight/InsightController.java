@@ -1,4 +1,4 @@
-package com.coachcoach.api.insight;
+package com.coachcoach.app.api.insight;
 
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.insight.domain.enums.StrategyType;
