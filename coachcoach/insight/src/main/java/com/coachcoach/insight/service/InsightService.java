@@ -1,6 +1,7 @@
 package com.coachcoach.insight.service;
 
 import com.coachcoach.common.api.CatalogQueryApi;
+import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.insight.domain.CautionMenuStrategy;
 import com.coachcoach.insight.domain.DangerMenuStrategy;
@@ -8,9 +9,7 @@ import com.coachcoach.insight.domain.HighMarginMenuStrategy;
 import com.coachcoach.insight.domain.StrategyBaselines;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
-import com.coachcoach.insight.dto.response.CompletionPhraseResponse;
-import com.coachcoach.insight.dto.response.SavedStrategyResponse;
-import com.coachcoach.insight.dto.response.StrategyBriefResponse;
+import com.coachcoach.insight.dto.response.*;
 import com.coachcoach.insight.exception.InsightErrorCode;
 import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
 import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
@@ -298,6 +297,39 @@ public class InsightService {
 //
 //        return new CompletionPhraseResponse(completionPhrase.toString());
 //    }
+
+    /*---- 홈화면 ----*/
+    public HomeStrategiesResponse getHomeStrategies(Long userId, int year, int month, int weekOfMonth) {
+        LocalDate[] startAndEndOfWeek = getStartAndEndOfWeek(year, month, weekOfMonth);
+        LocalDate startDate = startAndEndOfWeek[0];
+        LocalDate endDate = startAndEndOfWeek[1];
+
+        List<StrategyBaselines> baselines = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
+        List<Long> baselineIds = baselines.stream().map(StrategyBaselines::getBaselineId).toList();
+        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);
+        List<Long> menuIds = dangerMenuStrategies.stream().map(DangerMenuStrategy::getMenuId).toList();
+        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(menuIds);
+
+        Map<Long, MenuInfo> menuMap = menus.stream()
+                .collect(Collectors.toMap(MenuInfo::menuId, menu -> menu));
+
+        List<HomeStrategyBrief> results = dangerMenuStrategies.stream()
+                .map(strategy -> {
+                    MenuInfo m = menuMap.get(strategy.getMenuId());
+                    return new HomeStrategyBrief(
+                            m.menuId(),
+                            m.menuName(),
+                            strategy.getStrategyId(),
+                            strategy.getState(),
+                            StrategyType.DANGER,
+                            strategy.getSummary(),
+                            strategy.getCreatedAt()
+                    );
+                })
+                .toList();
+
+        return new HomeStrategiesResponse(results);
+    }
     /*-----------------------*/
 
     /**

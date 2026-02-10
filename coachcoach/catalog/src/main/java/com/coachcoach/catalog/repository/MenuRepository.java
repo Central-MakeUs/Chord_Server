@@ -31,5 +31,5 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findByUserId(Long userId); // 회원 탈퇴용 (정렬 X)
     void deleteByUserId(Long userId);
     int countByUserIdAndMarginGradeCode(Long userId, String marginGradeCode);
-
+    List<Menu> findByMenuIdIn(List<Long> menuIds);
 }
