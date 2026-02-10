@@ -194,7 +194,7 @@ public class MenuService {
     /**
      * 메뉴명 + 재료명 중복 확인 (일괄)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public CheckDupResponse checkDupNames(Long userId, CheckDupRequest request) {
         // 메뉴명 중복 확인
         Boolean menuNameDuplicate = menuRepository.existsByUserIdAndMenuName(userId, request.menuName());
@@ -212,7 +212,7 @@ public class MenuService {
     /**
      * 메뉴 생성
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void createMenu(
             Long userId,
             MenuCreateRequest request
@@ -223,7 +223,7 @@ public class MenuService {
         }
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 메뉴 등록
         // 메뉴 이름 중복 확인
@@ -342,9 +342,9 @@ public class MenuService {
                     BigDecimal unitPrice = calculator.calUnitPrice(unit, recipe.price(), recipe.amount());
 
                     // 단가 유효성 검증 0.00 이상
-                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-                    }
+//                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//                    }
 
                     return Ingredient.create(
                             userId,
@@ -394,7 +394,7 @@ public class MenuService {
     /**
      * 레시피 추가 (단일 / 기존 재료)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void createRecipe(
             Long userId,
             Long menuId,
@@ -410,7 +410,7 @@ public class MenuService {
         }
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 중복 확인 (해당 메뉴에 이미 해당 재료로 레시피가 존재하는지)
         if(recipeRepository.existsByMenuIdAndIngredientId(menuId, request.ingredientId())) {
@@ -455,7 +455,7 @@ public class MenuService {
     /**
      * 레시피 추가 (단일 / 새 재료)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void createRecipeWithNew(
             Long userId,
             Long menuId,
@@ -470,7 +470,7 @@ public class MenuService {
         Unit unit = codeFinder.findUnitByCode(request.unitCode());
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
         String ingredientName = nameResolver.createNonDupIngredientName(userId, request.ingredientName());
@@ -481,9 +481,9 @@ public class MenuService {
         BigDecimal unitPrice = calculator.calUnitPrice(unit, request.price(), request.amount());
 
         // 단가 유효성 검증 0.00 이상
-        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-        }
+//        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//        }
 
         Ingredient ingredient = ingredientRepository.save(
                 Ingredient.create(
@@ -545,7 +545,7 @@ public class MenuService {
     /**
      * 메뉴명 수정
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateMenuName(
             Long userId, Long menuId, String menuName
     ) {
@@ -561,7 +561,7 @@ public class MenuService {
     /**
      * 메뉴 판매가 수정
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateSellingPrice(
             Long userId,
             Long menuId,
@@ -573,7 +573,7 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 메뉴 analysis 재계산
         MenuCostAnalysis analysis = calculator.calAnalysis(
@@ -596,7 +596,7 @@ public class MenuService {
     /**
      * 카테고리 수정
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateMenuCategory(
             Long userId, Long menuId, String category
     ) {
@@ -613,7 +613,7 @@ public class MenuService {
     /**
      * 메뉴 제조시간 수정
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateWorkTime(
             Long userId,
             Long menuId,
@@ -625,7 +625,7 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 메뉴 analysis 재계산
         MenuCostAnalysis analysis = calculator.calAnalysis(
@@ -648,7 +648,7 @@ public class MenuService {
     /**
      * 레시피 수정 (only 사용량)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateRecipe(
             Long userId, Long menuId, Long recipeId, BigDecimal amount
     ) {
@@ -667,7 +667,7 @@ public class MenuService {
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 레시피 수정
 
@@ -698,7 +698,7 @@ public class MenuService {
     /**
      * 레시피 삭제 (복수 선택 가능) -> 해당 메뉴 정보 업데이트 필요
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void deleteRecipes(
             Long userId, Long menuId, DeleteRecipesRequest request
     ) {
@@ -713,7 +713,7 @@ public class MenuService {
         }
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         List<Recipe> targets = recipeRepository.findAllById(request.recipeIds());
 
@@ -757,7 +757,7 @@ public class MenuService {
     /**
      * 메뉴 삭제 (단일)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void deleteMenu(
             Long userId,
             Long menuId
@@ -772,5 +772,27 @@ public class MenuService {
 
         // 메뉴 삭제
         menuRepository.delete(menu);
+    }
+
+    /*---------홈화면-------*/
+    public HomeMenusResponse getHomeMenus(Long userId) {
+        List<Menu> menus = menuRepository.findByUserId(userId);
+
+        // 위험 등급 메뉴만 분류
+        List<Menu> dangerMenus = menus.stream()
+                .filter(menu -> menu.getMarginGradeCode().equals("DANGER"))
+                .toList();
+
+        // 평균 원가율, 마진율
+        BigDecimal avgCostRate = calculator.calAvgCostRate(menus);
+        BigDecimal avgMarginRate = calculator.calAvgMarginRate(menus);
+
+        String marginGrade = calculator.calMarginGrade(avgCostRate);
+
+        return new HomeMenusResponse(
+                dangerMenus.size(),
+                new AvgCostRate(avgCostRate, marginGrade),
+                avgMarginRate
+        );
     }
 }

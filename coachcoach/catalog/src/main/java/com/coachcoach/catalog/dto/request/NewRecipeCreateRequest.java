@@ -15,7 +15,6 @@ public record NewRecipeCreateRequest (
     BigDecimal amount,                  // 사용량
 
     @NotNull(message = "가격 입력은 필수입니다.")
-    @Positive(message = "가격은 0보다 커야 합니다.")
     BigDecimal price,                   // 가격
 
     @NotBlank(message = "단위 입력은 필수입니다.")

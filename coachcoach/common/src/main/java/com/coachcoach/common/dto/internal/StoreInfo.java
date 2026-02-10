@@ -14,6 +14,7 @@ public record StoreInfo(
         Integer employees,
         BigDecimal laborCost,
         BigDecimal rentCost,
+        Boolean includeWeeklyHolidayPay,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {

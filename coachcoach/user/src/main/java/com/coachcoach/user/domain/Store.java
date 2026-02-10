@@ -1,5 +1,6 @@
 package com.coachcoach.user.domain;
 
+import com.coachcoach.user.dto.request.OnboardingRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
@@ -18,6 +19,12 @@ public class Store {
 
     @Id
     private Long userId;
+
+    @OneToOne
+    @MapsId
+    @JoinColumn(name = "user_id")
+    private Users user;
+
     @Length(max = 20, min = 1)
     private String name;
     private Integer employees;
@@ -25,16 +32,33 @@ public class Store {
     private BigDecimal laborCost;
     @Column(scale = 15, precision = 2)
     private BigDecimal rentCost;
+    private Boolean includeWeeklyHolidayPay = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static Store create(Long userId) {
+    public static Store create(Users user) {
         LocalDateTime now = LocalDateTime.now();
 
         return Store.builder()
-                .userId(userId)
+                .user(user)
+                .includeWeeklyHolidayPay(false)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
+    }
+
+    public void updateInformation(
+            String name,
+            Integer employees,
+            BigDecimal laborCost,
+            BigDecimal rentCost,
+            Boolean includeWeeklyHolidayPay
+    ) {
+        this.name = name;
+        this.employees = employees;
+        this.laborCost = laborCost;
+        this.rentCost = rentCost;
+        this.includeWeeklyHolidayPay = includeWeeklyHolidayPay;
+        this.updatedAt = LocalDateTime.now();
     }
 }

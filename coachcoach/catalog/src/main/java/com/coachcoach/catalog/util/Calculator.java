@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.util;
 
+import com.coachcoach.catalog.domain.Menu;
 import com.coachcoach.catalog.dto.response.MenuCostAnalysis;
 import com.coachcoach.catalog.domain.Ingredient;
 import com.coachcoach.catalog.domain.Recipe;
@@ -24,6 +25,18 @@ public class Calculator {
     private final CodeFinder codeFinder;
 
     /**
+     * laborcost (시급) 계산
+     */
+    public BigDecimal calLaborCost(Boolean includeWeeklyHolidayPay, BigDecimal laborCost){
+        if(includeWeeklyHolidayPay == Boolean.FALSE) {
+            return laborCost;
+        }
+
+        return laborCost.multiply(BigDecimal.valueOf(1.2))
+                .setScale(1, RoundingMode.HALF_UP);
+    }
+
+    /**
      * 재료 단가 계산 (2자리 반올림)
      * 1kg, 100g, 1개, 100ml
      * 구매가격 / 구매량 * 기준량
@@ -40,14 +53,13 @@ public class Calculator {
      */
     public BigDecimal calChangeRate(Unit unit, BigDecimal previousUnitPrice, BigDecimal currentUnitPrice) {
         if (previousUnitPrice == null || previousUnitPrice.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
+            return null;
         }
 
         if (currentUnitPrice == null) {
             return BigDecimal.ZERO;
         }
 
-        // 4자리로 나눗셈
         // 2자리 반올림
 
         return currentUnitPrice.subtract(previousUnitPrice)  // 4500 - 4000 = 500
@@ -145,21 +157,20 @@ public class Calculator {
 
     /**
      * 1잔 당 인건비 계산
-     * 제조시간(초) / 60 x (시간 당 인건비 / 360)
+     * (시간 당 인건비 / 3600) * 한 잔 제조 시간
      */
     public BigDecimal calLaborCostPerCup(
             Integer workTime,
             BigDecimal laborCostPerHour
     ) {
-        return BigDecimal.valueOf(workTime)
-                .divide(BigDecimal.valueOf(60), 10, RoundingMode.HALF_UP)
-                .multiply(laborCostPerHour)
-                .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
-                .setScale(2, RoundingMode.HALF_UP);
+        return laborCostPerHour
+                .divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(workTime))
+                .setScale(1, RoundingMode.HALF_UP);
     }
 
     /**
-     * 마진율 계산
+     * 마진률 계산
      * (판매가 - (총 원가 + 1잔당 인건비)) / 판매가 x 100
      */
     public BigDecimal calMarginRate(
@@ -233,5 +244,46 @@ public class Calculator {
         BigDecimal recommendedPrice = calRecommendedPrice(totalCost);
 
         return new MenuCostAnalysis(costRate, contributionMargin, marginRate, marginCode, recommendedPrice);
+    }
+
+    /**
+     * 가게 평균 원가율 계산
+     * 소수점 2자리까지 표시
+     */
+    public BigDecimal calAvgCostRate(
+            List<Menu> menus
+    ) {
+        if (menus == null || menus.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int numOfMenus = menus.size();  // 메뉴 개수
+        BigDecimal totalCostRate = menus.stream()
+                .reduce(BigDecimal.ZERO,
+                        (subtotal, element) -> subtotal.add(element.getCostRate()),
+                        BigDecimal::add
+                );      // 원가율 총합
+        return totalCostRate.divide(BigDecimal.valueOf(numOfMenus), 10, RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 가게 평균 마진율 계산
+     * 소수점 2자리까지 표시
+     */
+    public BigDecimal calAvgMarginRate(
+            List<Menu> menus
+    ) {
+        if (menus == null || menus.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int numOfMenus = menus.size();  // 메뉴 개수
+        BigDecimal totalContributionMargin = menus.stream()
+                .reduce(BigDecimal.ZERO, (subtotal, element) -> subtotal.add(element.getMarginRate()),
+                        BigDecimal::add
+                );      // 마진율 총합
+        return totalContributionMargin.divide(BigDecimal.valueOf(numOfMenus), 10, RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }

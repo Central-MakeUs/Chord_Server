@@ -1,6 +1,7 @@
 package com.coachcoach.catalog.service;
 
 import com.coachcoach.catalog.domain.*;
+import com.coachcoach.catalog.dto.MenuInUse;
 import com.coachcoach.catalog.dto.request.IngredientCreateRequest;
 import com.coachcoach.catalog.dto.request.IngredientUpdateRequest;
 import com.coachcoach.catalog.dto.request.SupplierUpdateRequest;
@@ -98,8 +99,10 @@ public class IngredientService {
         Unit unit = codeFinder.findUnitByCode(ingredient.getUnitCode());
 
         //사용 중인 메뉴 조회
-        List<String> menus = menuRepository.findMenusByUserIdAndIngredientId(userId, ingredientId);
-
+        List<MenuInUse> menus = menuRepository.findMenusByUserIdAndIngredientId(userId, ingredientId);
+        List<MenusInUse> menusInUse = menus.stream()
+                .map(m -> new MenusInUse(m.getMenuName(), m.getAmount(), unit.getUnitCode()))
+                .toList();
         // 히스토리 조회 (가장 최신)
         IngredientPriceHistory iph = ingredientPriceHistoryRepository.findFirstByIngredientIdOrderByHistoryIdDesc(ingredientId)
                 .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_PRICEHISTORY));
@@ -107,7 +110,7 @@ public class IngredientService {
         return IngredientDetailResponse.of(
                 ingredient,
                 unit,
-                menus,
+                menusInUse,
                 iph
         );
     }
@@ -186,7 +189,7 @@ public class IngredientService {
     /**
      * 재료 생성(재료명, 가격, 사용량, 단위, 카테고리)
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public IngredientResponse createIngredient(Long userId, IngredientCreateRequest request) {
         // 재료 카테고리 & 유닛 유효성 검증
         if(!codeFinder.existsIngredientCategory(request.categoryCode())) {
@@ -203,9 +206,9 @@ public class IngredientService {
         BigDecimal unitPrice = calculator.calUnitPrice(unit, request.price(), request.amount());
 
         // 단가 유효성 검증 0.00 이상
-        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-        }
+//        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//        }
 
         // 재료 단가 입력
         Ingredient ingredient = ingredientRepository.save(
@@ -235,7 +238,7 @@ public class IngredientService {
     /**
      * 즐겨찾기 설정/해제
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateFavorite(Long userId, Long ingredientId, Boolean favorite) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         ingredient.updateFavorite(favorite);
@@ -244,7 +247,7 @@ public class IngredientService {
     /**
      * 재료 공급업체 수정
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateIngredientSupplier(Long userId, Long ingredientId, SupplierUpdateRequest request) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
         ingredient.updateSupplier(request.supplier());
@@ -253,14 +256,14 @@ public class IngredientService {
     /**
      * 재료 단가 수정 -> 해당 재료 사용하는 모든 메뉴에 대해 업데이트 필요
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void updateIngredientPrice(
             Long userId, Long ingredientId, IngredientUpdateRequest request
     ) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 카테고리 유효성 검증
         if(!codeFinder.existsIngredientCategory(request.category())) {
@@ -274,9 +277,9 @@ public class IngredientService {
         BigDecimal unitPrice = calculator.calUnitPrice(currentUnit, request.price(), request.amount());
 
         // 단가 유효성 검증 0.00 이상
-        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-        }
+//        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//        }
 
         BigDecimal changeRate = (currentUnit.equals(previousUnit)) ? calculator.calChangeRate(currentUnit, ingredient.getCurrentUnitPrice(), unitPrice) : null;
 
@@ -333,14 +336,14 @@ public class IngredientService {
     /**
      * 재료 삭제 -> 해당 재료 사용하는 모든 메뉴 업데이트 필요
      */
-    @Transactional(transactionManager = "catalogTransactionManager")
+    @Transactional(transactionManager = "transactionManager")
     public void deleteIngredient(
             Long userId, Long ingredientId
     ) {
         Ingredient ingredient = ingredientRepository.findByUserIdAndIngredientId(userId, ingredientId).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
-        BigDecimal laborCost = storeInfo.laborCost();
+        BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
 
         // 해당 재료 포함 레시피 모두 삭제
         List<Recipe> recipesToUpdate = recipeRepository.findByIngredientId(ingredientId);

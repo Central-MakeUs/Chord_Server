@@ -1,0 +1,29 @@
+package com.coachcoach.insight.repository;
+
+import com.coachcoach.insight.domain.CautionMenuStrategy;
+import com.coachcoach.insight.domain.DangerMenuStrategy;
+import com.coachcoach.insight.domain.enums.StrategyState;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface DangerMenuStrategyRepository extends JpaRepository<DangerMenuStrategy, Long> {
+    List<DangerMenuStrategy> findByBaselineIdIn(List<Long> baselineIds);
+    List<DangerMenuStrategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
+    @Query(
+            value = "SELECT d.* " +
+                    "FROM tb_danger_menu_strategy d JOIN tb_strategy_baselines b ON d.baseline_id = b.baseline_id " +
+                    "WHERE b.user_id = :userId AND d.strategy_id = :strategyId",
+            nativeQuery = true
+    )
+    Optional<DangerMenuStrategy> findByUserIdAndStrategyId(
+            @Param("userId") Long userId,
+            @Param("strategyId") Long strategyId
+    );
+    void deleteByBaselineIdIn(List<Long> baselineIds);
+}

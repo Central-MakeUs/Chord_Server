@@ -1,30 +1,48 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
 dependencies {
-    // 모든 모듈 포함
     implementation project(':common')
     implementation project(':user')
     implementation project(':catalog')
     implementation project(':insight')
 
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
-
-    runtimeOnly 'org.postgresql:postgresql'
-
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
+    // PostgreSQL
     runtimeOnly 'org.postgresql:postgresql'
+
+    // Monitoring
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // API Documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+
+    // Development
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.4.0'
+    // Test
+    testImplementation 'org.springframework.security:spring-security-test'
+
+    // Atronix
+    implementation 'com.atomikos:transactions-spring-boot3-starter:6.0.0'
 }
 
 bootJar {
     enabled = true
 }
+
 jar {
     enabled = false
 }

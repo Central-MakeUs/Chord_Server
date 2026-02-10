@@ -41,5 +41,11 @@ public class Users {
 
     public void updateLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void updateOnboardingCompleted(Boolean onboardingCompleted) {
+        this.onboardingCompleted = onboardingCompleted;
+        this.updatedAt = LocalDateTime.now();
     }
 }

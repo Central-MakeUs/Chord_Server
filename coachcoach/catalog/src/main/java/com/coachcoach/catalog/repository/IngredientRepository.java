@@ -35,7 +35,10 @@ public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
                     "ORDER BY i.ingredient_name ASC",
             nativeQuery = true
     )
-    List<Ingredient> findByUserIdAndKeywordOrderByIngredientNameAsc(Long userId, String keyword);
+    List<Ingredient> findByUserIdAndKeywordOrderByIngredientNameAsc(
+            @Param("userId") Long userId,
+            @Param("keyword") String keyword
+    );
 
     @Query(
             value = "SELECT DISTINCT i.* " +  // DISTINCT 추가!
@@ -49,6 +52,9 @@ public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
             nativeQuery = true
     )
     List<Ingredient> findByUserIdAndMenuNameAndIngredientNameOrderByIngredientNameAsc(
-            Long userId,String keyword
+            @Param("userId") Long userId,
+            @Param("keyword") String keyword
     );
+    void deleteByUserId(Long userId);
+    List<Ingredient> findByUserId(Long userId);
 }
