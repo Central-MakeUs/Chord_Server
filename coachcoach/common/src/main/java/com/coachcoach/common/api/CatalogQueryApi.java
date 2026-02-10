@@ -4,6 +4,7 @@ import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.dto.internal.UserInfo;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface CatalogQueryApi {
@@ -12,4 +13,6 @@ public interface CatalogQueryApi {
     void deleteByUserId(Long userId);
 
     List<MenuInfo> findByMenuIdIn(List<Long> menuIds);
+    MenuInfo findByUserIdAndMenuId(Long userId, Long menuId);
+    BigDecimal getAvgMarginRate(Long userId);
 }

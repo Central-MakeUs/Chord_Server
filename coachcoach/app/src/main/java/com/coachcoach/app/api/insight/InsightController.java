@@ -3,6 +3,7 @@ package com.coachcoach.app.api.insight;
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
+import com.coachcoach.insight.dto.response.CompletionPhraseResponse;
 import com.coachcoach.insight.dto.response.SavedStrategyResponse;
 import com.coachcoach.insight.dto.response.StrategyBriefResponse;
 import com.coachcoach.insight.service.InsightService;
@@ -96,14 +97,14 @@ public class InsightController {
     /**
      * 전략 완료
      */
-//    @Operation(summary = "전략 완료")
-//    @PatchMapping("/strategies/{strategyId}/start")
-//    public void completeStrategy(
-//            @AuthenticationPrincipal CustomUserDetails details,
-//            @PathVariable Long strategyId,
-//            @RequestParam StrategyType type
-//    ) {
-//
-//    }
+    @Operation(summary = "전략 완료")
+    @PatchMapping("/strategies/{strategyId}/complete")
+    public CompletionPhraseResponse changeStateToCompleted(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @PathVariable Long strategyId,
+            @RequestParam StrategyType type
+    ) {
+        return insightService.changeStateToCompleted(Long.valueOf(details.getUserId()), strategyId, type);
+    }
 
 }

@@ -1,7 +1,9 @@
 package com.coachcoach.insight.service;
 
 import com.coachcoach.common.api.CatalogQueryApi;
+import com.coachcoach.common.api.UserQueryApi;
 import com.coachcoach.common.dto.internal.MenuInfo;
+import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.insight.domain.CautionMenuStrategy;
 import com.coachcoach.insight.domain.DangerMenuStrategy;
@@ -20,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
@@ -36,6 +40,7 @@ public class InsightService {
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
     private final StrategyBaseLinesRepository strategyBaseLinesRepository;
     private final CatalogQueryApi catalogQueryApi;
+    private final UserQueryApi userQueryApi;
 
     /*----AI 코치 탭----*/
     /**
@@ -261,42 +266,95 @@ public class InsightService {
      * 전략 완료
      * 조건: state == "ongoing"
      */
-//    @Transactional(transactionManager = "transactionManager")
-//    public CompletionPhraseResponse changeStateToCompleted(Long userId, Long strategyId, StrategyType strategyType) {
-//        StringBuilder completionPhrase = new StringBuilder();
-//
-//        if(strategyType.equals(StrategyType.DANGER)) {
-//            // type == DANGER
-//            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-//                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-//            checkCompletionCondition(strategy.getState());
-//            strategy.updateStateToCompleted();
-//
-//            if(strategy.getGuideCode().equals("REMOVE_MENU")) {
-//                String completionPhraseTemplate = "좋은 판단이에요. 이 조치는 카페 수익 구조를 분명히 개선했어요. {메뉴명}은 이전 구조에서는 판매될수록 전체 수익에 부담이 되는 메뉴였어요. 이번 전략을 적용하면서, {카페명}의 평균 마진률이 약 {}%p 개선되었고, 이 메뉴가 전체 수익성에 미치던 영향도 줄어들었어요. 같은 매출을 만들더라도, 이전보다 더 남는 구조에 가까워졌어요.";
-//            } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
-//
-//            }
-//
-//            completionPhrase.append("");
-//        } else if(strategyType.equals(StrategyType.CAUTION)) {
-//            // type == CAUTION
-//            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-//                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-//            checkCompletionCondition(strategy.getState());
-//            strategy.updateStateToCompleted();
-//            completionPhrase.append("");
-//        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
-//            // type == HIGH_MARGIN
-//            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-//                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-//            checkCompletionCondition(strategy.getState());
-//            strategy.updateStateToCompleted();
-//            completionPhrase.append(strategy.getCompletionPhrase());
-//        }
-//
-//        return new CompletionPhraseResponse(completionPhrase.toString());
-//    }
+    @Transactional(transactionManager = "transactionManager")
+    public CompletionPhraseResponse changeStateToCompleted(Long userId, Long strategyId, StrategyType strategyType) {
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal avgMarginRate = catalogQueryApi.getAvgMarginRate(userId);
+
+        StringBuilder completionPhrase = new StringBuilder();
+
+        if(strategyType.equals(StrategyType.DANGER)) {
+            // type == DANGER
+            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+            MenuInfo menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
+
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+
+            // 개선된 평균 마진률
+            BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
+
+            if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
+                String completionPhraseTemplate = "이번 조치로 평균 마진률이 약 {0}%p 감소했지만, 괜찮아요. {1}은 원가 부담이 큰 메뉴였기 때문에, 삭제나 가격 인상 같은 조치가 단기적으로 마진에 영향을 줄 수 있어요. 하지만 장기적으로는 {2}의 수익 구조가 더 안정적으로 변할 거예요. 지금은 조금 아쉽더라도, 건강한 메뉴 구성을 만드는 과정이에요.";
+
+                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                        marginRateImprovement.abs(),
+                        menuInfo.menuName(),
+                        storeInfo.name())
+                );
+            }
+            else if(strategy.getGuideCode().equals("REMOVE_MENU")) {
+                // 0: 메뉴명 / 1: 카페명 / 2: 개선된 평균 마진률 %p
+                String completionPhraseTemplate = "좋은 판단이에요. 이 조치는 카페 수익 구조를 분명히 개선했어요. {0}은 이전 구조에서는 판매될수록 전체 수익에 부담이 되는 메뉴였어요. 이번 전략을 적용하면서, {1}의 평균 마진률이 약 {2}%p 개선되었고, 이 메뉴가 전체 수익성에 미치던 영향도 줄어들었어요. 같은 매출을 만들더라도, 이전보다 더 남는 구조에 가까워졌어요.";
+                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                    menuInfo.menuName(),
+                    storeInfo.name(),
+                    marginRateImprovement
+                ));
+            } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
+                // 0: 카페명 / 1: 개선된 평균 마진률 %p
+                String completionPhraseTemplate = "좋은 판단이에요. 이 조치로 우리 카페의 수익이 증가했어요. 이번 전략을 적용하면서, {0}의 평균 마진율이 약 {1}%p 개선되었어요.";
+                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                        storeInfo.name(),
+                        marginRateImprovement
+                ));
+            }
+        } else if(strategyType.equals(StrategyType.CAUTION)) {
+            // type == CAUTION
+            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+            MenuInfo menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
+
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+
+            // 개선된 평균 마진률
+            BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+
+            if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
+                String completionPhraseTemplate = "이번 조치로 평균 마진률이 약 {0}%p 감소했지만, 괜찮아요. {1}은 원가 부담이 큰 메뉴였기 때문에, 삭제나 가격 인상 같은 조치가 단기적으로 마진에 영향을 줄 수 있어요. 하지만 장기적으로는 {2}의 수익 구조가 더 안정적으로 변할 거예요. 지금은 조금 아쉽더라도, 건강한 메뉴 구성을 만드는 과정이에요.";
+
+                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                        marginRateImprovement.abs(),
+                        menuInfo.menuName(),
+                        storeInfo.name())
+                );
+            } else {
+                String completionPhraseTemplate = "좋은 선택이에요. 이번 전략을 적용하면서, {0}의 평균 마진율이 약 {1}%p 개선되었어요.";
+
+                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                        storeInfo.name(),
+                        marginRateImprovement
+                ));
+            }
+        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
+            // type == HIGH_MARGIN
+            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            checkCompletionCondition(strategy.getState());
+            strategy.updateStateToCompleted();
+            completionPhrase.append(strategy.getCompletionPhrase());
+        }
+
+        return new CompletionPhraseResponse(completionPhrase.toString());
+    }
 
     /*---- 홈화면 ----*/
     public HomeStrategiesResponse getHomeStrategies(Long userId, int year, int month, int weekOfMonth) {

@@ -2,15 +2,19 @@ package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.domain.Ingredient;
 import com.coachcoach.catalog.domain.Menu;
+import com.coachcoach.catalog.exception.CatalogErrorCode;
 import com.coachcoach.catalog.repository.IngredientPriceHistoryRepository;
 import com.coachcoach.catalog.repository.IngredientRepository;
 import com.coachcoach.catalog.repository.MenuRepository;
 import com.coachcoach.catalog.repository.RecipeRepository;
+import com.coachcoach.catalog.util.Calculator;
 import com.coachcoach.common.api.CatalogQueryApi;
 import com.coachcoach.common.dto.internal.MenuInfo;
+import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -21,6 +25,7 @@ public class CatalogQueryApiImpl implements CatalogQueryApi {
     private final MenuRepository menuRepository;
     private final IngredientRepository ingredientRepository;
     private final IngredientPriceHistoryRepository ingredientPriceHistoryRepository;
+    private final Calculator calculator;
 
     @Override
     public int countByUserIdAndMarginGradeCode(Long userId, String marginGradeCode) {
@@ -74,5 +79,34 @@ public class CatalogQueryApiImpl implements CatalogQueryApi {
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public MenuInfo findByUserIdAndMenuId(Long userId, Long menuId) {
+        Menu menu = menuRepository.findByUserIdAndMenuId(userId, menuId)
+                .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_MENU));
+        return MenuInfo.builder()
+                .menuId(menu.getMenuId())
+                .userId(menu.getUserId())
+                .menuCategoryCode(menu.getMenuCategoryCode())
+                .menuName(menu.getMenuName())
+                .sellingPrice(menu.getSellingPrice())
+                .totalCost(menu.getTotalCost())
+                .costRate(menu.getCostRate())
+                .contributionMargin(menu.getContributionMargin())
+                .marginRate(menu.getMarginRate())
+                .marginGradeCode(menu.getMarginGradeCode())
+                .workTime(menu.getWorkTime())
+                .recommendedPrice(menu.getRecommendedPrice())
+                .createdAt(menu.getCreatedAt())
+                .updatedAt(menu.getUpdatedAt())
+                .build();
+    }
+
+    @Override
+    public BigDecimal getAvgMarginRate(Long userId) {
+        List<Menu> menus = menuRepository.findByUserId(userId);
+
+        return calculator.calAvgMarginRate(menus);
     }
 }
