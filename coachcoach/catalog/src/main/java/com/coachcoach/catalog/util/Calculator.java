@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.util;
 
+import com.coachcoach.catalog.domain.Menu;
 import com.coachcoach.catalog.dto.response.MenuCostAnalysis;
 import com.coachcoach.catalog.domain.Ingredient;
 import com.coachcoach.catalog.domain.Recipe;
@@ -244,5 +245,46 @@ public class Calculator {
         BigDecimal recommendedPrice = calRecommendedPrice(totalCost);
 
         return new MenuCostAnalysis(costRate, contributionMargin, marginRate, marginCode, recommendedPrice);
+    }
+
+    /**
+     * 가게 평균 원가율 계산
+     * 소수점 2자리까지 표시
+     */
+    public BigDecimal calAvgCostRate(
+            List<Menu> menus
+    ) {
+        if (menus == null || menus.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int numOfMenus = menus.size();  // 메뉴 개수
+        BigDecimal totalCostRate = menus.stream()
+                .reduce(BigDecimal.ZERO,
+                        (subtotal, element) -> subtotal.add(element.getCostRate()),
+                        BigDecimal::add
+                );      // 원가율 총합
+        return totalCostRate.divide(BigDecimal.valueOf(numOfMenus), 10, RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 가게 평균 마진율 계산
+     * 소수점 2자리까지 표시
+     */
+    public BigDecimal calAvgMarginRate(
+            List<Menu> menus
+    ) {
+        if (menus == null || menus.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        int numOfMenus = menus.size();  // 메뉴 개수
+        BigDecimal totalContributionMargin = menus.stream()
+                .reduce(BigDecimal.ZERO, (subtotal, element) -> subtotal.add(element.getMarginRate()),
+                        BigDecimal::add
+                );      // 마진율 총합
+        return totalContributionMargin.divide(BigDecimal.valueOf(numOfMenus), 10, RoundingMode.HALF_UP)
+                .setScale(2, RoundingMode.HALF_UP);
     }
 }
