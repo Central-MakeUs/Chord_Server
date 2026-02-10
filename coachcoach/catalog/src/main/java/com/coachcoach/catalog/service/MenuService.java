@@ -342,9 +342,9 @@ public class MenuService {
                     BigDecimal unitPrice = calculator.calUnitPrice(unit, recipe.price(), recipe.amount());
 
                     // 단가 유효성 검증 0.00 이상
-                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-                    }
+//                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//                    }
 
                     return Ingredient.create(
                             userId,
@@ -481,9 +481,9 @@ public class MenuService {
         BigDecimal unitPrice = calculator.calUnitPrice(unit, request.price(), request.amount());
 
         // 단가 유효성 검증 0.00 이상
-        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-        }
+//        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//        }
 
         Ingredient ingredient = ingredientRepository.save(
                 Ingredient.create(
@@ -772,5 +772,27 @@ public class MenuService {
 
         // 메뉴 삭제
         menuRepository.delete(menu);
+    }
+
+    /*---------홈화면-------*/
+    public HomeMenusResponse getHomeMenus(Long userId) {
+        List<Menu> menus = menuRepository.findByUserId(userId);
+
+        // 위험 등급 메뉴만 분류
+        List<Menu> dangerMenus = menus.stream()
+                .filter(menu -> menu.getMarginGradeCode().equals("DANGER"))
+                .toList();
+
+        // 평균 원가율, 마진율
+        BigDecimal avgCostRate = calculator.calAvgCostRate(menus);
+        BigDecimal avgMarginRate = calculator.calAvgMarginRate(menus);
+
+        String marginGrade = calculator.calMarginGrade(avgCostRate);
+
+        return new HomeMenusResponse(
+                dangerMenus.size(),
+                new AvgCostRate(avgCostRate, marginGrade),
+                avgMarginRate
+        );
     }
 }

@@ -19,6 +19,8 @@ public class CautionMenuStrategy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long strategyId;
 
+    private Long baselineId;
+
     @Column(columnDefinition = "TEXT")
     private String summary;         // 한 줄 요약
 
@@ -29,15 +31,7 @@ public class CautionMenuStrategy {
     private String guide;
 
     @Column(columnDefinition = "TEXT")
-    private String completionPhrase;
-
-    private Long userId;    // fk
-
-    private LocalDate strategyDate;
-
-    private LocalDate startDate;
-
-    private LocalDate completionDate;
+    private String expectedEffect;
 
     @Enumerated(EnumType.STRING)
     private StrategyState state;
@@ -45,9 +39,17 @@ public class CautionMenuStrategy {
     @Column(name = "is_saved")
     private Boolean saved;
 
+    private LocalDateTime startDate;
+
+    private LocalDateTime completionDate;
+
+    private Long menuId;    // fk
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private String guideCode;
 
     public void updateSaved(boolean saved) {
         this.saved = saved;
@@ -56,13 +58,13 @@ public class CautionMenuStrategy {
 
     public void updateStateToOngoing() {
         this.state = StrategyState.ONGOING;
-        this.startDate = LocalDate.now();
+        this.startDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public void updateStateToCompleted() {
         this.state = StrategyState.COMPLETED;
-        this.completionDate = LocalDate.now();
+        this.completionDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 }

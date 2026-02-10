@@ -18,7 +18,6 @@ public record IngredientCreateRequest (
         String unitCode,            // G / KG / EA / ML
 
         @NotNull(message = "가격 입력은 필수입니다.")
-        @Positive(message = "가격은 0보다 커야 합니다.")
         BigDecimal price,
 
         @NotNull(message = "사용량 입력은 필수입니다.")

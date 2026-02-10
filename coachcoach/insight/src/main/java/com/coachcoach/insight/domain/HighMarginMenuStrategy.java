@@ -19,6 +19,8 @@ public class HighMarginMenuStrategy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long strategyId;
 
+    private Long baselineId;
+
     @Column(columnDefinition = "TEXT")
     private String summary;         // 한 줄 요약
 
@@ -29,21 +31,20 @@ public class HighMarginMenuStrategy {
     private String guide;
 
     @Column(columnDefinition = "TEXT")
+    private String expectedEffect;
+
+    @Column(columnDefinition = "TEXT")
     private String completionPhrase;
-
-    private Long userId;    // fk
-
-    private LocalDate strategyDate;
-
-    private LocalDate startDate;
-
-    private LocalDate completionDate;
 
     @Enumerated(EnumType.STRING)
     private StrategyState state;
 
     @Column(name = "is_saved")
     private Boolean saved;
+
+    private LocalDateTime startDate;
+
+    private LocalDateTime completionDate;
 
     private LocalDateTime createdAt;
 
@@ -56,13 +57,13 @@ public class HighMarginMenuStrategy {
 
     public void updateStateToOngoing() {
         this.state = StrategyState.ONGOING;
-        this.startDate = LocalDate.now();
+        this.startDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 
     public void updateStateToCompleted() {
         this.state = StrategyState.COMPLETED;
-        this.completionDate = LocalDate.now();
+        this.completionDate = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
 }

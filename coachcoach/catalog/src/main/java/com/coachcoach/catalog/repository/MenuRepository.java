@@ -1,5 +1,6 @@
 package com.coachcoach.catalog.repository;
 
+import com.coachcoach.catalog.domain.MarginGrade;
 import com.coachcoach.catalog.domain.Menu;
 import com.coachcoach.catalog.dto.MenuInUse;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,4 +34,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     List<Menu> findByUserIdOrderByMenuIdDesc(Long userId);
     List<Menu> findByUserId(Long userId); // 회원 탈퇴용 (정렬 X)
     void deleteByUserId(Long userId);
+    int countByUserIdAndMarginGradeCode(Long userId, String marginGradeCode);
+    List<Menu> findByMenuIdIn(List<Long> menuIds);
 }

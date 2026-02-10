@@ -11,7 +11,6 @@ public record IngredientUpdateRequest (
     String category,
 
     @NotNull(message = "가격 입력은 필수입니다.")
-    @Positive(message = "가격은 0원보다 커야 합니다.")
     BigDecimal price,
 
     @NotNull(message = "사용량 입력은 필수입니다.")
