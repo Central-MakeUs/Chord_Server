@@ -342,9 +342,9 @@ public class MenuService {
                     BigDecimal unitPrice = calculator.calUnitPrice(unit, recipe.price(), recipe.amount());
 
                     // 단가 유효성 검증 0.00 이상
-                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-                    }
+//                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//                    }
 
                     return Ingredient.create(
                             userId,
@@ -481,9 +481,9 @@ public class MenuService {
         BigDecimal unitPrice = calculator.calUnitPrice(unit, request.price(), request.amount());
 
         // 단가 유효성 검증 0.00 이상
-        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-        }
+//        if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
+//            throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
+//        }
 
         Ingredient ingredient = ingredientRepository.save(
                 Ingredient.create(

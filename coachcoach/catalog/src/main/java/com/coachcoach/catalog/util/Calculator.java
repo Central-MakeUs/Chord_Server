@@ -53,14 +53,13 @@ public class Calculator {
      */
     public BigDecimal calChangeRate(Unit unit, BigDecimal previousUnitPrice, BigDecimal currentUnitPrice) {
         if (previousUnitPrice == null || previousUnitPrice.compareTo(BigDecimal.ZERO) == 0) {
-            return BigDecimal.ZERO;
+            return null;
         }
 
         if (currentUnitPrice == null) {
             return BigDecimal.ZERO;
         }
 
-        // 4자리로 나눗셈
         // 2자리 반올림
 
         return currentUnitPrice.subtract(previousUnitPrice)  // 4500 - 4000 = 500
