@@ -167,11 +167,11 @@ public class Calculator {
         return laborCostPerHour
                 .divide(BigDecimal.valueOf(3600), 10, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(workTime))
-                .setScale(2, RoundingMode.HALF_UP);
+                .setScale(1, RoundingMode.HALF_UP);
     }
 
     /**
-     * 마진율 계산
+     * 마진률 계산
      * (판매가 - (총 원가 + 1잔당 인건비)) / 판매가 x 100
      */
     public BigDecimal calMarginRate(
