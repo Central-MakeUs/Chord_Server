@@ -9,6 +9,8 @@ import com.coachcoach.insight.domain.CautionMenuStrategy;
 import com.coachcoach.insight.domain.DangerMenuStrategy;
 import com.coachcoach.insight.domain.HighMarginMenuStrategy;
 import com.coachcoach.insight.domain.StrategyBaselines;
+import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
+import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.*;
@@ -271,26 +273,29 @@ public class InsightService {
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
         BigDecimal avgMarginRate = catalogQueryApi.getAvgMarginRate(userId);
 
-        StringBuilder completionPhrase = new StringBuilder();
-
         if(strategyType.equals(StrategyType.DANGER)) {
             // type == DANGER
+            // 전략 조회
             DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
                     .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            // 전략 Baseline 조회
             StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                     .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+
+            // 전략에 해당하는 메뉴 조회
             MenuInfo menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
 
+            // 완료로 업데이트
             checkCompletionCondition(strategy.getState());
             strategy.updateStateToCompleted();
 
-            // 개선된 평균 마진률
+            // 개선된 평균 마진률 계산
             BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
 
-            if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
-                String completionPhraseTemplate = "이번 조치로 평균 마진률이 약 {0}%p 감소했지만, 괜찮아요. {1}은 원가 부담이 큰 메뉴였기 때문에, 삭제나 가격 인상 같은 조치가 단기적으로 마진에 영향을 줄 수 있어요. 하지만 장기적으로는 {2}의 수익 구조가 더 안정적으로 변할 거예요. 지금은 조금 아쉽더라도, 건강한 메뉴 구성을 만드는 과정이에요.";
+            StringBuilder sb = new StringBuilder();
 
-                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+            if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
+                sb.append(MessageFormat.format(DangerMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
                         marginRateImprovement.abs(),
                         menuInfo.menuName(),
                         storeInfo.name())
@@ -298,62 +303,74 @@ public class InsightService {
             }
             else if(strategy.getGuideCode().equals("REMOVE_MENU")) {
                 // 0: 메뉴명 / 1: 카페명 / 2: 개선된 평균 마진률 %p
-                String completionPhraseTemplate = "좋은 판단이에요. 이 조치는 카페 수익 구조를 분명히 개선했어요. {0}은 이전 구조에서는 판매될수록 전체 수익에 부담이 되는 메뉴였어요. 이번 전략을 적용하면서, {1}의 평균 마진률이 약 {2}%p 개선되었고, 이 메뉴가 전체 수익성에 미치던 영향도 줄어들었어요. 같은 매출을 만들더라도, 이전보다 더 남는 구조에 가까워졌어요.";
-                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                sb.append(MessageFormat.format(DangerMenuCompletionPhraseTemplate.REMOVE_MENU.getCompletionPhrase(),
                     menuInfo.menuName(),
                     storeInfo.name(),
                     marginRateImprovement
                 ));
             } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
                 // 0: 카페명 / 1: 개선된 평균 마진률 %p
-                String completionPhraseTemplate = "좋은 판단이에요. 이 조치로 우리 카페의 수익이 증가했어요. 이번 전략을 적용하면서, {0}의 평균 마진율이 약 {1}%p 개선되었어요.";
-                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                sb.append(MessageFormat.format(DangerMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
                         storeInfo.name(),
                         marginRateImprovement
                 ));
             }
+
+            return new CompletionPhraseResponse(sb.toString());
         } else if(strategyType.equals(StrategyType.CAUTION)) {
             // type == CAUTION
+
+            // 전략 조회
             CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
                     .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+            // 전략 baseline 조회
             StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                     .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+            // 전략에 해당하는 메뉴 조회
             MenuInfo menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
 
+            // 완료로 업데이트
             checkCompletionCondition(strategy.getState());
             strategy.updateStateToCompleted();
 
-            // 개선된 평균 마진률
+            // 개선된 평균 마진률 계산
             BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
-            checkCompletionCondition(strategy.getState());
-            strategy.updateStateToCompleted();
 
+            StringBuilder sb = new StringBuilder();
             if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
-                String completionPhraseTemplate = "이번 조치로 평균 마진률이 약 {0}%p 감소했지만, 괜찮아요. {1}은 원가 부담이 큰 메뉴였기 때문에, 삭제나 가격 인상 같은 조치가 단기적으로 마진에 영향을 줄 수 있어요. 하지만 장기적으로는 {2}의 수익 구조가 더 안정적으로 변할 거예요. 지금은 조금 아쉽더라도, 건강한 메뉴 구성을 만드는 과정이에요.";
-
-                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+                sb.append(MessageFormat.format(CautionMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
                         marginRateImprovement.abs(),
                         menuInfo.menuName(),
                         storeInfo.name())
                 );
-            } else {
-                String completionPhraseTemplate = "좋은 선택이에요. 이번 전략을 적용하면서, {0}의 평균 마진율이 약 {1}%p 개선되었어요.";
-
-                completionPhrase.append(MessageFormat.format(completionPhraseTemplate,
+            } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
+                sb.append(MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
+                        storeInfo.name(),
+                        marginRateImprovement
+                ));
+            } else if(strategy.getGuideCode().equals("ADJUST_RECIPE")) {
+                sb.append(MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_RECIPE.getCompletionPhrase(),
                         storeInfo.name(),
                         marginRateImprovement
                 ));
             }
+
+            return new CompletionPhraseResponse(sb.toString());
         } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
             // type == HIGH_MARGIN
+
+            // 전략 조회
             HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
                     .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+
+            // 완료로 업데이트
             checkCompletionCondition(strategy.getState());
             strategy.updateStateToCompleted();
-            completionPhrase.append(strategy.getCompletionPhrase());
+
+            return new CompletionPhraseResponse(strategy.getCompletionPhrase());
         }
 
-        return new CompletionPhraseResponse(completionPhrase.toString());
+        throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
     }
 
     /*---- 홈화면 ----*/
