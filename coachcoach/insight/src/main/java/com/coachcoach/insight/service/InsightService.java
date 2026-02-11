@@ -5,10 +5,7 @@ import com.coachcoach.common.api.UserQueryApi;
 import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
-import com.coachcoach.insight.domain.CautionMenuStrategy;
-import com.coachcoach.insight.domain.DangerMenuStrategy;
-import com.coachcoach.insight.domain.HighMarginMenuStrategy;
-import com.coachcoach.insight.domain.StrategyBaselines;
+import com.coachcoach.insight.domain.*;
 import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.StrategyState;
@@ -24,12 +21,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +40,7 @@ public class InsightService {
     private final CautionMenuStrategyRepository cautionMenuStrategyRepository;
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
     private final StrategyBaseLinesRepository strategyBaseLinesRepository;
+    private final StrategyService strategyService;
     private final CatalogQueryApi catalogQueryApi;
     private final UserQueryApi userQueryApi;
 
@@ -210,58 +210,18 @@ public class InsightService {
      */
     @Transactional(transactionManager = "transactionManager")
     public void toggleStrategySaved(Long strategyId, StrategyType type, Long userId, Boolean save) {
-        if(StrategyType.DANGER.equals(type)) {
-            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            strategy.updateSaved(save);
-            return;
-        } else if(StrategyType.CAUTION.equals(type)) {
-            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            strategy.updateSaved(save);
-            return;
-        } else if(StrategyType.HIGH_MARGIN.equals(type)) {
-            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            strategy.updateSaved(save);
-            return;
-        }
-        throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
+        Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, type);
+        strategy.updateSaved(save);
     }
-
-    /**
-     * 전략 시작
-     */
 
     /**
      * 전략 시작
      */
     @Transactional(transactionManager = "transactionManager")
     public void changeStateToOngoing(Long userId, Long strategyId, StrategyType strategyType) {
-
-        if(strategyType.equals(StrategyType.DANGER)) {
-            // type == DANGER
-            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            checkStartCondition(strategy.getState());
-            strategy.updateStateToOngoing();
-            return;
-        } else if(strategyType.equals(StrategyType.CAUTION)) {
-            // type == CAUTION
-            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            checkStartCondition(strategy.getState());
-            strategy.updateStateToOngoing();
-            return;
-        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
-            // type == HIGH_MARGIN
-            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            checkStartCondition(strategy.getState());
-            strategy.updateStateToOngoing();
-            return;
-        }
-        throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
+        Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
+        checkStartCondition(strategy.getState());
+        strategy.updateStateToOngoing();
     }
 
     /**
@@ -273,104 +233,24 @@ public class InsightService {
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
         BigDecimal avgMarginRate = catalogQueryApi.getAvgMarginRate(userId);
 
-        if(strategyType.equals(StrategyType.DANGER)) {
-            // type == DANGER
-            // 전략 조회
-            DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            // 전략 Baseline 조회
-            StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+        // 전략 조회
+        Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
 
-            // 전략에 해당하는 메뉴 조회
-            MenuInfo menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
+        // 전략 Baseline 조회
+        StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
-            // 완료로 업데이트
-            checkCompletionCondition(strategy.getState());
-            strategy.updateStateToCompleted();
+        // 전략에 해당하는 메뉴 조회
+        MenuInfo menuInfo = (strategy.getType().equals(StrategyType.HIGH_MARGIN)) ? null : catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
 
-            // 개선된 평균 마진률 계산
-            BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
+        // 완료로 업데이트
+        checkCompletionCondition(strategy.getState());
+        strategy.updateStateToCompleted();
 
-            StringBuilder sb = new StringBuilder();
+        // 개선된 평균 마진률 계산
+        BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
 
-            if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
-                sb.append(MessageFormat.format(DangerMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
-                        marginRateImprovement.abs(),
-                        menuInfo.menuName(),
-                        storeInfo.name())
-                );
-            }
-            else if(strategy.getGuideCode().equals("REMOVE_MENU")) {
-                // 0: 메뉴명 / 1: 카페명 / 2: 개선된 평균 마진률 %p
-                sb.append(MessageFormat.format(DangerMenuCompletionPhraseTemplate.REMOVE_MENU.getCompletionPhrase(),
-                    menuInfo.menuName(),
-                    storeInfo.name(),
-                    marginRateImprovement
-                ));
-            } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
-                // 0: 카페명 / 1: 개선된 평균 마진률 %p
-                sb.append(MessageFormat.format(DangerMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
-                        storeInfo.name(),
-                        marginRateImprovement
-                ));
-            }
-
-            return new CompletionPhraseResponse(sb.toString());
-        } else if(strategyType.equals(StrategyType.CAUTION)) {
-            // type == CAUTION
-
-            // 전략 조회
-            CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-            // 전략 baseline 조회
-            StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
-            // 전략에 해당하는 메뉴 조회
-            MenuInfo menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
-
-            // 완료로 업데이트
-            checkCompletionCondition(strategy.getState());
-            strategy.updateStateToCompleted();
-
-            // 개선된 평균 마진률 계산
-            BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
-
-            StringBuilder sb = new StringBuilder();
-            if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
-                sb.append(MessageFormat.format(CautionMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
-                        marginRateImprovement.abs(),
-                        menuInfo.menuName(),
-                        storeInfo.name())
-                );
-            } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
-                sb.append(MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
-                        storeInfo.name(),
-                        marginRateImprovement
-                ));
-            } else if(strategy.getGuideCode().equals("ADJUST_RECIPE")) {
-                sb.append(MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_RECIPE.getCompletionPhrase(),
-                        storeInfo.name(),
-                        marginRateImprovement
-                ));
-            }
-
-            return new CompletionPhraseResponse(sb.toString());
-        } else if(strategyType.equals(StrategyType.HIGH_MARGIN)) {
-            // type == HIGH_MARGIN
-
-            // 전략 조회
-            HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
-                    .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
-
-            // 완료로 업데이트
-            checkCompletionCondition(strategy.getState());
-            strategy.updateStateToCompleted();
-
-            return new CompletionPhraseResponse(strategy.getCompletionPhrase());
-        }
-
-        throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, menuInfo, storeInfo, marginRateImprovement));
     }
 
     /*---- 홈화면 ----*/
