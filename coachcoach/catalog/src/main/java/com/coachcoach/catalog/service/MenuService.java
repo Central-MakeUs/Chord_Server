@@ -230,9 +230,18 @@ public class MenuService {
         String menuName = nameResolver.createNonDupMenuName(userId, request.menuName());
 
         // 총 원가 계산
+
+        /* 기존 재료 원가 합 계산 */
         List<Long> ingredientIds = request.recipes().stream()
                 .map(RecipeCreateRequest::ingredientId)
                 .toList();
+
+        // 기존 재료 이용 등록 시 중복되는 재료 Id 확인
+        if(ingredientIds.size() != new HashSet<>(ingredientIds).size()) {
+            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
+        }
+
+        // <id, Ingredient> - 단가 * 사용량 계산용
         Map<Long, Ingredient> ingredientMap = ingredientRepository
                 .findByUserIdAndIngredientIdIn(userId, ingredientIds)
                 .stream()
@@ -242,26 +251,67 @@ public class MenuService {
                                 Function.identity()
                         )
                 );
+        BigDecimal costByExisting = request.recipes().stream()
+                .map(recipe -> {
+                    Ingredient ingredient = Optional.ofNullable(ingredientMap.get(recipe.ingredientId()))
+                            .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
-        BigDecimal totalCost = Stream.concat(
-                // 기존 재료 이용
-                request.recipes().stream()
-                        .map(recipe -> {
-                            Ingredient ingredient = Optional.ofNullable(ingredientMap.get(recipe.ingredientId()))
-                                    .orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
-                            log.info("price: " + recipe.amount().multiply(ingredient.getCurrentUnitPrice()));
-                            return recipe.amount()
-                                    .divide(
-                                            BigDecimal.valueOf(codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity()), 10, RoundingMode.HALF_UP)
-                                    .multiply(ingredient.getCurrentUnitPrice());
-                        }),
-                request.newRecipes()
-                        .stream()
-                        .map(NewRecipeCreateRequest::price)
-        ).reduce(BigDecimal.ZERO, BigDecimal::add);
-        log.info("total cost: " + totalCost);
+                    return recipe.amount()
+                            .divide(
+                                    BigDecimal.valueOf(codeFinder.findUnitByCode(ingredient.getUnitCode()).getBaseQuantity()), 10, RoundingMode.HALF_UP
+                            ).multiply(ingredient.getCurrentUnitPrice());
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // analysis 계산
+        /* 새 재료 원가 합 (단가 * 사용량) */
+
+        // 새 재료 단가 계산
+        List<NewRecipe> newRecipesWithUnitPrice = request.newRecipes().stream()
+                .map(recipe -> {
+                    // 유효성 검증
+                    if(!codeFinder.existsIngredientCategory(recipe.ingredientCategoryCode())) {
+                        throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
+                    }
+//                    if(recipe.amount().compareTo(recipe.usageAmount()) < 0) {
+//                        throw new BusinessException(CatalogErrorCode.INVALID_USAGE_AMOUNT);
+//                    }
+                    Unit unit = codeFinder.findUnitByCode(recipe.unitCode());
+                    BigDecimal unitPrice = calculator.calUnitPrice(unit, recipe.price(), recipe.amount());
+
+                    return NewRecipe.builder()
+                            .amount(recipe.amount())
+                            .usageAmount(recipe.usageAmount())
+                            .price(recipe.price())
+                            .unit(unit)
+                            .ingredientCategoryCode(recipe.ingredientCategoryCode())
+                            .ingredientName(recipe.ingredientName())
+                            .supplier(recipe.supplier())
+                            .unitPrice(unitPrice)
+                            .build();
+                })
+                .toList();
+
+        // 새 재료끼리 재료명이 동일한 경우 처리
+        List<String> newIngredientNames = request.newRecipes().stream()
+                .map(NewRecipeCreateRequest::ingredientName)
+                .toList();
+
+        if(newIngredientNames.size() != new HashSet<>(newIngredientNames).size()) {
+            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
+        }
+
+        // 원가 합 계산
+        BigDecimal costByNew = newRecipesWithUnitPrice.stream()
+                .map(recipe -> recipe.usageAmount()
+                        .divide(BigDecimal.valueOf(recipe.unit().getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                        .multiply(recipe.unitPrice()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalCost = costByNew.add(costByExisting);
+
+        log.info("메뉴 등록 - 총 원가: " + totalCost);
+
+        /* analysis 계산 */
         MenuCostAnalysis analysis = calculator.calAnalysis(
                 totalCost,
                 request.sellingPrice(),
@@ -269,6 +319,7 @@ public class MenuService {
                 request.workTime()
         );
 
+        /* 메뉴 등록 */
         Menu menu = menuRepository.save(
                 Menu.create(
                         userId,
@@ -300,7 +351,7 @@ public class MenuService {
         createNewIngredientsWithRecipes(
                 userId,
                 menu.getMenuId(),
-                request.newRecipes()
+                newRecipesWithUnitPrice
         );
     }
 
@@ -311,19 +362,10 @@ public class MenuService {
     private void createNewIngredientsWithRecipes(
             Long userId,
             Long menuId,
-            List<NewRecipeCreateRequest> newRecipes
+            List<NewRecipe> newRecipes
     ) {
-
-        // 1. 유효성 검증 (배치)
-        newRecipes.forEach(recipe -> {
-            if (!codeFinder.existsIngredientCategory(recipe.ingredientCategoryCode())) {
-                throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
-            }
-        });
-
-        // 2. 중복 조회 (배치)
-        // todo: 중복 시 (1), (2), ...등으로 처리
-        List<NewRecipeCreateRequest> resolvedRecipes = newRecipes.stream()
+        // 재료명 중복 해결
+        List<NewRecipe> resolvedRecipes = newRecipes.stream()
                 .map(recipe -> {
                     String resolvedName = nameResolver.createNonDupIngredientName(
                             userId,
@@ -336,25 +378,16 @@ public class MenuService {
 
         // 재료
         List<Ingredient> ingredients = resolvedRecipes.stream()
-                .map(recipe -> {
-                    // 단가 계산
-                    Unit unit = codeFinder.findUnitByCode(recipe.unitCode());
-                    BigDecimal unitPrice = calculator.calUnitPrice(unit, recipe.price(), recipe.amount());
-
-                    // 단가 유효성 검증 0.00 이상
-//                    if(unitPrice.compareTo(BigDecimal.ZERO) <= 0) {
-//                        throw new BusinessException(CatalogErrorCode.INVALID_UNIT_PRICE);
-//                    }
-
-                    return Ingredient.create(
+                .map(recipe ->
+                    Ingredient.create(
                             userId,
                             recipe.ingredientCategoryCode(),
                             recipe.ingredientName(),
-                            recipe.unitCode(),
-                            unitPrice,
+                            recipe.unit().getUnitCode(),
+                            recipe.unitPrice(),
                             recipe.supplier()
-                    );
-                })
+                    )
+                )
                 .toList();
 
         if(!ingredients.isEmpty()) {
@@ -365,7 +398,7 @@ public class MenuService {
             List<Recipe> recipes = new ArrayList<>();
             for(int i = 0; i < ingredients.size(); ++i) {
                 Ingredient ingredient = results.get(i);
-                NewRecipeCreateRequest recipe = resolvedRecipes.get(i);
+                NewRecipe recipe = resolvedRecipes.get(i);
 
                 histories.add(
                         IngredientPriceHistory.create(
@@ -381,7 +414,7 @@ public class MenuService {
                         Recipe.create(
                                 menuId,
                                 ingredient.getIngredientId(),
-                                recipe.amount()
+                                recipe.usageAmount()
                         )
                 );
             }
