@@ -27,6 +27,7 @@ import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -123,12 +124,15 @@ public class InsightService {
      * 정렬: 생성 날짜 내림차순
      */
     public List<SavedStrategyResponse> getSavedStrategies(Long userId, Integer year, Integer month, Boolean isCompleted) {
+        // 주의 시작일, 끝일
         LocalDate[] startAndEndOfMonth = getStartAndEndOfMonth(year, month);
         LocalDate startDate = startAndEndOfMonth[0];
         LocalDate endDate = startAndEndOfMonth[1];
 
         List<StrategyBaselines> strategyBaseLine = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
         List<Long> baseLineIds = strategyBaseLine.stream().map(StrategyBaselines::getBaselineId).toList();
+        Map<Long, StrategyBaselines> strategyBaselinesMap = strategyBaseLine.stream()
+                .collect(Collectors.toMap(StrategyBaselines::getBaselineId, Function.identity()));
 
         List<StrategyState> states = (isCompleted) ? List.of(StrategyState.ONGOING, StrategyState.COMPLETED) : List.of(StrategyState.BEFORE);
 
@@ -136,56 +140,96 @@ public class InsightService {
         List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baseLineIds, states);
         List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baseLineIds, states);
 
+        List<MenuInfo> dangerMenus = catalogQueryApi.findByMenuIdIn(dangerMenuStrategies.stream().map(DangerMenuStrategy::getMenuId).toList());
+        Map<Long, MenuInfo> dangerMenusMap = dangerMenus.stream()
+                .collect(Collectors.toMap(
+                        MenuInfo::menuId,
+                        Function.identity()
+                ));
+
+        List<MenuInfo> cautionMenus = catalogQueryApi.findByMenuIdIn(cautionMenuStrategies.stream().map(CautionMenuStrategy::getMenuId).toList());
+        Map<Long, MenuInfo> cautionMenusMap = cautionMenus.stream()
+                .collect(Collectors.toMap(
+                        MenuInfo::menuId,
+                        Function.identity()
+                ));
+
         List<SavedStrategyResponse> allStrategies = new ArrayList<>();
 
         allStrategies.addAll(
                 dangerMenuStrategies.stream()
-                        .map(strategy -> new SavedStrategyResponse(
-                                strategy.getStrategyId(),
-                                strategy.getState(),
-                                StrategyType.DANGER,
-                                strategy.getSummary(),
-                                strategy.getDetail(),
-                                getYear(strategy.getCreatedAt()),
-                                getMonth(strategy.getCreatedAt()),
-                                getWeekOfMonth(strategy.getCreatedAt()),
-                                strategy.getCreatedAt()
-                        ))
+                        .map(strategy -> {
+                            StrategyBaselines baselines = strategyBaselinesMap.get(strategy.getBaselineId());
+                            MenuInfo menu = dangerMenusMap.get(strategy.getMenuId());
+
+                            return new SavedStrategyResponse(
+                                    strategy.getStrategyId(),
+                                    strategy.getState(),
+                                    StrategyType.DANGER,
+                                    strategy.getSummary(),
+                                    strategy.getDetail(),
+                                    getYear(baselines.getStrategyDate()),
+                                    getMonth(baselines.getStrategyDate()),
+                                    getWeekOfMonth(baselines.getStrategyDate()),
+                                    (menu != null) ? menu.menuId() : null,
+                                    (menu != null) ? menu.menuName() : "-",
+                                    strategy.getCreatedAt(),
+                                    baselines.getStrategyDate()
+                            );
+                        })
                         .toList()
         );
+
         allStrategies.addAll(
                 cautionMenuStrategies.stream()
-                        .map(strategy -> new SavedStrategyResponse(
-                                strategy.getStrategyId(),
-                                strategy.getState(),
-                                StrategyType.CAUTION,
-                                strategy.getSummary(),
-                                strategy.getDetail(),
-                                getYear(strategy.getCreatedAt()),
-                                getMonth(strategy.getCreatedAt()),
-                                getWeekOfMonth(strategy.getCreatedAt()),
-                                strategy.getCreatedAt()
-                        ))
+                        .map(strategy -> {
+                            StrategyBaselines baselines = strategyBaselinesMap.get(strategy.getBaselineId());
+                            MenuInfo menu = cautionMenusMap.get(strategy.getMenuId());
+
+                            return new SavedStrategyResponse(
+                                    strategy.getStrategyId(),
+                                    strategy.getState(),
+                                    StrategyType.CAUTION,
+                                    strategy.getSummary(),
+                                    strategy.getDetail(),
+                                    getYear(baselines.getStrategyDate()),
+                                    getMonth(baselines.getStrategyDate()),
+                                    getWeekOfMonth(baselines.getStrategyDate()),
+                                    (menu != null) ? menu.menuId() : null,
+                                    (menu != null) ? menu.menuName() : "-",
+                                    strategy.getCreatedAt(),
+                                    baselines.getStrategyDate()
+                            );
+                        })
                         .toList()
         );
         allStrategies.addAll(
                 highMarginMenuStrategies.stream()
-                        .map(strategy -> new SavedStrategyResponse(
-                                strategy.getStrategyId(),
-                                strategy.getState(),
-                                StrategyType.HIGH_MARGIN,
-                                strategy.getSummary(),
-                                strategy.getDetail(),
-                                getYear(strategy.getCreatedAt()),
-                                getMonth(strategy.getCreatedAt()),
-                                getWeekOfMonth(strategy.getCreatedAt()),
-                                strategy.getCreatedAt()
-                        ))
+                        .map(strategy -> {
+                            StrategyBaselines baselines = strategyBaselinesMap.get(strategy.getBaselineId());
+
+                            return new SavedStrategyResponse(
+                                    strategy.getStrategyId(),
+                                    strategy.getState(),
+                                    StrategyType.HIGH_MARGIN,
+                                    strategy.getSummary(),
+                                    strategy.getDetail(),
+                                    getYear(baselines.getStrategyDate()),
+                                    getMonth(baselines.getStrategyDate()),
+                                    getWeekOfMonth(baselines.getStrategyDate()),
+                                    null,
+                                    null,
+                                    strategy.getCreatedAt(),
+                                    baselines.getStrategyDate()
+                            );
+                        })
                         .toList()
         );
-
         return allStrategies.stream()
-                .sorted(Comparator.comparing(SavedStrategyResponse::createdAt).reversed())
+                .sorted(Comparator
+                        .comparing(SavedStrategyResponse::strategyDate).reversed()
+                        .thenComparing(SavedStrategyResponse::createdAt).reversed()
+                )
                 .toList();
     }
 

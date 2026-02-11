@@ -3,6 +3,7 @@ package com.coachcoach.insight.dto.response;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record SavedStrategyResponse(
@@ -14,6 +15,9 @@ public record SavedStrategyResponse(
         Integer year,
         Integer month,
         Integer weekOfMonth,
-        LocalDateTime createdAt
+        Long menuId,
+        String menuName,
+        LocalDateTime createdAt,
+        LocalDate strategyDate
 ) {
 }
