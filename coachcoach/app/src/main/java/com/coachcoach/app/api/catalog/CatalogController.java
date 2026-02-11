@@ -83,7 +83,7 @@ public class CatalogController {
     /**
      * 재료 검색 (in template & users)
      */
-    @Operation(summary = "재료 검색 (템플릿 & 유저가 등록한 재료 내)")
+    @Operation(summary = "재료 검색 (유저가 등록한 재료 내)")
     @GetMapping("/ingredients/search")
     public List<SearchIngredientsResponse> searchIngredients(
             @AuthenticationPrincipal CustomUserDetails details,

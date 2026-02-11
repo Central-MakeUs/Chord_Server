@@ -132,7 +132,7 @@ public class IngredientService {
     }
 
     /**
-     * 재료 검색 (in template & users)
+     * 재료 검색 (in users)
      * 정렬 기준
      * 1. 템플릿 우선
      * 2. 같은 템플릿/유저목록 내에서는 유사도 순 나열 & ingredientName 오름차순
@@ -142,24 +142,10 @@ public class IngredientService {
             return Collections.emptyList();
         }
 
-        List<TemplateIngredient> templates = templateIngredientRepository.findByKeywordOrderByIngredientNameAsc(keyword);
         List<Ingredient> ingredients = ingredientRepository.findByUserIdAndKeywordOrderByIngredientNameAsc(userId, keyword);
-
-        List<SearchIngredientsResponse> response = new ArrayList<>();
-
-        templates.forEach(template -> {
-            response.add(
-                    SearchIngredientsResponse.from(template)
-            );
-        });
-
-        ingredients.forEach(ingredient -> {
-            response.add(
-                    SearchIngredientsResponse.from(ingredient)
-            );
-        });;
-
-        return response;
+        return ingredients.stream()
+                        .map(SearchIngredientsResponse::from)
+                        .toList();
     }
 
     /**
