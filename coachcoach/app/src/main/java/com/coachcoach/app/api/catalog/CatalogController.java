@@ -261,16 +261,28 @@ public class CatalogController {
         return menuService.readRecipes(Long.valueOf(details.getUserId()), menuId);
     }
 
+//    /**
+//     * 메뉴명 + 재료명 중복 확인 (일괄)
+//     */
+//    @Operation(summary = "메뉴명 + 재료명 중복 확인 (일괄)")
+//    @PostMapping("/menus/check-dup")
+//    public CheckDupResponse checkDupNames(
+//            @AuthenticationPrincipal CustomUserDetails details,
+//            @Valid @RequestBody CheckDupRequest request
+//    ) {
+//        return menuService.checkDupNames(Long.valueOf(details.getUserId()), request);
+//    }
+
     /**
-     * 메뉴명 + 재료명 중복 확인 (일괄)
+     * 메뉴명 중복 확인
      */
-    @Operation(summary = "메뉴명 + 재료명 중복 확인 (일괄)")
+    @Operation(summary = "메뉴명 중복 확인")
     @PostMapping("/menus/check-dup")
-    public CheckDupResponse checkDupNames(
+    public void checkDupNames(
             @AuthenticationPrincipal CustomUserDetails details,
-            @Valid @RequestBody CheckDupRequest request
+            @RequestParam(name = "name") @NotBlank @Size(max = 100) String menuName
     ) {
-        return menuService.checkDupNames(Long.valueOf(details.getUserId()), request);
+        menuService.checkDupNames(Long.valueOf(details.getUserId()), menuName);
     }
 
     /* -------------생성------------- */

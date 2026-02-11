@@ -194,21 +194,30 @@ public class MenuService {
     /**
      * 메뉴명 + 재료명 중복 확인 (일괄)
      */
+//    @Transactional(transactionManager = "transactionManager")
+//    public CheckDupResponse checkDupNames(Long userId, CheckDupRequest request) {
+//        // 메뉴명 중복 확인
+//        Boolean menuNameDuplicate = menuRepository.existsByUserIdAndMenuName(userId, request.menuName());
+//
+//        // 재료명 중복 확인
+//        List<String> dupIngredientNames = ingredientRepository
+//                .findByUserIdAndIngredientNameIn(userId, request.ingredientNames())
+//                .stream()
+//                .map(Ingredient::getIngredientName)
+//                .toList();
+//
+//        return new CheckDupResponse(menuNameDuplicate, dupIngredientNames);
+//    }
+
+    /**
+     * 메뉴명 중복 확인
+     */
     @Transactional(transactionManager = "transactionManager")
-    public CheckDupResponse checkDupNames(Long userId, CheckDupRequest request) {
-        // 메뉴명 중복 확인
-        Boolean menuNameDuplicate = menuRepository.existsByUserIdAndMenuName(userId, request.menuName());
-
-        // 재료명 중복 확인
-        List<String> dupIngredientNames = ingredientRepository
-                .findByUserIdAndIngredientNameIn(userId, request.ingredientNames())
-                .stream()
-                .map(Ingredient::getIngredientName)
-                .toList();
-
-        return new CheckDupResponse(menuNameDuplicate, dupIngredientNames);
+    public void checkDupNames(Long userId, String name) {
+        if(menuRepository.existsByUserIdAndMenuName(userId, name)) {
+            throw new BusinessException(CatalogErrorCode.DUP_MENU);
+        }
     }
-
     /**
      * 메뉴 생성
      */
