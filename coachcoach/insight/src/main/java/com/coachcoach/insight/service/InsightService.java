@@ -12,13 +12,11 @@ import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.*;
 import com.coachcoach.insight.exception.InsightErrorCode;
-import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
-import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
-import com.coachcoach.insight.repository.HighMarginMenuStrategyRepository;
-import com.coachcoach.insight.repository.StrategyBaseLinesRepository;
+import com.coachcoach.insight.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.*;
@@ -40,6 +38,7 @@ public class InsightService {
     private final CautionMenuStrategyRepository cautionMenuStrategyRepository;
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
     private final StrategyBaseLinesRepository strategyBaseLinesRepository;
+    private final HighMarginMenuListRepository highMarginMenuListRepository;
     private final StrategyService strategyService;
     private final CatalogQueryApi catalogQueryApi;
     private final UserQueryApi userQueryApi;
@@ -193,17 +192,117 @@ public class InsightService {
     /**
      * 위험 메뉴 전략 상세
      */
-//    public DangerMenuStrategyDetailResponse getDangerMenuStrategyDetail(Long strategyId, Long userId)
+    @Transactional(transactionManager = "transactionManager")
+    public DangerMenuStrategyDetailResponse getDangerMenuStrategyDetail(Long userId, Long strategyId) {
+        DangerMenuStrategy strategy = dangerMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+        StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+        MenuInfo menuInfo;
+        try {
+            menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
+        } catch (BusinessException e) {
+            // 해당 메뉴가 존재하지 않는 경우 (메뉴 삭제) - 전략 삭제 후 에러 발생
+            deleteDangerStrategyWithMenu(strategy);
+            throw new BusinessException(InsightErrorCode.STRATEGY_MENU_NOT_FOUND);
+        }
+
+        return new DangerMenuStrategyDetailResponse(
+                strategy.getStrategyId(),
+                strategy.getSummary(),
+                strategy.getDetail(),
+                strategy.getGuide(),
+                strategy.getExpectedEffect(),
+                strategy.getState(),
+                strategy.getSaved(),
+                strategy.getStartDate(),
+                strategy.getCompletionDate(),
+                menuInfo.menuId(),
+                menuInfo.menuName(),
+                menuInfo.costRate(),
+                strategy.getType(),
+                getYear(baselines.getStrategyDate()),
+                getMonth(baselines.getStrategyDate()),
+                getWeekOfMonth(baselines.getStrategyDate())
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteDangerStrategyWithMenu(DangerMenuStrategy strategy) {
+        dangerMenuStrategyRepository.delete(strategy);
+    }
 
     /**
      * 주의 메뉴 전략 상세
      */
-//    public CautionMenuStrategyDetailResponse getCautionMenuStrategyDetail(Long strategyId, Long userId)
+    @Transactional(transactionManager = "transactionManager")
+    public CautionMenuStrategyDetailResponse getCautionMenuStrategyDetail(Long userId, Long strategyId) {
+        CautionMenuStrategy strategy = cautionMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+        StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+        MenuInfo menuInfo;
+        try {
+            menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
+        } catch (BusinessException e) {
+            // 해당 메뉴가 존재하지 않는 경우 (메뉴 삭제) - 전략 삭제 후 에러 발생
+            deleteCautionStrategyWithMenu(strategy);
+            throw new BusinessException(InsightErrorCode.STRATEGY_MENU_NOT_FOUND);
+        }
+
+        return new CautionMenuStrategyDetailResponse(
+                strategy.getStrategyId(),
+                strategy.getSummary(),
+                strategy.getDetail(),
+                strategy.getGuide(),
+                strategy.getExpectedEffect(),
+                strategy.getState(),
+                strategy.getSaved(),
+                strategy.getStartDate(),
+                strategy.getCompletionDate(),
+                menuInfo.menuId(),
+                menuInfo.menuName(),
+                strategy.getType(),
+                getYear(baselines.getStrategyDate()),
+                getMonth(baselines.getStrategyDate()),
+                getWeekOfMonth(baselines.getStrategyDate())
+        );
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void deleteCautionStrategyWithMenu(CautionMenuStrategy strategy) {
+        cautionMenuStrategyRepository.delete(strategy);
+    }
 
     /**
      * 고마진 메뉴 추천 전략 상세
      */
-//    public HighMarginMenuStrategyDetailResponse getHighMarginMenuStrategyDetail(Long strategyId, Long userId)
+    public HighMarginMenuStrategyDetailResponse getHighMarginMenuStrategyDetail(Long userId, Long strategyId) {
+        HighMarginMenuStrategy strategy = highMarginMenuStrategyRepository.findByUserIdAndStrategyId(userId, strategyId)
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
+        StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+        List<HighMarginMenuList> menuList = highMarginMenuListRepository.findByStrategyId(strategy.getStrategyId());
+        List<MenuInfo> highMarginMenus = catalogQueryApi.findByMenuIdIn(menuList.stream().map(HighMarginMenuList::getStrategyId).toList());
+
+        return HighMarginMenuStrategyDetailResponse
+                .builder()
+                .strategyId(strategy.getStrategyId())
+                .summary(strategy.getSummary())
+                .detail(strategy.getDetail())
+                .guide(strategy.getGuide())
+                .expectedEffect(strategy.getExpectedEffect())
+                .state(strategy.getState())
+                .saved(strategy.getSaved())
+                .startDate(strategy.getStartDate())
+                .completionDate(strategy.getCompletionDate())
+                .type(strategy.getType())
+                .year(getYear(baselines.getStrategyDate()))
+                .month(getMonth(baselines.getStrategyDate()))
+                .weekOfMonth(getWeekOfMonth(baselines.getStrategyDate()))
+                .menuNames(highMarginMenus.stream().map(MenuInfo::menuName).toList())
+                .build();
+    }
 
     /**
      * 전략 저장/해제
@@ -337,12 +436,18 @@ public class InsightService {
     private int getYear(LocalDateTime createdAt) {
         return createdAt.getYear();
     }
+    private int getYear(LocalDate strategyDate) {
+        return strategyDate.getYear();
+    }
 
     /**
      * 월 추출
      */
     private int getMonth(LocalDateTime createdAt) {
         return createdAt.getMonthValue();
+    }
+    private int getMonth(LocalDate strategyDate) {
+        return strategyDate.getMonthValue();
     }
 
     /**
@@ -351,6 +456,10 @@ public class InsightService {
     private int getWeekOfMonth(LocalDateTime createdAt) {
         WeekFields weekFields = WeekFields.of(Locale.KOREA);  // 월요일 시작
         return createdAt.get(weekFields.weekOfMonth());
+    }
+    private int getWeekOfMonth(LocalDate strategyDate) {
+        WeekFields weekFields = WeekFields.of(Locale.KOREA);
+        return strategyDate.get(weekFields.weekOfMonth());
     }
 
 

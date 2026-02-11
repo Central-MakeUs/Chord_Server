@@ -3,9 +3,7 @@ package com.coachcoach.app.api.insight;
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
-import com.coachcoach.insight.dto.response.CompletionPhraseResponse;
-import com.coachcoach.insight.dto.response.SavedStrategyResponse;
-import com.coachcoach.insight.dto.response.StrategyBriefResponse;
+import com.coachcoach.insight.dto.response.*;
 import com.coachcoach.insight.service.InsightService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -55,17 +53,38 @@ public class InsightController {
     /**
      * 위험 메뉴 전략 상세
      */
-//    public DangerMenuStrategyDetailResponse getDangerMenuStrategyDetail(Long strategyId, Long userId)
+    @Operation(summary = "위험 메뉴 전략 상세")
+    @GetMapping("/strategies/danger/{strategyId}")
+    public DangerMenuStrategyDetailResponse getDangerMenuStrategyDetail(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @PathVariable Long strategyId
+    ) {
+        return insightService.getDangerMenuStrategyDetail(Long.valueOf(details.getUserId()), strategyId);
+    }
 
     /**
      * 주의 메뉴 전략 상세
      */
-//    public CautionMenuStrategyDetailResponse getCautionMenuStrategyDetail(Long strategyId, Long userId)
+    @Operation(summary = "주의 메뉴 전략 상세")
+    @GetMapping("/strategies/caution/{strategyId}")
+    public CautionMenuStrategyDetailResponse getCautionMenuStrategyDetail(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @PathVariable Long strategyId
+    ) {
+        return insightService.getCautionMenuStrategyDetail(Long.valueOf(details.getUserId()), strategyId);
+    }
 
     /**
      * 고마진 메뉴 추천 전략 상세
      */
-//    public HighMarginMenuStrategyDetailResponse getHighMarginMenuStrategyDetail(Long strategyId, Long userId)
+    @Operation(summary = "고마진 메뉴 추천 전략 상세")
+    @GetMapping("/strategies/high-margin/{strategyId}")
+    public HighMarginMenuStrategyDetailResponse getHighMarginMenuStrategyDetail(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @PathVariable Long strategyId
+    ) {
+        return insightService.getHighMarginMenuStrategyDetail(Long.valueOf(details.getUserId()), strategyId);
+    }
 
     /**
      * 전략 저장/해제

@@ -18,6 +18,7 @@ public enum InsightErrorCode implements ErrorCode {
     STRATEGY_ALREADY_STARTED("INSIGHT_020", "이미 실행 중인 전략입니다.", HttpStatus.BAD_REQUEST),
     STRATEGY_ALREADY_COMPLETED("INSIGHT_021","이미 완료된 전략입니다.", HttpStatus.BAD_REQUEST),
     STRATEGY_NOT_STARTED("INSIGHT_022", "시작되지 않은 전략입니다.", HttpStatus.BAD_REQUEST),
+    STRATEGY_MENU_NOT_FOUND("INSIGHT_023", "이미 삭제된 메뉴입니다.", HttpStatus.BAD_REQUEST),
     ;
     private final String code;
     private final String message;
