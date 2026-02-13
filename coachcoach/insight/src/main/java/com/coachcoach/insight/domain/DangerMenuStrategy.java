@@ -1,6 +1,7 @@
 package com.coachcoach.insight.domain;
 
 import com.coachcoach.insight.domain.enums.StrategyState;
+import com.coachcoach.insight.domain.enums.StrategyType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 @Getter
-public class DangerMenuStrategy {
+public class DangerMenuStrategy implements Strategy{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long strategyId;
@@ -50,6 +51,16 @@ public class DangerMenuStrategy {
     private LocalDateTime updatedAt;
 
     private String guideCode;
+
+    @Override
+    public StrategyType getType() {
+        return StrategyType.DANGER;
+    }
+
+    @Override
+    public String getCompletionPhrase() {
+        return null;
+    }
 
     public void updateSaved(boolean saved) {
         this.saved = saved;

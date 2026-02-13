@@ -3,18 +3,22 @@ package com.coachcoach.user.service;
 import com.coachcoach.common.api.CatalogQueryApi;
 import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.common.exception.BusinessException;
+import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.dto.request.OnboardingRequest;
 import com.coachcoach.user.dto.request.UpdateStoreRequest;
+import com.coachcoach.user.dto.response.StoreResponse;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Slf4j
 @Service
@@ -39,7 +43,6 @@ public class UserService {
                 request.name(),
                 request.employees(),
                 request.laborCost(),
-                request.rentCost(),
                 request.includeWeeklyHolidayPay()
         );
 
@@ -76,8 +79,21 @@ public class UserService {
                 request.name(),
                 request.employees(),
                 request.laborCost(),
-                request.rentCost(),
                 request.includeWeeklyHolidayPay()
+        );
+    }
+
+    public StoreResponse getStore(
+            Long userId
+    ) {
+        Store store = storeRepository.findByUserId(userId).orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_STORE));
+
+        return new StoreResponse(
+                store.getName(),
+                store.getEmployees(),
+                store.getLaborCost(),
+                store.getRentCost(),
+                store.getIncludeWeeklyHolidayPay()
         );
     }
 }

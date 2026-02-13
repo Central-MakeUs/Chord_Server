@@ -19,7 +19,7 @@ public class SwaggerConfig {
         return new OpenAPI()
                 .openapi("3.0.0")
                 .info(new Info()
-                        .title("코치코치 CATALOG SERVICE 명세서")
+                        .title("코치코치 API 명세서")
                         .version("v1"))
                 .addSecurityItem(new SecurityRequirement().addList("jwtAuth"))
                 .components(

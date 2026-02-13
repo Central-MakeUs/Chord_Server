@@ -25,6 +25,7 @@ public enum CatalogErrorCode implements ErrorCode {
     INVALID_UNIT_PRICE("CATALOG_012", "단가는 0보다 커야해요.", HttpStatus.BAD_REQUEST),
     INVALID_MENU_NAME("CATALOG_013", "메뉴명을 변경해 주세요.", HttpStatus.BAD_REQUEST),
     INVALID_INGREDIENT_NAME("CATALOG_014", "재료명을 변경해 주세요.", HttpStatus.BAD_REQUEST),
+    INVALID_USAGE_AMOUNT("CATALOG_015", "잘못된 사용량이에요.", HttpStatus.BAD_REQUEST),
     ;
     private final String code;
     private final String message;

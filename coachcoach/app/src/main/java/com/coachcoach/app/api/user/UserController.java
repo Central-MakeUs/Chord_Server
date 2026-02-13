@@ -5,6 +5,7 @@ import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.dto.request.OnboardingRequest;
 import com.coachcoach.user.dto.request.UpdateStoreRequest;
+import com.coachcoach.user.dto.response.StoreResponse;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,5 +57,16 @@ public class UserController {
             @RequestBody  UpdateStoreRequest request
     ) {
         userService.updateStore(Long.valueOf(details.getUserId()), request);
+    }
+
+    /**
+     * 매장 정보 반환
+     */
+    @Operation(summary = "매장 정보 반환")
+    @GetMapping("/stores")
+    public StoreResponse getStore(
+            @AuthenticationPrincipal CustomUserDetails details
+    ) {
+        return userService.getStore(Long.valueOf(details.getUserId()));
     }
 }
