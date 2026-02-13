@@ -9,6 +9,7 @@ import com.coachcoach.insight.domain.HighMarginMenuStrategy;
 import com.coachcoach.insight.domain.Strategy;
 import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
+import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.exception.InsightErrorCode;
 import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
@@ -16,6 +17,7 @@ import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
 import com.coachcoach.insight.repository.HighMarginMenuStrategyRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.support.DefaultBeanNameGenerator;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,6 +34,19 @@ public class StrategyService {
     private final CautionMenuStrategyRepository cautionMenuStrategyRepository;
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
 
+    public List<Strategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states) {
+        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
+        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
+        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
+
+        List<Strategy> all = new ArrayList<>(dangerMenuStrategies.size() + cautionMenuStrategies.size() + highMarginMenuStrategies.size());
+
+        all.addAll(dangerMenuStrategies);
+        all.addAll(cautionMenuStrategies);
+        all.addAll(highMarginMenuStrategies);
+
+        return all;
+    }
     public List<Strategy> findByBaselineIdIn(List<Long> baselineIds) {
         // 위험 전략 조회
         List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);

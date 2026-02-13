@@ -39,16 +39,16 @@ public class InsightController {
     /**
      * 내가 저장한 전략 모음
      */
-//    @Operation(summary = "저장한 전략 조회")
-//    @GetMapping("/strategies/saved")
-//    public List<SavedStrategyResponse> getSavedStrategies(
-//            @AuthenticationPrincipal CustomUserDetails details,
-//            @RequestParam(name = "year") Integer year,
-//            @RequestParam(name = "month") Integer month,
-//            @RequestParam(name = "isCompleted") Boolean isCompleted
-//    ) {
-//        return insightService.getSavedStrategies(Long.valueOf(details.getUserId()), year, month, isCompleted);
-//    }
+    @Operation(summary = "저장한 전략 조회")
+    @GetMapping("/strategies/saved")
+    public List<SavedStrategyResponse> getSavedStrategies(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @RequestParam(name = "year") Integer year,
+            @RequestParam(name = "month") Integer month,
+            @RequestParam(name = "isCompleted") Boolean isCompleted
+    ) {
+        return insightService.getSavedStrategies(Long.valueOf(details.getUserId()), year, month, isCompleted);
+    }
 
     /**
      * 위험 메뉴 전략 상세
@@ -85,6 +85,20 @@ public class InsightController {
     ) {
         return insightService.getHighMarginMenuStrategyDetail(Long.valueOf(details.getUserId()), strategyId);
     }
+
+//    /**
+//     * 전략 저장/해제
+//     */
+//    @Operation(summary = "전략 저장/해제")
+//    @PatchMapping("/strategies/{strategyId}/save")
+//    public void toggleStrategySaved(
+//            @AuthenticationPrincipal CustomUserDetails details,
+//            @PathVariable Long strategyId,
+//            @RequestParam StrategyType type,
+//            @RequestParam boolean isSaved
+//    ) {
+//        insightService.toggleStrategySaved(strategyId, type, Long.valueOf(details.getUserId()), isSaved);
+//    }
 
     /**
      * 전략 시작
