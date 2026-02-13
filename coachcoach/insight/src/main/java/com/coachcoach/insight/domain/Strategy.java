@@ -2,7 +2,9 @@ package com.coachcoach.insight.domain;
 
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
+import org.springframework.cglib.core.Local;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public interface Strategy {
@@ -20,6 +22,8 @@ public interface Strategy {
     String getGuideCode();
     StrategyType getType();
     String getCompletionPhrase();
+    LocalDateTime getCreatedAt();
+    LocalDateTime getUpdatedAt();
 
     void updateSaved(boolean saved);
     void updateStateToOngoing();

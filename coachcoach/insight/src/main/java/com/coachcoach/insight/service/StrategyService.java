@@ -3,6 +3,9 @@ package com.coachcoach.insight.service;
 import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
+import com.coachcoach.insight.domain.CautionMenuStrategy;
+import com.coachcoach.insight.domain.DangerMenuStrategy;
+import com.coachcoach.insight.domain.HighMarginMenuStrategy;
 import com.coachcoach.insight.domain.Strategy;
 import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
@@ -17,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -26,6 +31,24 @@ public class StrategyService {
     private final DangerMenuStrategyRepository dangerMenuStrategyRepository;
     private final CautionMenuStrategyRepository cautionMenuStrategyRepository;
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
+
+    public List<Strategy> findByBaselineIdIn(List<Long> baselineIds) {
+        // 위험 전략 조회
+        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);
+
+        // 주의 전략 조회
+        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findByBaselineIdIn(baselineIds);
+
+        // 고마진 전략 조회
+        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findByBaselineIdIn(baselineIds);
+
+        List<Strategy> strategies = new ArrayList<>(dangerMenuStrategies.size() + cautionMenuStrategies.size() + highMarginMenuStrategies.size());
+        strategies.addAll(dangerMenuStrategies);
+        strategies.addAll(cautionMenuStrategies);
+        strategies.addAll(highMarginMenuStrategies);
+
+        return  strategies;
+    }
 
     public Strategy findByUserIdAndStrategyId(Long userId, Long strategyId, StrategyType type) {
         return switch (type) {

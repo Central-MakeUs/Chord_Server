@@ -39,16 +39,16 @@ public class InsightController {
     /**
      * 내가 저장한 전략 모음
      */
-    @Operation(summary = "저장한 전략 조회")
-    @GetMapping("/strategies/saved")
-    public List<SavedStrategyResponse> getSavedStrategies(
-            @AuthenticationPrincipal CustomUserDetails details,
-            @RequestParam(name = "year") Integer year,
-            @RequestParam(name = "month") Integer month,
-            @RequestParam(name = "isCompleted") Boolean isCompleted
-    ) {
-        return insightService.getSavedStrategies(Long.valueOf(details.getUserId()), year, month, isCompleted);
-    }
+//    @Operation(summary = "저장한 전략 조회")
+//    @GetMapping("/strategies/saved")
+//    public List<SavedStrategyResponse> getSavedStrategies(
+//            @AuthenticationPrincipal CustomUserDetails details,
+//            @RequestParam(name = "year") Integer year,
+//            @RequestParam(name = "month") Integer month,
+//            @RequestParam(name = "isCompleted") Boolean isCompleted
+//    ) {
+//        return insightService.getSavedStrategies(Long.valueOf(details.getUserId()), year, month, isCompleted);
+//    }
 
     /**
      * 위험 메뉴 전략 상세
