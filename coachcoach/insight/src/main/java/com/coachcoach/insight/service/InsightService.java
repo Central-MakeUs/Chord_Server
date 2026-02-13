@@ -340,7 +340,7 @@ public class InsightService {
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
         List<HighMarginMenuList> menuList = highMarginMenuListRepository.findByStrategyId(strategy.getStrategyId());
-        List<MenuInfo> highMarginMenus = catalogQueryApi.findByMenuIdIn(menuList.stream().map(HighMarginMenuList::getStrategyId).toList());
+        List<MenuInfo> highMarginMenus = catalogQueryApi.findByMenuIdIn(menuList.stream().map(HighMarginMenuList::getMenuId).toList());
 
         return HighMarginMenuStrategyDetailResponse
                 .builder()
