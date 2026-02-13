@@ -377,15 +377,6 @@ public class InsightService {
     }
 
     /**
-     * 전략 저장/해제
-     */
-    @Transactional(transactionManager = "transactionManager")
-    public void toggleStrategySaved(Long strategyId, StrategyType type, Long userId, Boolean save) {
-        Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, type);
-        strategy.updateSaved(save);
-    }
-
-    /**
      * 전략 시작
      */
     @Transactional(transactionManager = "transactionManager")

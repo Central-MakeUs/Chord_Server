@@ -87,20 +87,6 @@ public class InsightController {
     }
 
     /**
-     * 전략 저장/해제
-     */
-    @Operation(summary = "전략 저장/해제")
-    @PatchMapping("/strategies/{strategyId}/save")
-    public void toggleStrategySaved(
-            @AuthenticationPrincipal CustomUserDetails details,
-            @PathVariable Long strategyId,
-            @RequestParam StrategyType type,
-            @RequestParam boolean isSaved
-    ) {
-        insightService.toggleStrategySaved(strategyId, type, Long.valueOf(details.getUserId()), isSaved);
-    }
-
-    /**
      * 전략 시작
      */
     @Operation(summary = "전략 시작")
