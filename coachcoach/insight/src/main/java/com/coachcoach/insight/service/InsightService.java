@@ -65,56 +65,84 @@ public class InsightService {
 
         // 해당 주 전략 baseline id
         List<StrategyBaselines> strategyBaseLine = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
-        List<Long> baseLineIds = strategyBaseLine.stream().map(StrategyBaselines::getBaselineId).toList();
+        List<Long> baselineIds = strategyBaseLine.stream().map(StrategyBaselines::getBaselineId).toList();
+        Map<Long, StrategyBaselines> baselineMap =  strategyBaseLine.stream()
+                .collect(
+                        Collectors.toMap(
+                                StrategyBaselines::getBaselineId,
+                                Function.identity()
+                        )
+                );
 
-        // 전략 리스트
-        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByBaselineIdIn(baseLineIds);
-        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findByBaselineIdIn(baseLineIds);
-        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findByBaselineIdIn(baseLineIds);
+        List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
 
-        // 모든 전략
-        List<StrategyBriefResponse> allStrategies = new ArrayList<>();
+        // 메뉴 조회
+        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
+        Map<Long, MenuInfo> menuMap = menus.stream()
+                .collect(
+                        Collectors.toMap(
+                                MenuInfo::menuId,
+                                Function.identity()
+                        )
+                );
+        // 정렬
+        Comparator<Strategy> strategyComparator = Comparator
+                // 상태 별 그룹 정렬
+                .<Strategy, Integer>comparing(s -> switch (s.getState()) {
+                    case ONGOING -> 0;
+                    case BEFORE -> 1;
+                    case COMPLETED -> 2;
+                    default -> 4;
+                })
+                // 진행 중: startDate 내림차순
+                .thenComparing(s -> {
+                    if(s.getState() == StrategyState.ONGOING) {
+                        return s.getState() != null ? s.getStartDate() : LocalDateTime.MIN;
+                    }
 
-        dangerMenuStrategies.forEach(s -> allStrategies.add(
-                convertToStrategyBrief(s, StrategyType.DANGER)
-        ));
-        cautionMenuStrategies.forEach(s -> allStrategies.add(
-                convertToStrategyBrief(s, StrategyType.CAUTION)
-        ));
-        highMarginMenuStrategies.forEach(s -> allStrategies.add(
-                convertToStrategyBrief(s, StrategyType.HIGH_MARGIN)
-        ));
+                    return LocalDateTime.MAX;
+                }, Comparator.reverseOrder())
+                // 진행 전: 위험 -> 주의 -> 고마진 순
+                .thenComparing(s -> {
+                    if (s.getState() == StrategyState.BEFORE) {
+                        return switch (s.getType()) {
+                            case DANGER -> 0;
+                            case CAUTION -> 1;
+                            case HIGH_MARGIN -> 2;
+                            default -> 3;
+                        };
+                    }
+                    return 0;
+                })
+                // 진행완료: 실행 완료 버튼 누른 최근 순
+                .thenComparing(s -> {
+                    if (s.getState() == StrategyState.COMPLETED) {
+                        return s.getCompletionDate() != null ? s.getCompletionDate() : LocalDateTime.MIN;
+                    }
+                    return LocalDateTime.MAX;
+                }, Comparator.reverseOrder());
 
-        Map<StrategyState, List<StrategyBriefResponse>> grouped = allStrategies.stream()
-                .collect(Collectors.groupingBy(StrategyBriefResponse::state));
+        return all.stream()
+                .sorted(strategyComparator)
+                .map(s -> {
+                    StrategyBaselines b = baselineMap.get(s.getBaselineId());
 
-        List<StrategyBriefResponse> result = new ArrayList<>();
-
-        // 1. 진행중 (시작 날짜 내림차순)
-        result.addAll(
-                grouped.getOrDefault(StrategyState.ONGOING, new ArrayList<>())
-                        .stream()
-                        .sorted(Comparator.comparing(StrategyBriefResponse::startDate).reversed())
-                        .toList()
-        );
-
-        // 2. 진행 전 (생성 순)
-        result.addAll(
-                grouped.getOrDefault(StrategyState.BEFORE, new ArrayList<>())
-                        .stream()
-                        .sorted(Comparator.comparing(StrategyBriefResponse::createdAt))
-                        .toList()
-        );
-
-        // 3. 완료 (완료 날짜 내림차순)
-        result.addAll(
-                grouped.getOrDefault(StrategyState.COMPLETED, new ArrayList<>())
-                        .stream()
-                        .sorted(Comparator.comparing(StrategyBriefResponse::completionDate).reversed())
-                        .toList()
-        );
-
-        return result;
+                    return StrategyBriefResponse.builder()
+                            .menuId(s.getMenuId())
+                            .strategyId(s.getStrategyId())
+                            .state(s.getState())
+                            .type(s.getType())
+                            .title(
+                                    (s.getType() == StrategyType.HIGH_MARGIN)
+                                            ? getMonth(b.getStrategyDate()) + "월" + getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
+                                            : menuMap.get(s.getMenuId()).menuName()
+                            )
+                            .summary(s.getSummary())
+                            .detail(s.getDetail())
+                            .startDate(s.getStartDate())
+                            .createdAt(s.getCreatedAt())
+                            .build();
+                }).toList();
     }
 //
 //    /**
@@ -582,43 +610,4 @@ public class InsightService {
             throw new BusinessException(InsightErrorCode.STRATEGY_NOT_STARTED);
         }
     }
-
-    private StrategyBriefResponse convertToStrategyBrief(Object strategy, StrategyType type) {
-        if (strategy instanceof DangerMenuStrategy danger) {
-            return new StrategyBriefResponse(
-                    danger.getStrategyId(),
-                    danger.getState(),
-                    type,
-                    danger.getSummary(),
-                    danger.getDetail(),
-                    danger.getStartDate(),
-                    danger.getCompletionDate(),
-                    danger.getCreatedAt()
-            );
-        } else if (strategy instanceof CautionMenuStrategy caution) {
-            return new StrategyBriefResponse(
-                    caution.getStrategyId(),
-                    caution.getState(),
-                    type,
-                    caution.getSummary(),
-                    caution.getDetail(),
-                    caution.getStartDate(),
-                    caution.getCompletionDate(),
-                    caution.getCreatedAt()
-            );
-        } else if (strategy instanceof HighMarginMenuStrategy highMargin) {
-            return new StrategyBriefResponse(
-                    highMargin.getStrategyId(),
-                    highMargin.getState(),
-                    type,
-                    highMargin.getSummary(),
-                    highMargin.getDetail(),
-                    highMargin.getStartDate(),
-                    highMargin.getCompletionDate(),
-                    highMargin.getCreatedAt()
-            );
-        }
-        throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
-    }
-
 }
