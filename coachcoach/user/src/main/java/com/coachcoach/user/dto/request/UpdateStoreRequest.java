@@ -12,7 +12,6 @@ public record UpdateStoreRequest(
     Integer employees,
     @NotNull(message = "시급 입력은 필수입니다.")
     BigDecimal laborCost,
-    BigDecimal rentCost,
     Boolean includeWeeklyHolidayPay
 ) {
 }

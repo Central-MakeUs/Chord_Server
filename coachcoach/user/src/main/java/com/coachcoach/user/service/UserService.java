@@ -39,7 +39,6 @@ public class UserService {
                 request.name(),
                 request.employees(),
                 request.laborCost(),
-                request.rentCost(),
                 request.includeWeeklyHolidayPay()
         );
 
@@ -76,7 +75,6 @@ public class UserService {
                 request.name(),
                 request.employees(),
                 request.laborCost(),
-                request.rentCost(),
                 request.includeWeeklyHolidayPay()
         );
     }
