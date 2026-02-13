@@ -18,6 +18,7 @@ public record CautionMenuStrategyDetailResponse(
         LocalDateTime completionDate,
         Long menuId,
         String menuName,
+        BigDecimal costRate,
         StrategyType type,
         Integer year,
         Integer month,

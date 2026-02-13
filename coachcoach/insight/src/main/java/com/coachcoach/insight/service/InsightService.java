@@ -318,6 +318,7 @@ public class InsightService {
                 strategy.getCompletionDate(),
                 menuInfo.menuId(),
                 menuInfo.menuName(),
+                menuInfo.costRate(),
                 strategy.getType(),
                 getYear(baselines.getStrategyDate()),
                 getMonth(baselines.getStrategyDate()),
