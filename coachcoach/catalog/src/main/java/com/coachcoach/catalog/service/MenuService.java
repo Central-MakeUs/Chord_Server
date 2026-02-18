@@ -85,11 +85,17 @@ public class MenuService {
         List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
 
         return recipes.stream()
-                .map(x ->
-                        RecipeTemplateResponse.of(
-                        x,
-                        templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT))
-                ))
+                .map(x -> {
+
+                    TemplateIngredient templateIngredient = templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+
+                    return RecipeTemplateResponse.of(
+                            x,
+                            templateIngredient,
+                            codeFinder.findUnitByCode(templateIngredient.getUnitCode())
+                        );
+                    }
+                )
                 .toList();
     }
 
