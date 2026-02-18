@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import java.math.BigDecimal;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -74,6 +76,7 @@ public class UserService {
     @Transactional(transactionManager = "transactionManager")
     public void updateStore(Long userId, UpdateStoreRequest request) {
         Store store = storeRepository.findByUserId(userId).orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_STORE));
+        BigDecimal prevLaborCost = store.getLaborCost();
 
         store.updateInformation(
                 request.name(),
@@ -81,6 +84,11 @@ public class UserService {
                 request.laborCost(),
                 request.includeWeeklyHolidayPay()
         );
+
+        //인건비 수정에 따른 메뉴 값 변화 업데이트 (공헌이익, 마진률)
+        if(prevLaborCost.compareTo(request.laborCost()) != 0) {
+            catalogQueryApi.updateMenusByUpdateLaborCost(userId, request.laborCost());
+        }
     }
 
     public StoreResponse getStore(
