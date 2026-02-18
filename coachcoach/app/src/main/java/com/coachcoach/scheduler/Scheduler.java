@@ -22,11 +22,6 @@ public class Scheduler {
     private String privateServerUrl;
 
 
-    @PostConstruct
-    public void init() {
-        generateInsightScheduler();
-    }
-
     @Scheduled(cron = "0 0 22 * * Sun")
     public void generateInsightScheduler() {
         try {
