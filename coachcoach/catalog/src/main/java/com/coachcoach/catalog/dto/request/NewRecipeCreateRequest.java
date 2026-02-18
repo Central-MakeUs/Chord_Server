@@ -10,9 +10,13 @@ import java.math.BigDecimal;
     새로운 재료 등록 & 레시피 등록
  */
 public record NewRecipeCreateRequest (
+    @NotNull(message = "구매량 입력은 필수입니다.")
+    @Positive(message = "구매량은 0보다 커야 합니다.")
+    BigDecimal amount,                  // 사용량 -> 구매량
+
     @NotNull(message = "사용량 입력은 필수입니다.")
     @Positive(message = "사용량은 0보다 커야 합니다.")
-    BigDecimal amount,                  // 사용량
+    BigDecimal usageAmount,
 
     @NotNull(message = "가격 입력은 필수입니다.")
     BigDecimal price,                   // 가격
@@ -28,14 +32,4 @@ public record NewRecipeCreateRequest (
 
     String supplier
 ) {
-    public NewRecipeCreateRequest withIngredientName(String ingredientName) {
-        return new NewRecipeCreateRequest(
-                this.amount,
-                this.price,
-                this.unitCode,
-                this.ingredientCategoryCode,
-                ingredientName,
-                this.supplier
-        );
-    }
 }

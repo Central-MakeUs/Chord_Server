@@ -1,6 +1,7 @@
 package com.coachcoach.insight.domain;
 
 import com.coachcoach.insight.domain.enums.StrategyState;
+import com.coachcoach.insight.domain.enums.StrategyType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 @Getter
-public class HighMarginMenuStrategy {
+public class HighMarginMenuStrategy implements Strategy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long strategyId;
@@ -49,6 +50,21 @@ public class HighMarginMenuStrategy {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    @Override
+    public Long getMenuId() {
+        return null;
+    }
+
+    @Override
+    public String getGuideCode() {
+        return null;
+    }
+
+    @Override
+    public StrategyType getType() {
+        return StrategyType.HIGH_MARGIN;
+    }
 
     public void updateSaved(boolean saved) {
         this.saved = saved;

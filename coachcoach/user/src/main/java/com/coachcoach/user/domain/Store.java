@@ -51,13 +51,11 @@ public class Store {
             String name,
             Integer employees,
             BigDecimal laborCost,
-            BigDecimal rentCost,
             Boolean includeWeeklyHolidayPay
     ) {
         this.name = name;
         this.employees = employees;
         this.laborCost = laborCost;
-        this.rentCost = rentCost;
         this.includeWeeklyHolidayPay = includeWeeklyHolidayPay;
         this.updatedAt = LocalDateTime.now();
     }
