@@ -57,6 +57,11 @@ public class HighMarginMenuStrategy implements Strategy {
     }
 
     @Override
+    public Long getSnapshotId() {
+        return null;
+    }
+
+    @Override
     public String getGuideCode() {
         return null;
     }
@@ -65,6 +70,7 @@ public class HighMarginMenuStrategy implements Strategy {
     public StrategyType getType() {
         return StrategyType.HIGH_MARGIN;
     }
+
 
     public void updateSaved(boolean saved) {
         this.saved = saved;

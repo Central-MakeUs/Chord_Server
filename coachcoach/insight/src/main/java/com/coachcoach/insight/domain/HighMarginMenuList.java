@@ -22,7 +22,7 @@ public class HighMarginMenuList {
 
     private Long menuId;
 
-    private BigDecimal contributionMargin;
+    private Long snapshotId;
 
     private LocalDateTime createdAt;
 }

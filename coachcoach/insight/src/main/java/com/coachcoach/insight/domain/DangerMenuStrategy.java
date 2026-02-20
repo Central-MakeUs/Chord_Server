@@ -46,6 +46,8 @@ public class DangerMenuStrategy implements Strategy{
 
     private Long menuId;    // fk
 
+    private Long snapshotId;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

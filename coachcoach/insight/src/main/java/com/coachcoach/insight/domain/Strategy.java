@@ -11,6 +11,7 @@ public interface Strategy {
     Long getStrategyId();
     Long getBaselineId();
     Long getMenuId();
+    Long getSnapshotId();
     String getSummary();
     String getDetail();
     String getGuide();
