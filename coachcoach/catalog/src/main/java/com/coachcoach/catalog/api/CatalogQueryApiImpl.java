@@ -112,7 +112,8 @@ public class CatalogQueryApiImpl implements CatalogQueryApi {
     }
 
     @Override
-    public void updateMenusByUpdateLaborCost(Long userId, BigDecimal laborCost) {
+    public void updateMenusByUpdateLaborCost(Long userId, BigDecimal laborCost, Boolean includeWeeklyHolidayPay) {
+        BigDecimal calculatedLaborCost = calculator.calLaborCost(includeWeeklyHolidayPay, laborCost);
         List<Menu> menus = menuRepository.findByUserId(userId);
 
         if(menus.isEmpty())
@@ -129,7 +130,7 @@ public class CatalogQueryApiImpl implements CatalogQueryApi {
             MenuCostAnalysis menuCostAnalysis = calculator.calAnalysis(
                     totalCost,
                     menu.getSellingPrice(),
-                    laborCost,
+                    calculatedLaborCost,
                     menu.getWorkTime()
             );
 

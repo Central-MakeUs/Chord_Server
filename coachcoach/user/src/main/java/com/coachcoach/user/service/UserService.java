@@ -87,7 +87,7 @@ public class UserService {
 
         //인건비 수정에 따른 메뉴 값 변화 업데이트 (공헌이익, 마진률)
         if(prevLaborCost.compareTo(request.laborCost()) != 0) {
-            catalogQueryApi.updateMenusByUpdateLaborCost(userId, request.laborCost());
+            catalogQueryApi.updateMenusByUpdateLaborCost(userId, request.laborCost(), request.includeWeeklyHolidayPay());
         }
     }
 
