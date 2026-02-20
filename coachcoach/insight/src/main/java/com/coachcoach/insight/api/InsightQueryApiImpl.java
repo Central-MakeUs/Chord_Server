@@ -36,7 +36,7 @@ public class InsightQueryApiImpl implements InsightQueryApi {
     }
 
     @Override
-    public int getNumOfDangerMenus(Long userId) {
+    public Long getNumOfDangerMenus(Long userId) {
 
         LocalDate[] startDateAndEndDate = dateCalculator.getStartAndEndOfWeekByCurrentTime();
         LocalDate startDate = startDateAndEndDate[0];
@@ -44,8 +44,6 @@ public class InsightQueryApiImpl implements InsightQueryApi {
 
         List<StrategyBaselines> baselines = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
         List<Long> baselineIds = baselines.stream().map(StrategyBaselines::getBaselineId).toList();
-        List<DangerMenuStrategy> strategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);
-
-        return strategies.size();
+        return dangerMenuStrategyRepository.countByBaselineIdIn(baselineIds);
     }
 }

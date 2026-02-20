@@ -3,7 +3,7 @@ package com.coachcoach.catalog.dto.response;
 import java.math.BigDecimal;
 
 public record HomeMenusResponse(
-        int numOfDangerMenus,
+        Long numOfDangerMenus,
         AvgCostRate avgCostRate,
         BigDecimal avgMarginRate
 ) {

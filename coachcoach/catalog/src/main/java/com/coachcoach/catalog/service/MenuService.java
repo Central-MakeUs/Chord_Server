@@ -830,7 +830,7 @@ public class MenuService {
 
 
         // 위험 등급 메뉴만 분류
-        int numOfDangerMenus = insightQueryApi.getNumOfDangerMenus(userId);
+        Long numOfDangerMenus = insightQueryApi.getNumOfDangerMenus(userId);
 
         // 평균 원가율, 마진율
         BigDecimal avgCostRate = calculator.calAvgCostRate(menus);
