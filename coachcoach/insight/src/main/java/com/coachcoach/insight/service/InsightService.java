@@ -6,8 +6,6 @@ import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.insight.domain.*;
-import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
-import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.*;
@@ -42,6 +40,8 @@ public class InsightService {
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
     private final StrategyBaseLinesRepository strategyBaseLinesRepository;
     private final HighMarginMenuListRepository highMarginMenuListRepository;
+    private final MenuSnapshotsRepository menuSnapshotsRepository;
+    private final RecipeSnapshotsRepository recipeSnapshotsRepository;
     private final StrategyService strategyService;
     private final CatalogQueryApi catalogQueryApi;
     private final UserQueryApi userQueryApi;
@@ -80,14 +80,15 @@ public class InsightService {
         List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
 
         // 메뉴 조회
-        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
-        Map<Long, MenuInfo> menuMap = menus.stream()
+        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baselineIds);
+        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
                 .collect(
                         Collectors.toMap(
-                                MenuInfo::menuId,
+                                MenuSnapshots::getMenuId,
                                 Function.identity()
                         )
                 );
+
         // 정렬
         Comparator<Strategy> strategyComparator = Comparator
                 // 상태 별 그룹 정렬
@@ -138,7 +139,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).menuName()
+                                            : menuMap.get(s.getMenuId()).getMenuName()
                             )
                             .summary(s.getSummary())
                             .detail(s.getDetail())
@@ -162,6 +163,7 @@ public class InsightService {
 
         List<StrategyBaselines> strategyBaseLine = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
         List<Long> baseLineIds = strategyBaseLine.stream().map(StrategyBaselines::getBaselineId).toList();
+
         Map<Long, StrategyBaselines> baselineMap =  strategyBaseLine.stream()
                 .collect(
                         Collectors.toMap(
@@ -169,14 +171,16 @@ public class InsightService {
                                 Function.identity()
                         )
                 );
-        List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED) : List.of(StrategyState.BEFORE, StrategyState.ONGOING);
+        List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED, StrategyState.ONGOING) : List.of(StrategyState.BEFORE);
 
         List<Strategy> all = strategyService.findBySavedTrueAndBaselineIdInAndStateIn(baseLineIds, states);
-        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
-        Map<Long, MenuInfo> menuMap = menus.stream()
+
+        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baseLineIds);
+
+        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
                 .collect(
                         Collectors.toMap(
-                                MenuInfo::menuId,
+                                MenuSnapshots::getMenuId,
                                 Function.identity()
                         )
                 );
@@ -217,6 +221,7 @@ public class InsightService {
                     }
                     return LocalDateTime.MAX;
                 }, Comparator.reverseOrder());
+
         return all.stream()
                 .sorted(strategyComparator)
                 .map(s -> {
@@ -238,7 +243,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).menuName()
+                                            : menuMap.get(s.getMenuId()).getMenuName()
                             )
                             .createdAt(s.getCreatedAt())
                             .strategyDate(b.getStrategyDate())
@@ -272,7 +277,6 @@ public class InsightService {
                 strategy.getGuide(),
                 strategy.getExpectedEffect(),
                 strategy.getState(),
-                strategy.getSaved(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
                 menuInfo.menuId(),
@@ -315,7 +319,6 @@ public class InsightService {
                 strategy.getGuide(),
                 strategy.getExpectedEffect(),
                 strategy.getState(),
-                strategy.getSaved(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
                 menuInfo.menuId(),
@@ -352,7 +355,6 @@ public class InsightService {
                 .guide(strategy.getGuide())
                 .expectedEffect(strategy.getExpectedEffect())
                 .state(strategy.getState())
-                .saved(strategy.getSaved())
                 .startDate(strategy.getStartDate())
                 .completionDate(strategy.getCompletionDate())
                 .type(strategy.getType())
@@ -371,7 +373,6 @@ public class InsightService {
         Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
         dateCalculator.checkStartCondition(strategy.getState());
         strategy.updateStateToOngoing();
-        strategy.updateSaved(true);
     }
 
     /**
@@ -422,12 +423,12 @@ public class InsightService {
 
         List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
 
-        // 메뉴 조회
-        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
-        Map<Long, MenuInfo> menuMap = menus.stream()
+        // 메뉴 스냅샷 조회
+        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baselineIds);
+        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
                 .collect(
                         Collectors.toMap(
-                                MenuInfo::menuId,
+                                MenuSnapshots::getMenuId,
                                 Function.identity()
                         )
                 );
@@ -484,7 +485,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).menuName()
+                                            : menuMap.get(s.getMenuId()).getMenuName()
                             )
                             .summary(s.getSummary())
                             .createdAt(s.getCreatedAt())

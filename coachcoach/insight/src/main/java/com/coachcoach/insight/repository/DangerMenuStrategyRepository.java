@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface DangerMenuStrategyRepository extends JpaRepository<DangerMenuStrategy, Long> {
     long countByBaselineIdIn(Collection<Long> baselineIds);
     List<DangerMenuStrategy> findByBaselineIdIn(List<Long> baselineIds);
-    List<DangerMenuStrategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
+    List<DangerMenuStrategy> findByBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
     @Query(
             value = "SELECT d.* " +
                     "FROM tb_danger_menu_strategy d JOIN tb_strategy_baselines b ON d.baseline_id = b.baseline_id " +

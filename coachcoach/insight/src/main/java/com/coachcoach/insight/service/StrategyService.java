@@ -35,9 +35,9 @@ public class StrategyService {
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
 
     public List<Strategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states) {
-        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
-        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
-        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
+        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByBaselineIdInAndStateIn(baselineId, states);
+        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findByBaselineIdInAndStateIn(baselineId, states);
+        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findByBaselineIdInAndStateIn(baselineId, states);
 
         List<Strategy> all = new ArrayList<>(dangerMenuStrategies.size() + cautionMenuStrategies.size() + highMarginMenuStrategies.size());
 

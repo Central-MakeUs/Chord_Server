@@ -37,9 +37,6 @@ public class CautionMenuStrategy implements Strategy{
     @Enumerated(EnumType.STRING)
     private StrategyState state;
 
-    @Column(name = "is_saved")
-    private Boolean saved;
-
     private LocalDateTime startDate;
 
     private LocalDateTime completionDate;
@@ -62,11 +59,6 @@ public class CautionMenuStrategy implements Strategy{
     @Override
     public String getCompletionPhrase() {
         return null;
-    }
-
-    public void updateSaved(boolean saved) {
-        this.saved = saved;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateStateToOngoing() {

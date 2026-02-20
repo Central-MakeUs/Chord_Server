@@ -40,9 +40,6 @@ public class HighMarginMenuStrategy implements Strategy {
     @Enumerated(EnumType.STRING)
     private StrategyState state;
 
-    @Column(name = "is_saved")
-    private Boolean saved;
-
     private LocalDateTime startDate;
 
     private LocalDateTime completionDate;
@@ -69,12 +66,6 @@ public class HighMarginMenuStrategy implements Strategy {
     @Override
     public StrategyType getType() {
         return StrategyType.HIGH_MARGIN;
-    }
-
-
-    public void updateSaved(boolean saved) {
-        this.saved = saved;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateStateToOngoing() {
