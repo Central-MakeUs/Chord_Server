@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface MenuSnapshotsRepository extends JpaRepository<MenuSnapshots, Long> {
     List<MenuSnapshots> findByBaselineIdIn(List<Long> baselineIds);
-    Optional<MenuSnapshots> findByMenuId(Long menuId);
-    List<MenuSnapshots> findByMenuIdIn(List<Long> menuIds);
+    Optional<MenuSnapshots> findByBaselineIdAndMenuId(Long baselineId, Long menuId);
+    List<MenuSnapshots> findByBaselineIdAndMenuIdIn(Long baselineId, List<Long> menuIds);
 }

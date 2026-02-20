@@ -2,11 +2,15 @@ package com.coachcoach.insight.api;
 
 import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.insight.domain.DangerMenuStrategy;
+import com.coachcoach.insight.domain.Strategy;
 import com.coachcoach.insight.domain.StrategyBaselines;
+import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
 import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
 import com.coachcoach.insight.repository.HighMarginMenuStrategyRepository;
 import com.coachcoach.insight.repository.StrategyBaseLinesRepository;
+import com.coachcoach.insight.service.InsightService;
+import com.coachcoach.insight.service.StrategyService;
 import com.coachcoach.insight.util.DateCalculator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +26,8 @@ public class InsightQueryApiImpl implements InsightQueryApi {
     private final DangerMenuStrategyRepository dangerMenuStrategyRepository;
     private final CautionMenuStrategyRepository cautionMenuStrategyRepository;
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
+    private final StrategyService strategyService;
+    private final InsightService insightService;
     private final DateCalculator dateCalculator;
 
     @Override
@@ -45,5 +51,14 @@ public class InsightQueryApiImpl implements InsightQueryApi {
         List<StrategyBaselines> baselines = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
         List<Long> baselineIds = baselines.stream().map(StrategyBaselines::getBaselineId).toList();
         return dangerMenuStrategyRepository.countByBaselineIdIn(baselineIds);
+    }
+
+    @Override
+    public void changeStateToCompletedByMenuId(Long userId, Long menuId) {
+        List<Strategy> strategies = strategyService.findByMenuId(menuId);
+
+        for(Strategy strategy : strategies){
+            insightService.changeStateToCompleted(userId, strategy.getStrategyId(), strategy.getType());
+        }
     }
 }

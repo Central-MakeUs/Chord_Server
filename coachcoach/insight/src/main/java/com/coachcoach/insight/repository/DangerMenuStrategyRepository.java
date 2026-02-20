@@ -28,4 +28,5 @@ public interface DangerMenuStrategyRepository extends JpaRepository<DangerMenuSt
             @Param("strategyId") Long strategyId
     );
     void deleteByBaselineIdIn(List<Long> baselineIds);
+    List<DangerMenuStrategy> findByMenuId(Long menuId);
 }

@@ -27,4 +27,5 @@ public interface CautionMenuStrategyRepository extends JpaRepository<CautionMenu
             @Param("strategyId") Long strategyId
     );
     void deleteByBaselineIdIn(List<Long> baselineIds);
+    List<CautionMenuStrategy> findByMenuId(Long menuId);
 }

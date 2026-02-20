@@ -812,6 +812,7 @@ public class MenuService {
             Long userId,
             Long menuId
     ) {
+        log.info(menuId.toString());
         // 유효성 검증 (존재하는 메뉴인지)
         Menu menu = menuRepository
                 .findByUserIdAndMenuId(userId, menuId)
@@ -822,6 +823,9 @@ public class MenuService {
 
         // 메뉴 삭제
         menuRepository.delete(menu);
+
+        // 전략 카드 완료 처리
+        insightQueryApi.changeStateToCompletedByMenuId(userId, menuId);
     }
 
     /*---------홈화면-------*/

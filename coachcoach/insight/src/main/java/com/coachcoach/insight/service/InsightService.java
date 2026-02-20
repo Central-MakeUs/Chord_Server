@@ -266,7 +266,7 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
         // 메뉴 정보 조회
-        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByMenuId(strategy.getMenuId())
+        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByBaselineIdAndMenuId(baselines.getBaselineId(), strategy.getMenuId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
 
         return new DangerMenuStrategyDetailResponse(
@@ -299,7 +299,7 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
         // 메뉴 정보 조회
-        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByMenuId(strategy.getMenuId())
+        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByBaselineIdAndMenuId(baselines.getBaselineId(), strategy.getMenuId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
 
         return new CautionMenuStrategyDetailResponse(
@@ -333,7 +333,7 @@ public class InsightService {
         List<Long> menuIds = menuList.stream().map(HighMarginMenuList::getMenuId).toList();
 
         // 메뉴 정보 조회
-        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByMenuIdIn(menuIds);
+        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdAndMenuIdIn(baselines.getBaselineId(), menuIds);
 
         return HighMarginMenuStrategyDetailResponse
                 .builder()
@@ -380,7 +380,11 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
         // 전략에 해당하는 메뉴 조회
-        MenuInfo menuInfo = (strategy.getType().equals(StrategyType.HIGH_MARGIN)) ? null : catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
+        MenuSnapshots menuInfo =
+                (strategy.getType().equals(StrategyType.HIGH_MARGIN))
+                        ? null : menuSnapshotsRepository
+                        .findByBaselineIdAndMenuId(baseline.getBaselineId(), strategy.getMenuId())
+                        .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
 
         // 완료로 업데이트
         dateCalculator.checkCompletionCondition(strategy.getState());
