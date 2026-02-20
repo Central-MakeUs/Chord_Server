@@ -13,6 +13,7 @@ import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.*;
 import com.coachcoach.insight.exception.InsightErrorCode;
 import com.coachcoach.insight.repository.*;
+import com.coachcoach.insight.util.DateCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class InsightService {
     private final StrategyService strategyService;
     private final CatalogQueryApi catalogQueryApi;
     private final UserQueryApi userQueryApi;
+    private final DateCalculator dateCalculator;
 
     /*----AI 코치 탭----*/
     /**
@@ -60,7 +62,7 @@ public class InsightService {
             int weekOfMonth
     ) {
         // 해당 주 시작일, 종료일
-        LocalDate[] startAndEndOfWeek = getStartAndEndOfWeek(year, month, weekOfMonth);
+        LocalDate[] startAndEndOfWeek = dateCalculator.getStartAndEndOfWeek(year, month, weekOfMonth);
         LocalDate startDate = startAndEndOfWeek[0];
         LocalDate endDate = startAndEndOfWeek[1];
 
@@ -135,7 +137,7 @@ public class InsightService {
                             .type(s.getType())
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
-                                            ? getMonth(b.getStrategyDate()) + "월" + getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
+                                            ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
                                             : menuMap.get(s.getMenuId()).menuName()
                             )
                             .summary(s.getSummary())
@@ -154,7 +156,7 @@ public class InsightService {
      */
     public List<SavedStrategyResponse> getSavedStrategies(Long userId, Integer year, Integer month, Boolean isCompleted) {
         // 주의 시작일, 끝일
-        LocalDate[] startAndEndOfMonth = getStartAndEndOfMonth(year, month);
+        LocalDate[] startAndEndOfMonth = dateCalculator.getStartAndEndOfMonth(year, month);
         LocalDate startDate = startAndEndOfMonth[0];
         LocalDate endDate = startAndEndOfMonth[1];
 
@@ -229,13 +231,13 @@ public class InsightService {
                             .type(s.getType())
                             .summary(s.getSummary())
                             .detail(s.getDetail())
-                            .year(getYear(b.getStrategyDate()))
-                            .month(getMonth(b.getStrategyDate()))
-                            .weekOfMonth(getWeekOfMonth(b.getStrategyDate()))
+                            .year(dateCalculator.getYear(b.getStrategyDate()))
+                            .month(dateCalculator.getMonth(b.getStrategyDate()))
+                            .weekOfMonth(dateCalculator.getWeekOfMonth(b.getStrategyDate()))
                             .menuId(s.getMenuId())
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
-                                            ? getMonth(b.getStrategyDate()) + "월" + getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
+                                            ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
                                             : menuMap.get(s.getMenuId()).menuName()
                             )
                             .createdAt(s.getCreatedAt())
@@ -277,9 +279,9 @@ public class InsightService {
                 menuInfo.menuName(),
                 menuInfo.costRate(),
                 strategy.getType(),
-                getYear(baselines.getStrategyDate()),
-                getMonth(baselines.getStrategyDate()),
-                getWeekOfMonth(baselines.getStrategyDate())
+                dateCalculator.getYear(baselines.getStrategyDate()),
+                dateCalculator.getMonth(baselines.getStrategyDate()),
+                dateCalculator.getWeekOfMonth(baselines.getStrategyDate())
         );
     }
 
@@ -320,9 +322,9 @@ public class InsightService {
                 menuInfo.menuName(),
                 menuInfo.costRate(),
                 strategy.getType(),
-                getYear(baselines.getStrategyDate()),
-                getMonth(baselines.getStrategyDate()),
-                getWeekOfMonth(baselines.getStrategyDate())
+                dateCalculator.getYear(baselines.getStrategyDate()),
+                dateCalculator.getMonth(baselines.getStrategyDate()),
+                dateCalculator.getWeekOfMonth(baselines.getStrategyDate())
         );
     }
 
@@ -354,9 +356,9 @@ public class InsightService {
                 .startDate(strategy.getStartDate())
                 .completionDate(strategy.getCompletionDate())
                 .type(strategy.getType())
-                .year(getYear(baselines.getStrategyDate()))
-                .month(getMonth(baselines.getStrategyDate()))
-                .weekOfMonth(getWeekOfMonth(baselines.getStrategyDate()))
+                .year(dateCalculator.getYear(baselines.getStrategyDate()))
+                .month(dateCalculator.getMonth(baselines.getStrategyDate()))
+                .weekOfMonth(dateCalculator.getWeekOfMonth(baselines.getStrategyDate()))
                 .menuNames(highMarginMenus.stream().map(MenuInfo::menuName).toList())
                 .build();
     }
@@ -367,7 +369,7 @@ public class InsightService {
     @Transactional(transactionManager = "transactionManager")
     public void changeStateToOngoing(Long userId, Long strategyId, StrategyType strategyType) {
         Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
-        checkStartCondition(strategy.getState());
+        dateCalculator.checkStartCondition(strategy.getState());
         strategy.updateStateToOngoing();
         strategy.updateSaved(true);
     }
@@ -392,7 +394,7 @@ public class InsightService {
         MenuInfo menuInfo = (strategy.getType().equals(StrategyType.HIGH_MARGIN)) ? null : catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
 
         // 완료로 업데이트
-        checkCompletionCondition(strategy.getState());
+        dateCalculator.checkCompletionCondition(strategy.getState());
         strategy.updateStateToCompleted();
 
         // 개선된 평균 마진률 계산
@@ -403,7 +405,7 @@ public class InsightService {
 
     /*---- 홈화면 ----*/
     public HomeStrategiesResponse getHomeStrategies(Long userId, int year, int month, int weekOfMonth) {
-        LocalDate[] startAndEndOfWeek = getStartAndEndOfWeek(year, month, weekOfMonth);
+        LocalDate[] startAndEndOfWeek = dateCalculator.getStartAndEndOfWeek(year, month, weekOfMonth);
         LocalDate startDate = startAndEndOfWeek[0];
         LocalDate endDate = startAndEndOfWeek[1];
 
@@ -481,7 +483,7 @@ public class InsightService {
                             .type(s.getType())
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
-                                            ? getMonth(b.getStrategyDate()) + "월" + getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
+                                            ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
                                             : menuMap.get(s.getMenuId()).menuName()
                             )
                             .summary(s.getSummary())
@@ -494,97 +496,4 @@ public class InsightService {
         return new HomeStrategiesResponse(sorted);
     }
     /*-----------------------*/
-
-    /**
-     * N월 N주차에 해당하는 시작일(월)과 끝일(일) 반환
-     * @param year
-     * @param month
-     * @param weekOfMonth
-     */
-    private LocalDate[] getStartAndEndOfWeek(int year, int month, int weekOfMonth) {
-        // 한국 기준 주차 설정 (월요일 시작)
-        WeekFields weekFields = WeekFields.of(Locale.KOREA);
-
-        // 해당 월의 1일 날짜 설정
-        LocalDate firstDayOfMonth = LocalDate.of(year, month, 1);
-
-        // 해당 월의 N주차에 속하는 아무 날짜 추출
-        LocalDate dateInWeek = firstDayOfMonth
-                .with(weekFields.weekOfMonth(), weekOfMonth);
-
-        // 해당 주의 월요일
-        LocalDate startOfWeek = dateInWeek.with(weekFields.dayOfWeek(), 1);
-
-        // 해당 주의 일요일
-        LocalDate endOfWeek = dateInWeek.with(weekFields.dayOfWeek(), 7);
-
-        return new LocalDate[]{startOfWeek, endOfWeek};
-    }
-
-    /**
-     * 특정 년월의 시작일과 끝일 반환
-     * @param year 년도
-     * @param month 월
-     * @return [시작일, 끝일]
-     */
-    private LocalDate[] getStartAndEndOfMonth(int year, int month) {
-        LocalDate now = LocalDate.now();
-
-        // 해당 월의 1일
-        LocalDate startDate = LocalDate.of(year, month, 1);
-
-        // 해당 월의 마지막 날
-        LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
-
-        return new LocalDate[]{startDate, endDate};
-    }
-
-    /**
-     * 년도 추출
-     */
-    private int getYear(LocalDateTime createdAt) {
-        return createdAt.getYear();
-    }
-    private int getYear(LocalDate strategyDate) {
-        return strategyDate.getYear();
-    }
-
-    /**
-     * 월 추출
-     */
-    private int getMonth(LocalDateTime createdAt) {
-        return createdAt.getMonthValue();
-    }
-    private int getMonth(LocalDate strategyDate) {
-        return strategyDate.getMonthValue();
-    }
-
-    /**
-     * 월 기준 주차 추출 (그 달의 몇 번째 주)
-     */
-    private int getWeekOfMonth(LocalDateTime createdAt) {
-        WeekFields weekFields = WeekFields.of(Locale.KOREA);  // 월요일 시작
-        return createdAt.get(weekFields.weekOfMonth());
-    }
-    private int getWeekOfMonth(LocalDate strategyDate) {
-        WeekFields weekFields = WeekFields.of(Locale.KOREA);
-        return strategyDate.get(weekFields.weekOfMonth());
-    }
-
-
-    private void checkStartCondition(StrategyState state) {
-        if(state.equals(StrategyState.ONGOING)) {
-            throw new BusinessException(InsightErrorCode.STRATEGY_ALREADY_STARTED);
-        } else if(state.equals(StrategyState.COMPLETED)) {
-            throw new BusinessException(InsightErrorCode.STRATEGY_ALREADY_COMPLETED);
-        }
-    }
-
-    private void checkCompletionCondition(StrategyState state) {
-        if(state.equals(StrategyState.COMPLETED)) {
-            throw new BusinessException(InsightErrorCode.STRATEGY_ALREADY_COMPLETED);
-        } else if(state.equals(StrategyState.BEFORE)) {
-            throw new BusinessException(InsightErrorCode.STRATEGY_NOT_STARTED);
-        }
-    }
 }
