@@ -9,6 +9,7 @@ import com.coachcoach.catalog.util.Calculator;
 import com.coachcoach.catalog.util.CodeFinder;
 import com.coachcoach.catalog.util.DuplicateNameResolver;
 import com.coachcoach.catalog.repository.*;
+import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.common.api.UserQueryApi;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
@@ -43,6 +44,7 @@ public class MenuService {
     private final DuplicateNameResolver nameResolver;
     private final ConversionService conversionService;
     private final UserQueryApi userQueryApi;
+    private final InsightQueryApi insightQueryApi;
 
     /**
      * 메뉴 카테고리 목록 조회
@@ -85,11 +87,17 @@ public class MenuService {
         List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
 
         return recipes.stream()
-                .map(x ->
-                        RecipeTemplateResponse.of(
-                        x,
-                        templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT))
-                ))
+                .map(x -> {
+
+                    TemplateIngredient templateIngredient = templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
+
+                    return RecipeTemplateResponse.of(
+                            x,
+                            templateIngredient,
+                            codeFinder.findUnitByCode(templateIngredient.getUnitCode())
+                        );
+                    }
+                )
                 .toList();
     }
 
@@ -820,10 +828,9 @@ public class MenuService {
     public HomeMenusResponse getHomeMenus(Long userId) {
         List<Menu> menus = menuRepository.findByUserId(userId);
 
+
         // 위험 등급 메뉴만 분류
-        List<Menu> dangerMenus = menus.stream()
-                .filter(menu -> menu.getMarginGradeCode().equals("DANGER"))
-                .toList();
+        int numOfDangerMenus = insightQueryApi.getNumOfDangerMenus(userId);
 
         // 평균 원가율, 마진율
         BigDecimal avgCostRate = calculator.calAvgCostRate(menus);
@@ -832,7 +839,7 @@ public class MenuService {
         String marginGrade = calculator.calMarginGrade(avgCostRate);
 
         return new HomeMenusResponse(
-                dangerMenus.size(),
+                numOfDangerMenus,
                 new AvgCostRate(avgCostRate, marginGrade),
                 avgMarginRate
         );

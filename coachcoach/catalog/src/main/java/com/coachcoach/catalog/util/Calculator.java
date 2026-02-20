@@ -145,14 +145,9 @@ public class Calculator {
             return BigDecimal.ZERO;
         }
 
-        BigDecimal contribution = sellingPrice
+        return sellingPrice
                 .subtract(totalCost)
                 .subtract(laborCostPerCup);
-
-        return contribution
-                .divide(sellingPrice, 10, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100))
-                .setScale(2, RoundingMode.HALF_UP);
     }
 
     /**

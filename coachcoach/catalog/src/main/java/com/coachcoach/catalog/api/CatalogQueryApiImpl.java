@@ -2,6 +2,7 @@ package com.coachcoach.catalog.api;
 
 import com.coachcoach.catalog.domain.Ingredient;
 import com.coachcoach.catalog.domain.Menu;
+import com.coachcoach.catalog.dto.response.MenuCostAnalysis;
 import com.coachcoach.catalog.exception.CatalogErrorCode;
 import com.coachcoach.catalog.repository.IngredientPriceHistoryRepository;
 import com.coachcoach.catalog.repository.IngredientRepository;
@@ -108,5 +109,39 @@ public class CatalogQueryApiImpl implements CatalogQueryApi {
         List<Menu> menus = menuRepository.findByUserId(userId);
 
         return calculator.calAvgMarginRate(menus);
+    }
+
+    @Override
+    public void updateMenusByUpdateLaborCost(Long userId, BigDecimal laborCost, Boolean includeWeeklyHolidayPay) {
+        BigDecimal calculatedLaborCost = calculator.calLaborCost(includeWeeklyHolidayPay, laborCost);
+        List<Menu> menus = menuRepository.findByUserId(userId);
+
+        if(menus.isEmpty())
+            return;
+
+        menus.forEach(menu -> {
+            // totalCost, sellingPrice, laborCost, workTime
+
+            BigDecimal totalCost = calculator.calTotalCostWithRecipes(
+                    userId,
+                    recipeRepository.findByMenuId(menu.getMenuId())
+            );
+
+            MenuCostAnalysis menuCostAnalysis = calculator.calAnalysis(
+                    totalCost,
+                    menu.getSellingPrice(),
+                    calculatedLaborCost,
+                    menu.getWorkTime()
+            );
+
+            menu.update(
+                    totalCost,
+                    menuCostAnalysis.costRate(),
+                    menuCostAnalysis.contributionMargin(),
+                    menuCostAnalysis.marginRate(),
+                    menuCostAnalysis.marginGradeCode(),
+                    menuCostAnalysis.recommendedPrice()
+            );
+        });
     }
 }
