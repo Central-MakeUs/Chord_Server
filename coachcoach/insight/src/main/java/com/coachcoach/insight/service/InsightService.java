@@ -261,14 +261,10 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
-        MenuInfo menuInfo;
-        try {
-            menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
-        } catch (BusinessException e) {
-            // 해당 메뉴가 존재하지 않는 경우 (메뉴 삭제) - 전략 삭제 후 에러 발생
-            deleteDangerStrategyWithMenu(strategy);
-            throw new BusinessException(InsightErrorCode.STRATEGY_MENU_NOT_FOUND);
-        }
+
+        // 메뉴 정보 조회
+        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByMenuId(strategy.getMenuId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
 
         return new DangerMenuStrategyDetailResponse(
                 strategy.getStrategyId(),
@@ -279,19 +275,14 @@ public class InsightService {
                 strategy.getState(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
-                menuInfo.menuId(),
-                menuInfo.menuName(),
-                menuInfo.costRate(),
+                menuSnapshots.getMenuId(),
+                menuSnapshots.getMenuName(),
+                menuSnapshots.getCostRate(),
                 strategy.getType(),
                 dateCalculator.getYear(baselines.getStrategyDate()),
                 dateCalculator.getMonth(baselines.getStrategyDate()),
                 dateCalculator.getWeekOfMonth(baselines.getStrategyDate())
         );
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteDangerStrategyWithMenu(DangerMenuStrategy strategy) {
-        dangerMenuStrategyRepository.delete(strategy);
     }
 
     /**
@@ -303,14 +294,10 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
-        MenuInfo menuInfo;
-        try {
-            menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
-        } catch (BusinessException e) {
-            // 해당 메뉴가 존재하지 않는 경우 (메뉴 삭제) - 전략 삭제 후 에러 발생
-            deleteCautionStrategyWithMenu(strategy);
-            throw new BusinessException(InsightErrorCode.STRATEGY_MENU_NOT_FOUND);
-        }
+
+        // 메뉴 정보 조회
+        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByMenuId(strategy.getMenuId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
 
         return new CautionMenuStrategyDetailResponse(
                 strategy.getStrategyId(),
@@ -321,19 +308,14 @@ public class InsightService {
                 strategy.getState(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
-                menuInfo.menuId(),
-                menuInfo.menuName(),
-                menuInfo.costRate(),
+                menuSnapshots.getMenuId(),
+                menuSnapshots.getMenuName(),
+                menuSnapshots.getCostRate(),
                 strategy.getType(),
                 dateCalculator.getYear(baselines.getStrategyDate()),
                 dateCalculator.getMonth(baselines.getStrategyDate()),
                 dateCalculator.getWeekOfMonth(baselines.getStrategyDate())
         );
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteCautionStrategyWithMenu(CautionMenuStrategy strategy) {
-        cautionMenuStrategyRepository.delete(strategy);
     }
 
     /**
@@ -345,7 +327,10 @@ public class InsightService {
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
         List<HighMarginMenuList> menuList = highMarginMenuListRepository.findByStrategyId(strategy.getStrategyId());
-        List<MenuInfo> highMarginMenus = catalogQueryApi.findByMenuIdIn(menuList.stream().map(HighMarginMenuList::getMenuId).toList());
+        List<Long> menuIds = menuList.stream().map(HighMarginMenuList::getMenuId).toList();
+
+        // 메뉴 정보 조회
+        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByMenuIdIn(menuIds);
 
         return HighMarginMenuStrategyDetailResponse
                 .builder()
@@ -361,7 +346,7 @@ public class InsightService {
                 .year(dateCalculator.getYear(baselines.getStrategyDate()))
                 .month(dateCalculator.getMonth(baselines.getStrategyDate()))
                 .weekOfMonth(dateCalculator.getWeekOfMonth(baselines.getStrategyDate()))
-                .menuNames(highMarginMenus.stream().map(MenuInfo::menuName).toList())
+                .menuNames(menuSnapshots.stream().map(MenuSnapshots::getMenuName).toList())
                 .build();
     }
     
