@@ -10,12 +10,12 @@ import java.time.LocalDateTime;
 
 @Table(name = "tb_danger_menu_strategy")
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-@AllArgsConstructor
-@ToString
 @Getter
-public class DangerMenuStrategy implements Strategy{
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
+public class DangerMenuStrategy implements Strategy {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long strategyId;
@@ -23,7 +23,7 @@ public class DangerMenuStrategy implements Strategy{
     private Long baselineId;
 
     @Column(columnDefinition = "TEXT")
-    private String summary;         // 한 줄 요약
+    private String summary;
 
     @Column(columnDefinition = "TEXT")
     private String detail;
@@ -38,18 +38,28 @@ public class DangerMenuStrategy implements Strategy{
     private StrategyState state;
 
     private LocalDateTime startDate;
-
     private LocalDateTime completionDate;
 
-    private Long menuId;    // fk
-
-    private Long snapshotId;
+    private String guideCode;
 
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
-    private String guideCode;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "snapshot_id", insertable = false, updatable = false)
+    private MenuSnapshots menuSnapshot;
+
+    private Long menuId;
+
+    @Override
+    public Long getMenuId() {
+        return menuSnapshot != null ? menuSnapshot.getMenuId() : null;
+    }
+
+    @Override
+    public Long getSnapshotId() {
+        return menuSnapshot.getSnapshotId();
+    }
 
     @Override
     public StrategyType getType() {

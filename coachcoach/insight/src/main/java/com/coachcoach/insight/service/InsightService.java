@@ -2,10 +2,8 @@ package com.coachcoach.insight.service;
 
 import com.coachcoach.common.api.CatalogQueryApi;
 import com.coachcoach.common.api.UserQueryApi;
-import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.insight.domain.*;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
@@ -15,23 +13,15 @@ import com.coachcoach.insight.repository.*;
 import com.coachcoach.insight.util.DateCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import java.awt.*;
 import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -81,16 +71,6 @@ public class InsightService {
                 );
 
         List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
-
-        // 메뉴 조회
-        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baselineIds);
-        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuSnapshots::getMenuId,
-                                Function.identity()
-                        )
-                );
 
         // 정렬
         Comparator<Strategy> strategyComparator = Comparator
@@ -142,7 +122,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).getMenuName()
+                                            : s.getMenuSnapshot().getMenuName()
                             )
                             .summary(s.getSummary())
                             .detail(s.getDetail())
@@ -177,16 +157,6 @@ public class InsightService {
         List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED, StrategyState.ONGOING) : List.of(StrategyState.BEFORE);
 
         List<Strategy> all = strategyService.findBySavedTrueAndBaselineIdInAndStateIn(baseLineIds, states);
-
-        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baseLineIds);
-
-        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuSnapshots::getMenuId,
-                                Function.identity()
-                        )
-                );
 
         // 정렬
         Comparator<Strategy> strategyComparator = Comparator
@@ -246,7 +216,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).getMenuName()
+                                            : s.getMenuSnapshot().getMenuName()
                             )
                             .createdAt(s.getCreatedAt())
                             .strategyDate(b.getStrategyDate())
@@ -265,10 +235,6 @@ public class InsightService {
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
-        // 메뉴 정보 조회
-        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByBaselineIdAndMenuId(baselines.getBaselineId(), strategy.getMenuId())
-                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
-
         return new DangerMenuStrategyDetailResponse(
                 strategy.getStrategyId(),
                 strategy.getSummary(),
@@ -278,9 +244,9 @@ public class InsightService {
                 strategy.getState(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
-                menuSnapshots.getMenuId(),
-                menuSnapshots.getMenuName(),
-                menuSnapshots.getCostRate(),
+                strategy.getMenuId(),
+                strategy.getMenuSnapshot().getMenuName(),
+                strategy.getMenuSnapshot().getCostRate(),
                 strategy.getType(),
                 dateCalculator.getYear(baselines.getStrategyDate()),
                 dateCalculator.getMonth(baselines.getStrategyDate()),
@@ -298,10 +264,6 @@ public class InsightService {
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
-        // 메뉴 정보 조회
-        MenuSnapshots menuSnapshots = menuSnapshotsRepository.findByBaselineIdAndMenuId(baselines.getBaselineId(), strategy.getMenuId())
-                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
-
         return new CautionMenuStrategyDetailResponse(
                 strategy.getStrategyId(),
                 strategy.getSummary(),
@@ -311,9 +273,9 @@ public class InsightService {
                 strategy.getState(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
-                menuSnapshots.getMenuId(),
-                menuSnapshots.getMenuName(),
-                menuSnapshots.getCostRate(),
+                strategy.getMenuId(),
+                strategy.getMenuSnapshot().getMenuName(),
+                strategy.getMenuSnapshot().getCostRate(),
                 strategy.getType(),
                 dateCalculator.getYear(baselines.getStrategyDate()),
                 dateCalculator.getMonth(baselines.getStrategyDate()),
@@ -330,10 +292,6 @@ public class InsightService {
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
         List<HighMarginMenuList> menuList = highMarginMenuListRepository.findByStrategyId(strategy.getStrategyId());
-        List<Long> menuIds = menuList.stream().map(HighMarginMenuList::getMenuId).toList();
-
-        // 메뉴 정보 조회
-        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdAndMenuIdIn(baselines.getBaselineId(), menuIds);
 
         return HighMarginMenuStrategyDetailResponse
                 .builder()
@@ -349,7 +307,7 @@ public class InsightService {
                 .year(dateCalculator.getYear(baselines.getStrategyDate()))
                 .month(dateCalculator.getMonth(baselines.getStrategyDate()))
                 .weekOfMonth(dateCalculator.getWeekOfMonth(baselines.getStrategyDate()))
-                .menuNames(menuSnapshots.stream().map(MenuSnapshots::getMenuName).toList())
+                .menuNames(menuList.stream().map(m -> m.getMenuSnapshot().getMenuName()).toList())
                 .build();
     }
     
@@ -379,13 +337,6 @@ public class InsightService {
         StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
-        // 전략에 해당하는 메뉴 조회
-        MenuSnapshots menuInfo =
-                (strategy.getType().equals(StrategyType.HIGH_MARGIN))
-                        ? null : menuSnapshotsRepository
-                        .findByBaselineIdAndMenuId(baseline.getBaselineId(), strategy.getMenuId())
-                        .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_MENU_SNAPSHOTS));
-
         // 완료로 업데이트
         dateCalculator.checkCompletionCondition(strategy.getState());
         strategy.updateStateToCompleted();
@@ -393,7 +344,7 @@ public class InsightService {
         // 개선된 평균 마진률 계산
         BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
 
-        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, menuInfo, storeInfo, marginRateImprovement));
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
     }
 
     /*---- 홈화면 ----*/
@@ -414,16 +365,6 @@ public class InsightService {
                 );
 
         List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
-
-        // 메뉴 스냅샷 조회
-        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baselineIds);
-        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuSnapshots::getMenuId,
-                                Function.identity()
-                        )
-                );
 
 
         // 정렬
@@ -477,7 +418,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).getMenuName()
+                                            : s.getMenuSnapshot().getMenuName()
                             )
                             .summary(s.getSummary())
                             .createdAt(s.getCreatedAt())
@@ -507,20 +448,10 @@ public class InsightService {
 
         List<DangerMenuStrategy> strategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);
 
-        // 메뉴 스냅샷 조회
-        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baselineIds);
-        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuSnapshots::getMenuId,
-                                Function.identity()
-                        )
-                );
-
         List<NeedManagementMenu> menus = strategies.stream()
                 .map(
                         strategy -> {
-                            MenuSnapshots menuInfo = menuMap.get(strategy.getMenuId());
+                            MenuSnapshots menuInfo = strategy.getMenuSnapshot();
 
                             return NeedManagementMenu.builder()
                                     .strategyId(strategy.getStrategyId())

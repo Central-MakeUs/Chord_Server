@@ -18,6 +18,7 @@ public interface Strategy {
     LocalDateTime getStartDate();
     LocalDateTime getCompletionDate();
     String getGuideCode();
+    MenuSnapshots getMenuSnapshot();
     StrategyType getType();
     String getCompletionPhrase();
     LocalDateTime getCreatedAt();

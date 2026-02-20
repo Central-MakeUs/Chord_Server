@@ -64,6 +64,11 @@ public class HighMarginMenuStrategy implements Strategy {
     }
 
     @Override
+    public MenuSnapshots getMenuSnapshot() {
+        return null;
+    }
+
+    @Override
     public StrategyType getType() {
         return StrategyType.HIGH_MARGIN;
     }

@@ -22,7 +22,9 @@ public class HighMarginMenuList {
 
     private Long menuId;
 
-    private Long snapshotId;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "snapshot_id", insertable = false, updatable = false)
+    private MenuSnapshots menuSnapshot;
 
     private LocalDateTime createdAt;
 }
