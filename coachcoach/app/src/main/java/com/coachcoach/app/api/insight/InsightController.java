@@ -86,20 +86,6 @@ public class InsightController {
         return insightService.getHighMarginMenuStrategyDetail(Long.valueOf(details.getUserId()), strategyId);
     }
 
-//    /**
-//     * 전략 저장/해제
-//     */
-//    @Operation(summary = "전략 저장/해제")
-//    @PatchMapping("/strategies/{strategyId}/save")
-//    public void toggleStrategySaved(
-//            @AuthenticationPrincipal CustomUserDetails details,
-//            @PathVariable Long strategyId,
-//            @RequestParam StrategyType type,
-//            @RequestParam boolean isSaved
-//    ) {
-//        insightService.toggleStrategySaved(strategyId, type, Long.valueOf(details.getUserId()), isSaved);
-//    }
-
     /**
      * 전략 시작
      */
@@ -126,4 +112,14 @@ public class InsightController {
         return insightService.changeStateToCompleted(Long.valueOf(details.getUserId()), strategyId, type);
     }
 
+    /**
+     * 진단이 필요한 메뉴들 전략 카드 조회
+     */
+    @Operation(summary = "진단이 필요한 메뉴들 전략 카드 조회")
+    @GetMapping("/strategies/danger")
+    public NeedManagement getNeedManagement(
+            @AuthenticationPrincipal CustomUserDetails details
+    ) {
+        return insightService.getNeedManagement(Long.valueOf(details.getUserId()));
+    }
 }

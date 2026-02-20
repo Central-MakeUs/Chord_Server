@@ -5,6 +5,7 @@ import com.coachcoach.common.api.UserQueryApi;
 import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
+import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.insight.domain.*;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
@@ -14,9 +15,11 @@ import com.coachcoach.insight.repository.*;
 import com.coachcoach.insight.util.DateCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -481,5 +484,56 @@ public class InsightService {
 
         return new HomeStrategiesResponse(sorted);
     }
-    /*-----------------------*/
+
+    /**
+     * 진단이 필요한 메뉴들 전략 카드 조회
+     */
+    public NeedManagement getNeedManagement(Long userId) {
+        LocalDate[] startAndEndOfWeekByCurrentTime = dateCalculator.getStartAndEndOfWeekByCurrentTime();
+        LocalDate startDate = startAndEndOfWeekByCurrentTime[0];
+        LocalDate endDate = startAndEndOfWeekByCurrentTime[1];
+
+        List<StrategyBaselines> baselines = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
+
+        if(baselines == null || baselines.isEmpty()) {
+            return new NeedManagement(null, List.of());
+        }
+
+        List<Long> baselineIds = baselines.stream().map(StrategyBaselines::getBaselineId).toList();
+
+        List<DangerMenuStrategy> strategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);
+
+        // 메뉴 스냅샷 조회
+        List<MenuSnapshots> menuSnapshots = menuSnapshotsRepository.findByBaselineIdIn(baselineIds);
+        Map<Long, MenuSnapshots> menuMap = menuSnapshots.stream()
+                .collect(
+                        Collectors.toMap(
+                                MenuSnapshots::getMenuId,
+                                Function.identity()
+                        )
+                );
+
+        List<NeedManagementMenu> menus = strategies.stream()
+                .map(
+                        strategy -> {
+                            MenuSnapshots menuInfo = menuMap.get(strategy.getMenuId());
+
+                            return NeedManagementMenu.builder()
+                                    .strategyId(strategy.getStrategyId())
+                                    .menuId(menuInfo.getMenuId())
+                                    .menuName(menuInfo.getMenuName())
+                                    .costRate(menuInfo.getCostRate())
+                                    .marginRate(menuInfo.getMarginRate())
+                                    .marginGradeCode(menuInfo.getMarginGradeCode())
+                                    .state(strategy.getState())
+                                    .build();
+                        }
+                )
+                .toList();
+
+        return new NeedManagement(
+                baselines.get(0).getStrategyDate(),
+                menus
+        );
+    }
 }
