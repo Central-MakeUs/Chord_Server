@@ -45,6 +45,7 @@ public class MenuService {
     private final ConversionService conversionService;
     private final UserQueryApi userQueryApi;
     private final InsightQueryApi insightQueryApi;
+    private final StrategyRequestService strategyRequestService;
 
     /**
      * 메뉴 카테고리 목록 조회
@@ -370,6 +371,11 @@ public class MenuService {
                 menu.getMenuId(),
                 newRecipesWithUnitPrice
         );
+
+        // 위험 메뉴로 분류된 경우 전략 카드 생성
+        if (analysis.marginGradeCode().equals("DANGER")) {
+            strategyRequestService.requestDangerStrategy(userId, menu.getMenuId());
+        }
     }
 
 
