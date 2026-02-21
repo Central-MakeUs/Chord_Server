@@ -7,6 +7,7 @@ import com.coachcoach.common.exception.NotificationErrorCode;
 import com.coachcoach.common.notification.FcmNotificationService;
 import com.coachcoach.user.domain.FcmToken;
 import com.coachcoach.user.dto.request.NotificationContentRequest;
+import com.coachcoach.user.dto.request.NotificationTokenRequest;
 import com.coachcoach.user.repository.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,10 +61,9 @@ public class NotificationService {
      */
     public void sendEachWithToken(
             Long userId,
-            String token,
-            NotificationContentRequest request
+            NotificationTokenRequest request
     ) {
-        SingleNotificationRequest singleNotificationRequest = SingleNotificationRequest.of(token, request.title(), request.body());
+        SingleNotificationRequest singleNotificationRequest = SingleNotificationRequest.of(request.token(), request.title(), request.body());
         fcmNotificationService.sendMessage(singleNotificationRequest);
     }
 
