@@ -40,6 +40,21 @@ public class NotificationService {
         fcmNotificationService.sendMessage(multicastNotificationRequest);
     }
 
+    public void sendAll(
+            String title,
+            String body
+    ) {
+        List<FcmToken> all = fcmTokenRepository.findAll();
+        List<String> tokens = all.stream().map(FcmToken::getToken).toList();
+
+        if(tokens.isEmpty())
+            return;
+
+        MulticastNotificationRequest multicastNotificationRequest = MulticastNotificationRequest.of(tokens, title, body);
+        fcmNotificationService.sendMessage(multicastNotificationRequest);
+    }
+
+
     /**
      * 개별 유저 알림 전송 (토큰)
      */
@@ -51,6 +66,17 @@ public class NotificationService {
         SingleNotificationRequest singleNotificationRequest = SingleNotificationRequest.of(token, request.title(), request.body());
         fcmNotificationService.sendMessage(singleNotificationRequest);
     }
+
+    public void sendEachWithToken(
+            Long userId,
+            String token,
+            String title,
+            String body
+    ) {
+        SingleNotificationRequest singleNotificationRequest = SingleNotificationRequest.of(token, title, body);
+        fcmNotificationService.sendMessage(singleNotificationRequest);
+    }
+
 
     /**
      * 개별 유저 알림 전송
@@ -66,6 +92,22 @@ public class NotificationService {
             return;
 
         SingleNotificationRequest singleNotificationRequest = SingleNotificationRequest.of(token.getToken(), request.title(), request.body());
+        fcmNotificationService.sendMessage(singleNotificationRequest);
+
+    }
+
+    public void sendEach(
+            Long userId,
+            String title,
+            String body
+    ) {
+        FcmToken token = fcmTokenRepository.findByUserId(userId)
+                .orElse(null);
+
+        if(token == null)
+            return;
+
+        SingleNotificationRequest singleNotificationRequest = SingleNotificationRequest.of(token.getToken(), title, body);
         fcmNotificationService.sendMessage(singleNotificationRequest);
 
     }
