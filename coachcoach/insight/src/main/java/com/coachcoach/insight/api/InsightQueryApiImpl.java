@@ -4,6 +4,7 @@ import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.insight.domain.DangerMenuStrategy;
 import com.coachcoach.insight.domain.Strategy;
 import com.coachcoach.insight.domain.StrategyBaselines;
+import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
 import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
@@ -58,7 +59,9 @@ public class InsightQueryApiImpl implements InsightQueryApi {
         List<Strategy> strategies = strategyService.findByMenuId(menuId);
 
         for(Strategy strategy : strategies){
-            insightService.changeStateToCompleted(userId, strategy.getStrategyId(), strategy.getType());
+            if (strategy.getState().equals(StrategyState.COMPLETED))
+                continue;
+            insightService.changeStateToCompletedWithoutCheck(userId, strategy.getStrategyId(), strategy.getType());
         }
     }
 }

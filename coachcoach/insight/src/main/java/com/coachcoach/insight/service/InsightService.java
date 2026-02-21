@@ -347,6 +347,27 @@ public class InsightService {
         return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
     }
 
+    @Transactional(transactionManager = "transactionManager")
+    public CompletionPhraseResponse changeStateToCompletedWithoutCheck(Long userId, Long strategyId, StrategyType strategyType) {
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal avgMarginRate = catalogQueryApi.getAvgMarginRate(userId);
+
+        // 전략 조회
+        Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
+
+        // 전략 Baseline 조회
+        StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+
+        // 완료로 업데이트
+        strategy.updateStateToCompleted();
+
+        // 개선된 평균 마진률 계산
+        BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
+
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
+    }
+
     /*---- 홈화면 ----*/
     public HomeStrategiesResponse getHomeStrategies(Long userId, int year, int month, int weekOfMonth) {
         LocalDate[] startAndEndOfWeek = dateCalculator.getStartAndEndOfWeek(year, month, weekOfMonth);
