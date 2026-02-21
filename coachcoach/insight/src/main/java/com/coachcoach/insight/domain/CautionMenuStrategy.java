@@ -63,7 +63,7 @@ public class CautionMenuStrategy implements Strategy{
 
     @Override
     public StrategyType getType() {
-        return StrategyType.DANGER;
+        return StrategyType.CAUTION;
     }
 
     @Override
