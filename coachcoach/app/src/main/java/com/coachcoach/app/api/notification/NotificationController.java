@@ -29,7 +29,7 @@ public class NotificationController {
     }
 
     @Operation(summary = "개별 유저 알림 전송 (토큰)")
-    @PostMapping("/{userId}")
+    @PostMapping("/{userId}/token")
     public void sendEachWithToken(
             @PathVariable Long userId,
             @RequestBody NotificationTokenRequest request
