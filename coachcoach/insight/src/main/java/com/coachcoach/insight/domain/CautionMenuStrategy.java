@@ -23,7 +23,7 @@ public class CautionMenuStrategy implements Strategy{
     private Long baselineId;
 
     @Column(columnDefinition = "TEXT")
-    private String summary;         // 한 줄 요약
+    private String summary;
 
     @Column(columnDefinition = "TEXT")
     private String detail;
@@ -37,20 +37,29 @@ public class CautionMenuStrategy implements Strategy{
     @Enumerated(EnumType.STRING)
     private StrategyState state;
 
-    @Column(name = "is_saved")
-    private Boolean saved;
-
     private LocalDateTime startDate;
-
     private LocalDateTime completionDate;
 
-    private Long menuId;    // fk
-
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
+    private Long menuId;
 
     private String guideCode;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "snapshot_id", insertable = false, updatable = false)
+    private MenuSnapshots menuSnapshot;
+
+    @Override
+    public Long getMenuId() {
+        return menuSnapshot != null ? menuSnapshot.getMenuId() : null;
+    }
+
+    @Override
+    public Long getSnapshotId() {
+        return menuSnapshot.getSnapshotId();
+    }
 
     @Override
     public StrategyType getType() {
@@ -60,11 +69,6 @@ public class CautionMenuStrategy implements Strategy{
     @Override
     public String getCompletionPhrase() {
         return null;
-    }
-
-    public void updateSaved(boolean saved) {
-        this.saved = saved;
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void updateStateToOngoing() {

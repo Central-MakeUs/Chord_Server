@@ -1,23 +1,22 @@
 package com.coachcoach.common.security.logging;
 
+import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
+import java.util.Optional;
 
 @Slf4j
 @Component
 public class LoggerFilter implements Filter {
-    private final ServletRequest servletRequest;
-
-    public LoggerFilter(ServletRequest servletRequest) {
-        this.servletRequest = servletRequest;
-    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
@@ -37,6 +36,22 @@ public class LoggerFilter implements Filter {
         // 요청, 응답 데이터 추출
         var reqJson = new String(req.getContentAsByteArray(), servletRequest.getCharacterEncoding());
         var resJson = new String(res.getContentAsByteArray(), servletResponse.getCharacterEncoding());
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = "anonymous";
+        Long userId = null;
+
+        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails details) {
+            username = details.getLoginId();
+            userId = Long.valueOf(details.getUserId());
+        }
+
+        String method = req.getMethod();
+        String uri = req.getRequestURI();
+        int status = res.getStatus();
+
+        log.info("[{}({})] {} {} → {}", username, userId, method, uri, status);
 
         if(!reqJson.isBlank()){
             log.info("Request: {}", reqJson);

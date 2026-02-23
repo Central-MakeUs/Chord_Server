@@ -2,12 +2,9 @@ package com.coachcoach.insight.service;
 
 import com.coachcoach.common.api.CatalogQueryApi;
 import com.coachcoach.common.api.UserQueryApi;
-import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.insight.domain.*;
-import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
-import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.StrategyState;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.*;
@@ -17,20 +14,14 @@ import com.coachcoach.insight.util.DateCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.awt.*;
 import java.math.BigDecimal;
-import java.text.MessageFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.temporal.WeekFields;
 import java.util.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +33,8 @@ public class InsightService {
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
     private final StrategyBaseLinesRepository strategyBaseLinesRepository;
     private final HighMarginMenuListRepository highMarginMenuListRepository;
+    private final MenuSnapshotsRepository menuSnapshotsRepository;
+    private final RecipeSnapshotsRepository recipeSnapshotsRepository;
     private final StrategyService strategyService;
     private final CatalogQueryApi catalogQueryApi;
     private final UserQueryApi userQueryApi;
@@ -79,15 +72,6 @@ public class InsightService {
 
         List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
 
-        // 메뉴 조회
-        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
-        Map<Long, MenuInfo> menuMap = menus.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuInfo::menuId,
-                                Function.identity()
-                        )
-                );
         // 정렬
         Comparator<Strategy> strategyComparator = Comparator
                 // 상태 별 그룹 정렬
@@ -138,7 +122,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).menuName()
+                                            : s.getMenuSnapshot().getMenuName()
                             )
                             .summary(s.getSummary())
                             .detail(s.getDetail())
@@ -162,6 +146,7 @@ public class InsightService {
 
         List<StrategyBaselines> strategyBaseLine = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
         List<Long> baseLineIds = strategyBaseLine.stream().map(StrategyBaselines::getBaselineId).toList();
+
         Map<Long, StrategyBaselines> baselineMap =  strategyBaseLine.stream()
                 .collect(
                         Collectors.toMap(
@@ -169,17 +154,9 @@ public class InsightService {
                                 Function.identity()
                         )
                 );
-        List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED) : List.of(StrategyState.BEFORE, StrategyState.ONGOING);
+        List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED, StrategyState.ONGOING) : List.of(StrategyState.BEFORE);
 
         List<Strategy> all = strategyService.findBySavedTrueAndBaselineIdInAndStateIn(baseLineIds, states);
-        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
-        Map<Long, MenuInfo> menuMap = menus.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuInfo::menuId,
-                                Function.identity()
-                        )
-                );
 
         // 정렬
         Comparator<Strategy> strategyComparator = Comparator
@@ -217,6 +194,7 @@ public class InsightService {
                     }
                     return LocalDateTime.MAX;
                 }, Comparator.reverseOrder());
+
         return all.stream()
                 .sorted(strategyComparator)
                 .map(s -> {
@@ -238,7 +216,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).menuName()
+                                            : s.getMenuSnapshot().getMenuName()
                             )
                             .createdAt(s.getCreatedAt())
                             .strategyDate(b.getStrategyDate())
@@ -256,14 +234,6 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
-        MenuInfo menuInfo;
-        try {
-            menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
-        } catch (BusinessException e) {
-            // 해당 메뉴가 존재하지 않는 경우 (메뉴 삭제) - 전략 삭제 후 에러 발생
-            deleteDangerStrategyWithMenu(strategy);
-            throw new BusinessException(InsightErrorCode.STRATEGY_MENU_NOT_FOUND);
-        }
 
         return new DangerMenuStrategyDetailResponse(
                 strategy.getStrategyId(),
@@ -272,22 +242,16 @@ public class InsightService {
                 strategy.getGuide(),
                 strategy.getExpectedEffect(),
                 strategy.getState(),
-                strategy.getSaved(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
-                menuInfo.menuId(),
-                menuInfo.menuName(),
-                menuInfo.costRate(),
+                strategy.getMenuId(),
+                strategy.getMenuSnapshot().getMenuName(),
+                strategy.getMenuSnapshot().getCostRate(),
                 strategy.getType(),
                 dateCalculator.getYear(baselines.getStrategyDate()),
                 dateCalculator.getMonth(baselines.getStrategyDate()),
                 dateCalculator.getWeekOfMonth(baselines.getStrategyDate())
         );
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteDangerStrategyWithMenu(DangerMenuStrategy strategy) {
-        dangerMenuStrategyRepository.delete(strategy);
     }
 
     /**
@@ -299,14 +263,6 @@ public class InsightService {
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY));
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
-        MenuInfo menuInfo;
-        try {
-            menuInfo = catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
-        } catch (BusinessException e) {
-            // 해당 메뉴가 존재하지 않는 경우 (메뉴 삭제) - 전략 삭제 후 에러 발생
-            deleteCautionStrategyWithMenu(strategy);
-            throw new BusinessException(InsightErrorCode.STRATEGY_MENU_NOT_FOUND);
-        }
 
         return new CautionMenuStrategyDetailResponse(
                 strategy.getStrategyId(),
@@ -315,22 +271,16 @@ public class InsightService {
                 strategy.getGuide(),
                 strategy.getExpectedEffect(),
                 strategy.getState(),
-                strategy.getSaved(),
                 strategy.getStartDate(),
                 strategy.getCompletionDate(),
-                menuInfo.menuId(),
-                menuInfo.menuName(),
-                menuInfo.costRate(),
+                strategy.getMenuId(),
+                strategy.getMenuSnapshot().getMenuName(),
+                strategy.getMenuSnapshot().getCostRate(),
                 strategy.getType(),
                 dateCalculator.getYear(baselines.getStrategyDate()),
                 dateCalculator.getMonth(baselines.getStrategyDate()),
                 dateCalculator.getWeekOfMonth(baselines.getStrategyDate())
         );
-    }
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void deleteCautionStrategyWithMenu(CautionMenuStrategy strategy) {
-        cautionMenuStrategyRepository.delete(strategy);
     }
 
     /**
@@ -342,7 +292,6 @@ public class InsightService {
         StrategyBaselines baselines = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
         List<HighMarginMenuList> menuList = highMarginMenuListRepository.findByStrategyId(strategy.getStrategyId());
-        List<MenuInfo> highMarginMenus = catalogQueryApi.findByMenuIdIn(menuList.stream().map(HighMarginMenuList::getMenuId).toList());
 
         return HighMarginMenuStrategyDetailResponse
                 .builder()
@@ -352,14 +301,13 @@ public class InsightService {
                 .guide(strategy.getGuide())
                 .expectedEffect(strategy.getExpectedEffect())
                 .state(strategy.getState())
-                .saved(strategy.getSaved())
                 .startDate(strategy.getStartDate())
                 .completionDate(strategy.getCompletionDate())
                 .type(strategy.getType())
                 .year(dateCalculator.getYear(baselines.getStrategyDate()))
                 .month(dateCalculator.getMonth(baselines.getStrategyDate()))
                 .weekOfMonth(dateCalculator.getWeekOfMonth(baselines.getStrategyDate()))
-                .menuNames(highMarginMenus.stream().map(MenuInfo::menuName).toList())
+                .menuNames(menuList.stream().map(m -> m.getMenuSnapshot().getMenuName()).toList())
                 .build();
     }
     
@@ -371,7 +319,6 @@ public class InsightService {
         Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
         dateCalculator.checkStartCondition(strategy.getState());
         strategy.updateStateToOngoing();
-        strategy.updateSaved(true);
     }
 
     /**
@@ -390,9 +337,6 @@ public class InsightService {
         StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
                 .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
 
-        // 전략에 해당하는 메뉴 조회
-        MenuInfo menuInfo = (strategy.getType().equals(StrategyType.HIGH_MARGIN)) ? null : catalogQueryApi.findByUserIdAndMenuId(userId, strategy.getMenuId());
-
         // 완료로 업데이트
         dateCalculator.checkCompletionCondition(strategy.getState());
         strategy.updateStateToCompleted();
@@ -400,7 +344,28 @@ public class InsightService {
         // 개선된 평균 마진률 계산
         BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
 
-        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, menuInfo, storeInfo, marginRateImprovement));
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public CompletionPhraseResponse changeStateToCompletedWithoutCheck(Long userId, Long strategyId, StrategyType strategyType) {
+        StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
+        BigDecimal avgMarginRate = catalogQueryApi.getAvgMarginRate(userId);
+
+        // 전략 조회
+        Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
+
+        // 전략 Baseline 조회
+        StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
+                .orElseThrow(() -> new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_BASELINE));
+
+        // 완료로 업데이트
+        strategy.updateStateToCompleted();
+
+        // 개선된 평균 마진률 계산
+        BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
+
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
     }
 
     /*---- 홈화면 ----*/
@@ -421,16 +386,6 @@ public class InsightService {
                 );
 
         List<Strategy> all = strategyService.findByBaselineIdIn(baselineIds);
-
-        // 메뉴 조회
-        List<MenuInfo> menus = catalogQueryApi.findByMenuIdIn(all.stream().map(Strategy::getMenuId).toList());
-        Map<Long, MenuInfo> menuMap = menus.stream()
-                .collect(
-                        Collectors.toMap(
-                                MenuInfo::menuId,
-                                Function.identity()
-                        )
-                );
 
 
         // 정렬
@@ -484,7 +439,7 @@ public class InsightService {
                             .title(
                                     (s.getType() == StrategyType.HIGH_MARGIN)
                                             ? dateCalculator.getMonth(b.getStrategyDate()) + "월" + dateCalculator.getWeekOfMonth(b.getStrategyDate()) + "주 고마진 메뉴"
-                                            : menuMap.get(s.getMenuId()).menuName()
+                                            : s.getMenuSnapshot().getMenuName()
                             )
                             .summary(s.getSummary())
                             .createdAt(s.getCreatedAt())
@@ -495,5 +450,46 @@ public class InsightService {
 
         return new HomeStrategiesResponse(sorted);
     }
-    /*-----------------------*/
+
+    /**
+     * 진단이 필요한 메뉴들 전략 카드 조회
+     */
+    public NeedManagement getNeedManagement(Long userId) {
+        LocalDate[] startAndEndOfWeekByCurrentTime = dateCalculator.getStartAndEndOfWeekByCurrentTime();
+        LocalDate startDate = startAndEndOfWeekByCurrentTime[0];
+        LocalDate endDate = startAndEndOfWeekByCurrentTime[1];
+
+        List<StrategyBaselines> baselines = strategyBaseLinesRepository.findByUserIdAndStrategyDateBetween(userId, startDate, endDate);
+
+        if(baselines == null || baselines.isEmpty()) {
+            return new NeedManagement(null, List.of());
+        }
+
+        List<Long> baselineIds = baselines.stream().map(StrategyBaselines::getBaselineId).toList();
+
+        List<DangerMenuStrategy> strategies = dangerMenuStrategyRepository.findByBaselineIdIn(baselineIds);
+
+        List<NeedManagementMenu> menus = strategies.stream()
+                .map(
+                        strategy -> {
+                            MenuSnapshots menuInfo = strategy.getMenuSnapshot();
+
+                            return NeedManagementMenu.builder()
+                                    .strategyId(strategy.getStrategyId())
+                                    .menuId(menuInfo.getMenuId())
+                                    .menuName(menuInfo.getMenuName())
+                                    .costRate(menuInfo.getCostRate())
+                                    .marginRate(menuInfo.getMarginRate())
+                                    .marginGradeCode(menuInfo.getMarginGradeCode())
+                                    .state(strategy.getState())
+                                    .build();
+                        }
+                )
+                .toList();
+
+        return new NeedManagement(
+                baselines.get(0).getStrategyDate(),
+                menus
+        );
+    }
 }

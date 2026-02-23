@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface HighMarginMenuStrategyRepository extends JpaRepository<HighMarginMenuStrategy, Long> {
     List<HighMarginMenuStrategy> findByBaselineIdIn(List<Long> baselineIds);
-    List<HighMarginMenuStrategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
+    List<HighMarginMenuStrategy> findByBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
     @Query(
             value = "SELECT h.* " +
                     "FROM tb_high_margin_menu_strategy h JOIN tb_strategy_baselines b ON h.baseline_id = b.baseline_id " +

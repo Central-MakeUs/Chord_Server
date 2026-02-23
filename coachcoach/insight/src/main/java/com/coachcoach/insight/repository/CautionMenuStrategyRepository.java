@@ -15,7 +15,7 @@ import java.util.Optional;
 @Repository
 public interface CautionMenuStrategyRepository extends JpaRepository<CautionMenuStrategy, Long> {
     List<CautionMenuStrategy> findByBaselineIdIn(List<Long> baselineIds);
-    List<CautionMenuStrategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
+    List<CautionMenuStrategy> findByBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states);
     @Query(
             value = "SELECT c.* " +
                     "FROM tb_caution_menu_strategy c JOIN tb_strategy_baselines b ON c.baseline_id = b.baseline_id " +
@@ -27,4 +27,5 @@ public interface CautionMenuStrategyRepository extends JpaRepository<CautionMenu
             @Param("strategyId") Long strategyId
     );
     void deleteByBaselineIdIn(List<Long> baselineIds);
+    List<CautionMenuStrategy> findByMenuId(Long menuId);
 }

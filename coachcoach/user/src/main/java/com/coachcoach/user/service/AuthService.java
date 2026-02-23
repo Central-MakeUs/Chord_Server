@@ -1,11 +1,11 @@
 package com.coachcoach.user.service;
 
-import com.coachcoach.common.api.CatalogQueryApi;
-import com.coachcoach.common.api.InsightQueryApi;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.CommonErrorCode;
 import com.coachcoach.common.security.jwt.JwtUtil;
+import com.coachcoach.user.domain.FcmToken;
 import com.coachcoach.user.dto.request.LoginRequest;
+import com.coachcoach.user.dto.request.LogoutRequest;
 import com.coachcoach.user.dto.request.SignUpRequest;
 import com.coachcoach.user.dto.request.TokenRefreshRequest;
 import com.coachcoach.user.dto.response.LoginResponse;
@@ -13,6 +13,7 @@ import com.coachcoach.user.domain.RefreshToken;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.dto.response.TokenRefreshResponse;
+import com.coachcoach.user.repository.FcmTokenRepository;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
@@ -31,6 +32,7 @@ public class AuthService {
     private final UsersRepository usersRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final StoreRepository storeRepository;
+    private final FcmTokenRepository fcmTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -88,6 +90,18 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
+        // 토큰 존재 시 저장
+        if(request.fcmToken() != null) {
+            FcmToken fcmToken = fcmTokenRepository.save(
+                    FcmToken.builder()
+                            .userId(user.getUserId())
+                            .token(request.fcmToken())
+                            .deviceType(request.deviceType())
+                            .deviceId(request.deviceId())
+                            .build()
+            );
+        }
+
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
 
@@ -112,5 +126,10 @@ public class AuthService {
         String newAccessToken = jwtUtil.createAccessToken(userId);
 
         return new TokenRefreshResponse(newAccessToken);
+    }
+
+    public void logout(Long userId, LogoutRequest request) {
+        // fcm 토큰 삭제
+        fcmTokenRepository.deleteByToken(request.fcmToken());
     }
 }

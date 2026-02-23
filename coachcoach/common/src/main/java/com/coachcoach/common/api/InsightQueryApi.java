@@ -4,5 +4,6 @@ import java.time.LocalDate;
 
 public interface InsightQueryApi {
     void deleteByUserId(Long userId);
-    int getNumOfDangerMenus(Long userId);
+    Long getNumOfDangerMenus(Long userId);
+    void changeStateToCompletedByMenuId(Long userId, Long menuId);
 }

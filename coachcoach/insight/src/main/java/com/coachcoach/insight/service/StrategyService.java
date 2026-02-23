@@ -3,10 +3,7 @@ package com.coachcoach.insight.service;
 import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
-import com.coachcoach.insight.domain.CautionMenuStrategy;
-import com.coachcoach.insight.domain.DangerMenuStrategy;
-import com.coachcoach.insight.domain.HighMarginMenuStrategy;
-import com.coachcoach.insight.domain.Strategy;
+import com.coachcoach.insight.domain.*;
 import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
 import com.coachcoach.insight.domain.enums.StrategyState;
@@ -35,9 +32,9 @@ public class StrategyService {
     private final HighMarginMenuStrategyRepository highMarginMenuStrategyRepository;
 
     public List<Strategy> findBySavedTrueAndBaselineIdInAndStateIn(List<Long> baselineId, List<StrategyState> states) {
-        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
-        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
-        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findBySavedTrueAndBaselineIdInAndStateIn(baselineId, states);
+        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByBaselineIdInAndStateIn(baselineId, states);
+        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findByBaselineIdInAndStateIn(baselineId, states);
+        List<HighMarginMenuStrategy> highMarginMenuStrategies = highMarginMenuStrategyRepository.findByBaselineIdInAndStateIn(baselineId, states);
 
         List<Strategy> all = new ArrayList<>(dangerMenuStrategies.size() + cautionMenuStrategies.size() + highMarginMenuStrategies.size());
 
@@ -77,18 +74,18 @@ public class StrategyService {
         };
     }
 
-    public String getCompletionPhrase(Strategy strategy, MenuInfo menuInfo, StoreInfo storeInfo, BigDecimal marginRateImprovement) {
+    public String getCompletionPhrase(Strategy strategy, MenuSnapshots menuInfo, StoreInfo storeInfo, BigDecimal marginRateImprovement) {
         return switch (strategy.getType()) {
             case DANGER -> {
                 if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
                     yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
                             marginRateImprovement.abs(),
-                            menuInfo.menuName(),
+                            menuInfo.getMenuName(),
                             storeInfo.name()
                     );
                 } else if(strategy.getGuideCode().equals("REMOVE_MENU")) {
                     yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.REMOVE_MENU.getCompletionPhrase(),
-                        menuInfo.menuName(),
+                        menuInfo.getMenuName(),
                                 storeInfo.name(),
                                 marginRateImprovement
                     );
@@ -107,7 +104,7 @@ public class StrategyService {
                     log.info("0");
                     yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
                             marginRateImprovement.abs(),
-                            menuInfo.menuName(),
+                            menuInfo.getMenuName(),
                             storeInfo.name()
                     );
                 } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
@@ -128,5 +125,19 @@ public class StrategyService {
             case HIGH_MARGIN -> strategy.getCompletionPhrase();
             default -> throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
         };
+    }
+
+    /**
+     * for Danger / Caution
+     */
+    public List<Strategy> findByMenuId(Long menuId) {
+        List<DangerMenuStrategy> dangerMenuStrategies = dangerMenuStrategyRepository.findByMenuId(menuId);
+        List<CautionMenuStrategy> cautionMenuStrategies = cautionMenuStrategyRepository.findByMenuId(menuId);
+
+        List<Strategy> all = new ArrayList<>(dangerMenuStrategies.size() + cautionMenuStrategies.size());
+        all.addAll(dangerMenuStrategies);
+        all.addAll(cautionMenuStrategies);
+
+        return all;
     }
 }

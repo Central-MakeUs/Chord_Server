@@ -6,10 +6,12 @@ import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
+import com.coachcoach.user.dto.request.LogoutRequest;
 import com.coachcoach.user.dto.request.OnboardingRequest;
 import com.coachcoach.user.dto.request.UpdateStoreRequest;
 import com.coachcoach.user.dto.response.StoreResponse;
 import com.coachcoach.user.exception.UserErrorCode;
+import com.coachcoach.user.repository.FcmTokenRepository;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
@@ -30,6 +32,7 @@ public class UserService {
     private final StoreRepository storeRepository;
     private final UsersRepository usersRepository;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final FcmTokenRepository fcmTokenRepository;
     private final CatalogQueryApi catalogQueryApi;
     private final InsightQueryApi insightQueryApi;
 
@@ -68,6 +71,9 @@ public class UserService {
         refreshTokenRepository.deleteByUserId(userId);
         storeRepository.deleteByUserId(userId);
         usersRepository.deleteByUserId(userId);
+
+        // delete fcm tokens
+        fcmTokenRepository.deleteAllByUserId(userId);
     }
 
     /**

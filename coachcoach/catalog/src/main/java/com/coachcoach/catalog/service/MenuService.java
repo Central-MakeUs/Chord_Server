@@ -45,6 +45,7 @@ public class MenuService {
     private final ConversionService conversionService;
     private final UserQueryApi userQueryApi;
     private final InsightQueryApi insightQueryApi;
+    private final StrategyRequestService strategyRequestService;
 
     /**
      * 메뉴 카테고리 목록 조회
@@ -370,6 +371,11 @@ public class MenuService {
                 menu.getMenuId(),
                 newRecipesWithUnitPrice
         );
+
+        // 위험 메뉴로 분류된 경우 전략 카드 생성
+        if (analysis.marginGradeCode().equals("DANGER")) {
+            strategyRequestService.requestDangerStrategy(userId, menu.getMenuId());
+        }
     }
 
 
@@ -812,6 +818,7 @@ public class MenuService {
             Long userId,
             Long menuId
     ) {
+        log.info(menuId.toString());
         // 유효성 검증 (존재하는 메뉴인지)
         Menu menu = menuRepository
                 .findByUserIdAndMenuId(userId, menuId)
@@ -822,6 +829,9 @@ public class MenuService {
 
         // 메뉴 삭제
         menuRepository.delete(menu);
+
+        // 전략 카드 완료 처리
+        insightQueryApi.changeStateToCompletedByMenuId(userId, menuId);
     }
 
     /*---------홈화면-------*/
@@ -830,7 +840,7 @@ public class MenuService {
 
 
         // 위험 등급 메뉴만 분류
-        int numOfDangerMenus = insightQueryApi.getNumOfDangerMenus(userId);
+        Long numOfDangerMenus = insightQueryApi.getNumOfDangerMenus(userId);
 
         // 평균 원가율, 마진율
         BigDecimal avgCostRate = calculator.calAvgCostRate(menus);

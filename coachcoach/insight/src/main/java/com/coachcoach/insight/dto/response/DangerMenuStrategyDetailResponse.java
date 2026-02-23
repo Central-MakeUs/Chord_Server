@@ -15,7 +15,6 @@ public record DangerMenuStrategyDetailResponse(
         String guide,
         String expectedEffect,
         StrategyState state,
-        Boolean saved,
         LocalDateTime startDate,
         LocalDateTime completionDate,
         Long menuId,

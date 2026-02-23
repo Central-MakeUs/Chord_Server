@@ -16,7 +16,6 @@ public record HighMarginMenuStrategyDetailResponse(
         String guide,
         String expectedEffect,
         StrategyState state,
-        Boolean saved,
         LocalDateTime startDate,
         LocalDateTime completionDate,
         StrategyType type,

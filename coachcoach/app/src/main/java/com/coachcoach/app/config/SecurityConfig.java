@@ -53,6 +53,7 @@ public class SecurityConfig {
                                         .accessDeniedHandler(jwtAccessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/v1/auth/logout").authenticated()
                         .requestMatchers(
                                 AUTH_WHITELIST
                         ).permitAll()
