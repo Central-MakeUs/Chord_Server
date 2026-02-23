@@ -108,7 +108,7 @@ public class MenuService {
     public List<MenuResponse> readMenusByCategory(Long userId, String category) {
         // null이면 전체 조회
         if(category == null || category.isBlank()) {
-            List<Menu> menus = menuRepository.findByUserIdOrderByMenuIdDesc(userId);
+            List<Menu> menus = menuRepository.findByUserIdOrderByMenuNameAsc(userId);
 
             return menus.stream()
                     .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
@@ -120,7 +120,8 @@ public class MenuService {
             throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
         }
 
-        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(userId, category);
+        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuNameAsc(userId, category);
+
         return menus.stream()
                 .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
                 .toList();
