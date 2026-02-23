@@ -194,6 +194,8 @@ public class MenuService {
             );
         }
 
+        responses.sort(Comparator.comparing(RecipeResponse::ingredientName));
+
         return new RecipeListResponse(
                 responses,
                 totalCost
