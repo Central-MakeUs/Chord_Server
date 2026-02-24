@@ -1,11 +1,18 @@
 package com.coachcoach.catalog.util;
 
+import com.coachcoach.catalog.domain.Ingredient;
+import com.coachcoach.catalog.domain.TemplateIngredient;
+import com.coachcoach.catalog.domain.TemplateRecipe;
 import com.coachcoach.catalog.repository.IngredientRepository;
 import com.coachcoach.catalog.repository.MenuRepository;
 import com.coachcoach.catalog.exception.CatalogErrorCode;
 import com.coachcoach.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -53,4 +60,25 @@ public class DuplicateNameResolver {
 
         throw new BusinessException(CatalogErrorCode.INVALID_INGREDIENT_NAME);
     }
+
+    /**
+     * 사용자에게 존재하는 재료로 대체
+     */
+    public Ingredient findMatchingIngredient(TemplateRecipe templateRecipe, TemplateIngredient templateIngredient, Map<String, Ingredient> userIngredientsMap) {
+        List<String> candidates = new ArrayList<>();
+
+        String targetName = templateIngredient.getIngredientName();
+        candidates.add(targetName);
+
+        for(int i = 1; i <= 4; ++i) {
+            candidates.add(targetName + "(" + i + ")");
+        }
+
+        return candidates.stream()
+                .filter(userIngredientsMap::containsKey)
+                .findFirst()
+                .map(userIngredientsMap::get)
+                .orElse(null);
+    }
+
 }

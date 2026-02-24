@@ -84,23 +84,54 @@ public class MenuService {
     /**
      * 템플릿에 따른 재료 리스트 제공
      */
-    public List<RecipeTemplateResponse> readTemplateIngredients(Long templateId) {
+    public List<RecipeTemplateResponse> readTemplateIngredients(Long userId, Long templateId) {
         List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
+
+        // 사용자에게 재료 조회
+        List<Ingredient> userIngredients = ingredientRepository.findByUserId(userId);
+        Map<String, Ingredient> userIngredientsMap = userIngredients.stream()
+                .collect(
+                        Collectors.toMap(
+                                Ingredient::getIngredientName,
+                                Function.identity()
+                        )
+                );
 
         return recipes.stream()
                 .map(x -> {
 
                     TemplateIngredient templateIngredient = templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
-                    return RecipeTemplateResponse.of(
-                            x,
-                            templateIngredient,
-                            codeFinder.findUnitByCode(templateIngredient.getUnitCode())
+                    Ingredient matched = nameResolver.findMatchingIngredient(x, templateIngredient, userIngredientsMap);
+
+                    if (matched == null) {
+                        return RecipeTemplateResponse.of(
+                                x,
+                                templateIngredient,
+                                codeFinder.findUnitByCode(templateIngredient.getUnitCode())
                         );
                     }
-                )
+
+                    Unit unit = codeFinder.findUnitByCode(matched.getUnitCode());
+                    BigDecimal defaultPrice = matched.getCurrentUnitPrice()
+                            .divide(BigDecimal.valueOf(unit.getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                            .multiply(x.getDefaultUsageAmount())
+                            .setScale(2, RoundingMode.HALF_UP);
+
+                    return RecipeTemplateResponse.builder()
+                            .ingredientId(matched.getIngredientId())
+                            .ingredientName(matched.getIngredientName())
+                            .defaultUsageAmount(x.getDefaultUsageAmount())
+                            .defaultPrice(defaultPrice)
+                            .unitPrice(matched.getCurrentUnitPrice())
+                            .baseQuantity(unit.getBaseQuantity())
+                            .unitCode(unit.getUnitCode())
+                            .ingredientCategoryCode(matched.getIngredientCategoryCode())
+                            .build();
+                })
                 .toList();
     }
+
 
     /**
      * 카테고리 별 메뉴 목록 반환 (필터링)
