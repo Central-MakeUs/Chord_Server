@@ -303,6 +303,7 @@ public class MenuService {
                                 Function.identity()
                         )
                 );
+
         BigDecimal costByExisting = request.recipes().stream()
                 .map(recipe -> {
                     Ingredient ingredient = Optional.ofNullable(ingredientMap.get(recipe.ingredientId()))
@@ -349,6 +350,20 @@ public class MenuService {
                 .toList();
 
         if(newIngredientNames.size() != new HashSet<>(newIngredientNames).size()) {
+            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
+        }
+
+
+        // 기존 재료 이름 목록 추출
+        List<String> existingIngredientNames = ingredientMap.values().stream()
+                .map(Ingredient::getIngredientName)
+                .toList();
+
+        // 새 재료 이름과 기존 재료 이름 간 중복 확인
+        boolean hasDupBetween = newIngredientNames.stream()
+                .anyMatch(existingIngredientNames::contains);
+
+        if (hasDupBetween) {
             throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
         }
 
@@ -561,6 +576,17 @@ public class MenuService {
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
         BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
+
+        // 메뉴 내 동일 이름 재료 중복 확인
+        boolean isDupInMenu = recipeRepository.findByMenuId(menuId).stream()
+                .map(r -> ingredientRepository.findById(r.getIngredientId()))
+                .filter(Optional::isPresent)
+                .map(opt -> opt.get().getIngredientName())
+                .anyMatch(name -> name.equals(request.ingredientName()));
+
+        if (isDupInMenu) {
+            throw new BusinessException(CatalogErrorCode.DUP_RECIPE);
+        }
 
         // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
         String ingredientName = nameResolver.createNonDupIngredientName(userId, request.ingredientName());
