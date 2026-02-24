@@ -220,8 +220,11 @@ public class CatalogController {
      */
     @Operation(summary = "템플릿에 따른 재료 리스트 제공")
     @GetMapping("/menus/templates/{templateId}/ingredients")
-    public List<RecipeTemplateResponse> readTemplateIngredients(@PathVariable(name = "templateId") @Positive Long templateId) {
-        return menuService.readTemplateIngredients(templateId);
+    public List<RecipeTemplateResponse> readTemplateIngredients(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @PathVariable(name = "templateId") @Positive Long templateId
+    ) {
+        return menuService.readTemplateIngredients(Long.valueOf(details.getUserId()), templateId);
     }
 
 

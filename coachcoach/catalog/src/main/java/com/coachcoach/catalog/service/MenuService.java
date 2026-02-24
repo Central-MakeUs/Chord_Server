@@ -84,23 +84,54 @@ public class MenuService {
     /**
      * 템플릿에 따른 재료 리스트 제공
      */
-    public List<RecipeTemplateResponse> readTemplateIngredients(Long templateId) {
+    public List<RecipeTemplateResponse> readTemplateIngredients(Long userId, Long templateId) {
         List<TemplateRecipe> recipes = templateRecipeRepository.findByTemplateIdOrderByRecipeTemplateIdAsc(templateId);
+
+        // 사용자에게 재료 조회
+        List<Ingredient> userIngredients = ingredientRepository.findByUserId(userId);
+        Map<String, Ingredient> userIngredientsMap = userIngredients.stream()
+                .collect(
+                        Collectors.toMap(
+                                Ingredient::getIngredientName,
+                                Function.identity()
+                        )
+                );
 
         return recipes.stream()
                 .map(x -> {
 
                     TemplateIngredient templateIngredient = templateIngredientRepository.findById(x.getIngredientTemplateId()).orElseThrow(() -> new BusinessException(CatalogErrorCode.NOTFOUND_INGREDIENT));
 
-                    return RecipeTemplateResponse.of(
-                            x,
-                            templateIngredient,
-                            codeFinder.findUnitByCode(templateIngredient.getUnitCode())
+                    Ingredient matched = nameResolver.findMatchingIngredient(x, templateIngredient, userIngredientsMap);
+
+                    if (matched == null) {
+                        return RecipeTemplateResponse.of(
+                                x,
+                                templateIngredient,
+                                codeFinder.findUnitByCode(templateIngredient.getUnitCode())
                         );
                     }
-                )
+
+                    Unit unit = codeFinder.findUnitByCode(matched.getUnitCode());
+                    BigDecimal defaultPrice = matched.getCurrentUnitPrice()
+                            .divide(BigDecimal.valueOf(unit.getBaseQuantity()), 10, RoundingMode.HALF_UP)
+                            .multiply(x.getDefaultUsageAmount())
+                            .setScale(2, RoundingMode.HALF_UP);
+
+                    return RecipeTemplateResponse.builder()
+                            .ingredientId(matched.getIngredientId())
+                            .ingredientName(matched.getIngredientName())
+                            .defaultUsageAmount(x.getDefaultUsageAmount())
+                            .defaultPrice(defaultPrice)
+                            .unitPrice(matched.getCurrentUnitPrice())
+                            .baseQuantity(unit.getBaseQuantity())
+                            .unitCode(unit.getUnitCode())
+                            .ingredientCategoryCode(matched.getIngredientCategoryCode())
+                            .build();
+                })
                 .toList();
     }
+
 
     /**
      * 카테고리 별 메뉴 목록 반환 (필터링)
@@ -108,7 +139,7 @@ public class MenuService {
     public List<MenuResponse> readMenusByCategory(Long userId, String category) {
         // null이면 전체 조회
         if(category == null || category.isBlank()) {
-            List<Menu> menus = menuRepository.findByUserIdOrderByMenuIdDesc(userId);
+            List<Menu> menus = menuRepository.findByUserIdOrderByMenuNameAsc(userId);
 
             return menus.stream()
                     .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
@@ -120,7 +151,8 @@ public class MenuService {
             throw new BusinessException(CatalogErrorCode.NOTFOUND_CATEGORY);
         }
 
-        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuIdDesc(userId, category);
+        List<Menu> menus = menuRepository.findByUserIdAndMenuCategoryCodeOrderByMenuNameAsc(userId, category);
+
         return menus.stream()
                 .map(x -> MenuResponse.of(x, codeFinder.findMarginCodeByCode(x.getMarginGradeCode())))
                 .toList();
@@ -193,6 +225,8 @@ public class MenuService {
                     )
             );
         }
+
+        responses.sort(Comparator.comparing(RecipeResponse::ingredientName));
 
         return new RecipeListResponse(
                 responses,
@@ -269,6 +303,7 @@ public class MenuService {
                                 Function.identity()
                         )
                 );
+
         BigDecimal costByExisting = request.recipes().stream()
                 .map(recipe -> {
                     Ingredient ingredient = Optional.ofNullable(ingredientMap.get(recipe.ingredientId()))
@@ -315,6 +350,20 @@ public class MenuService {
                 .toList();
 
         if(newIngredientNames.size() != new HashSet<>(newIngredientNames).size()) {
+            throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
+        }
+
+
+        // 기존 재료 이름 목록 추출
+        List<String> existingIngredientNames = ingredientMap.values().stream()
+                .map(Ingredient::getIngredientName)
+                .toList();
+
+        // 새 재료 이름과 기존 재료 이름 간 중복 확인
+        boolean hasDupBetween = newIngredientNames.stream()
+                .anyMatch(existingIngredientNames::contains);
+
+        if (hasDupBetween) {
             throw new BusinessException(CatalogErrorCode.DUP_INGREDIENT);
         }
 
@@ -527,6 +576,17 @@ public class MenuService {
 
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
         BigDecimal laborCost = calculator.calLaborCost(storeInfo.includeWeeklyHolidayPay(), storeInfo.laborCost());
+
+        // 메뉴 내 동일 이름 재료 중복 확인
+        boolean isDupInMenu = recipeRepository.findByMenuId(menuId).stream()
+                .map(r -> ingredientRepository.findById(r.getIngredientId()))
+                .filter(Optional::isPresent)
+                .map(opt -> opt.get().getIngredientName())
+                .anyMatch(name -> name.equals(request.ingredientName()));
+
+        if (isDupInMenu) {
+            throw new BusinessException(CatalogErrorCode.DUP_RECIPE);
+        }
 
         // 중복 조회 (해당 이름을 가진 재료가 존재하는지)
         String ingredientName = nameResolver.createNonDupIngredientName(userId, request.ingredientName());

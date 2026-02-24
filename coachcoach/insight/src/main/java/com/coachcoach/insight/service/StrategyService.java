@@ -86,8 +86,8 @@ public class StrategyService {
                 } else if(strategy.getGuideCode().equals("REMOVE_MENU")) {
                     yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.REMOVE_MENU.getCompletionPhrase(),
                         menuInfo.getMenuName(),
-                                storeInfo.name(),
-                                marginRateImprovement
+                        storeInfo.name(),
+                        marginRateImprovement
                     );
                 } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
                     yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
