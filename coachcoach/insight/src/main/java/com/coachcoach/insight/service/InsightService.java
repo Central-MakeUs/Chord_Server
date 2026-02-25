@@ -154,7 +154,7 @@ public class InsightService {
                                 Function.identity()
                         )
                 );
-        List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED, StrategyState.ONGOING) : List.of(StrategyState.BEFORE);
+        List<StrategyState> states = (isCompleted) ? List.of(StrategyState.COMPLETED) : List.of(StrategyState.ONGOING);
 
         List<Strategy> all = strategyService.findBySavedTrueAndBaselineIdInAndStateIn(baseLineIds, states);
 
