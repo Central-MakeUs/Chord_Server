@@ -15,4 +15,7 @@ public class NotificationQueryApiImpl implements NotificationQueryApi {
     public void sendEach(Long userId, String title, String body) {
         notificationService.sendEach(userId, title, body);
     }
+
+    @Override
+    public void sendAll(String title, String body) { notificationService.sendAll(title, body); }
 }
