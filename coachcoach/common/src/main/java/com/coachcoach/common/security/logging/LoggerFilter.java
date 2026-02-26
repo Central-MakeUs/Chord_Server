@@ -53,7 +53,7 @@ public class LoggerFilter implements Filter {
 
         log.info("[{}({})] {} {} → {}", username, userId, method, uri, status);
 
-        if(!reqJson.isBlank()){
+        if(!reqJson.isBlank() && !uri.equals("/api/v1/auth/login") && !uri.equals("/api/v1/auth/sign-up")){
             log.info("Request: {}", reqJson);
         }
 
