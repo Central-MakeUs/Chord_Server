@@ -4,10 +4,7 @@ import com.coachcoach.common.dto.internal.MenuInfo;
 import com.coachcoach.common.dto.internal.StoreInfo;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.insight.domain.*;
-import com.coachcoach.insight.domain.enums.CautionMenuCompletionPhraseTemplate;
-import com.coachcoach.insight.domain.enums.DangerMenuCompletionPhraseTemplate;
-import com.coachcoach.insight.domain.enums.StrategyState;
-import com.coachcoach.insight.domain.enums.StrategyType;
+import com.coachcoach.insight.domain.enums.*;
 import com.coachcoach.insight.exception.InsightErrorCode;
 import com.coachcoach.insight.repository.CautionMenuStrategyRepository;
 import com.coachcoach.insight.repository.DangerMenuStrategyRepository;
@@ -74,55 +71,63 @@ public class StrategyService {
         };
     }
 
-    public String getCompletionPhrase(Strategy strategy, MenuSnapshots menuInfo, StoreInfo storeInfo, BigDecimal marginRateImprovement) {
+    public String getCompletionPhrase(Strategy strategy, MenuSnapshots menuInfo, StoreInfo storeInfo, BigDecimal marginRateImprovement, BigDecimal costRateImprovement, BigDecimal contributionMarginImprovement) {
         return switch (strategy.getType()) {
             case DANGER -> {
-                if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
-                    yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
-                            marginRateImprovement.abs(),
-                            menuInfo.getMenuName(),
-                            storeInfo.name()
-                    );
-                } else if(strategy.getGuideCode().equals("REMOVE_MENU")) {
-                    yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.REMOVE_MENU.getCompletionPhrase(),
-                        menuInfo.getMenuName(),
-                        storeInfo.name(),
-                        marginRateImprovement
-                    );
+                if(strategy.getGuideCode().equals("REMOVE_MENU")) {
+                    if(marginRateImprovement.compareTo(BigDecimal.ZERO) <= 0) {
+                        yield DangerMenuCompletionPhraseTemplate.REMOVE_MENU_NEGATIVE.getCompletionPhrase();
+                    } else {
+                        yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.REMOVE_MENU.getCompletionPhrase(),
+                                storeInfo.name(),
+                                marginRateImprovement
+                        );
+                    }
                 } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
-                    yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
-                            storeInfo.name(),
-                            marginRateImprovement
-                    );
+                    if(marginRateImprovement.compareTo(BigDecimal.ZERO) <= 0) {
+                        yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.ADJUST_PRICE_NEGATIVE.getCompletionPhrase(),
+                                menuInfo.getMenuName(),
+                                costRateImprovement
+                        )   ;
+                    } else {
+                        yield MessageFormat.format(DangerMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
+                                storeInfo.name(),
+                                marginRateImprovement
+                        );
+                    }
                 } else {
                     throw new BusinessException(InsightErrorCode.NOTFOUND_GUIDE_CODE);
                 }
             }
             case CAUTION -> {
-                if(marginRateImprovement.compareTo(BigDecimal.ZERO) < 0) {
-                    log.info(marginRateImprovement.toString());
-                    log.info("0");
-                    yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.NEGATIVE.getCompletionPhrase(),
-                            marginRateImprovement.abs(),
-                            menuInfo.getMenuName(),
-                            storeInfo.name()
-                    );
-                } else if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
-                    log.info("1");
-                    yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
-                            storeInfo.name(),
-                            marginRateImprovement
-                    );
+                if(strategy.getGuideCode().equals("ADJUST_PRICE")) {
+                    if(marginRateImprovement.compareTo(BigDecimal.ZERO) <= 0) {
+                        yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_RECIPE_NEGATIVE.getCompletionPhrase(),
+                                contributionMarginImprovement
+                        );
+                    } else {
+                        yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_RECIPE.getCompletionPhrase(),
+                                storeInfo.name(),
+                                marginRateImprovement
+                        );
+                    }
                 } else if(strategy.getGuideCode().equals("ADJUST_RECIPE")) {
-                    yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_RECIPE.getCompletionPhrase(),
-                            storeInfo.name(),
-                            marginRateImprovement
-                    );
+                    if(marginRateImprovement.compareTo(BigDecimal.ZERO) <= 0) {
+                        yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_PRICE_NEGATIVE.getCompletionPhrase(),
+                                menuInfo.getMenuName(),
+                                costRateImprovement
+                        );
+                    } else {
+                        yield MessageFormat.format(CautionMenuCompletionPhraseTemplate.ADJUST_PRICE.getCompletionPhrase(),
+                                storeInfo.name(),
+                                marginRateImprovement
+                        );
+                    }
                 } else {
                     throw new BusinessException(InsightErrorCode.NOTFOUND_GUIDE_CODE);
                 }
             }
-            case HIGH_MARGIN -> strategy.getCompletionPhrase();
+            case HIGH_MARGIN -> HighMarginMenuCompletionPhraseTemplate.POSITIVE.getCompletionPhrase();
             default -> throw new BusinessException(InsightErrorCode.NOTFOUND_STRATEGY_TYPE);
         };
     }

@@ -15,5 +15,6 @@ public interface CatalogQueryApi {
     List<MenuInfo> findByMenuIdIn(List<Long> menuIds);
     MenuInfo findByUserIdAndMenuId(Long userId, Long menuId);
     BigDecimal getAvgMarginRate(Long userId);
+    BigDecimal getAvgCostRate(Long userId);
     void updateMenusByUpdateLaborCost(Long userId, BigDecimal laborCost, Boolean includeWeeklyHolidayPay);
 }

@@ -329,9 +329,9 @@ public class InsightService {
     public CompletionPhraseResponse changeStateToCompleted(Long userId, Long strategyId, StrategyType strategyType) {
         StoreInfo storeInfo = userQueryApi.findStoreByUserId(userId);
         BigDecimal avgMarginRate = catalogQueryApi.getAvgMarginRate(userId);
-
         // 전략 조회
         Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
+        MenuSnapshots menuSnapshot = strategy.getMenuSnapshot();
 
         // 전략 Baseline 조회
         StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
@@ -344,7 +344,13 @@ public class InsightService {
         // 개선된 평균 마진률 계산
         BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
 
-        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
+        // 개선된 평균 원가율 계산
+        BigDecimal costRateImprovement = menuSnapshot != null ? menuSnapshot.getCostRate().subtract(BigDecimal.valueOf(0.3)) : null;
+
+        // 공헌이익 증가액 계산
+        BigDecimal contributionMarginImprovement = menuSnapshot != null ? menuSnapshot.getSellingPrice().multiply(BigDecimal.valueOf(0.75)).subtract(menuSnapshot.getContributionMargin()) : null;
+
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, menuSnapshot, storeInfo, marginRateImprovement, costRateImprovement, contributionMarginImprovement));
     }
 
     @Transactional(transactionManager = "transactionManager")
@@ -354,6 +360,7 @@ public class InsightService {
 
         // 전략 조회
         Strategy strategy = strategyService.findByUserIdAndStrategyId(userId, strategyId, strategyType);
+        MenuSnapshots menuSnapshot = strategy.getMenuSnapshot();
 
         // 전략 Baseline 조회
         StrategyBaselines baseline = strategyBaseLinesRepository.findById(strategy.getBaselineId())
@@ -365,7 +372,13 @@ public class InsightService {
         // 개선된 평균 마진률 계산
         BigDecimal marginRateImprovement = baseline.getAvgMarginRate().subtract(avgMarginRate);
 
-        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, strategy.getMenuSnapshot(), storeInfo, marginRateImprovement));
+        // 개선된 평균 원가율 계산
+        BigDecimal costRateImprovement = menuSnapshot != null ? menuSnapshot.getCostRate().subtract(BigDecimal.valueOf(0.3)) : null;
+
+        // 공헌이익 증가액 계산
+        BigDecimal contributionMarginImprovement = menuSnapshot != null ? menuSnapshot.getSellingPrice().multiply(BigDecimal.valueOf(0.75)).subtract(menuSnapshot.getContributionMargin()) : null;
+
+        return new CompletionPhraseResponse(strategyService.getCompletionPhrase(strategy, menuSnapshot, storeInfo, marginRateImprovement, costRateImprovement, contributionMarginImprovement));
     }
 
     /*---- 홈화면 ----*/
