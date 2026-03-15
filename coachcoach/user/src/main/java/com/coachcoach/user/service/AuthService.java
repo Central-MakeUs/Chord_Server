@@ -24,6 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -98,6 +100,7 @@ public class AuthService {
                             .token(request.fcmToken())
                             .deviceType(request.deviceType())
                             .deviceId(request.deviceId())
+                            .createdAt(LocalDateTime.now())
                             .build()
             );
         }
@@ -128,6 +131,7 @@ public class AuthService {
         return new TokenRefreshResponse(newAccessToken);
     }
 
+    @Transactional(transactionManager="transactionManager")
     public void logout(Long userId, LogoutRequest request) {
         // fcm 토큰 삭제
         fcmTokenRepository.deleteByToken(request.fcmToken());

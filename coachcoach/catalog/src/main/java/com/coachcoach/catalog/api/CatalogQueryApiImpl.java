@@ -112,6 +112,13 @@ public class CatalogQueryApiImpl implements CatalogQueryApi {
     }
 
     @Override
+    public BigDecimal getAvgCostRate(Long userId) {
+        List<Menu> menus = menuRepository.findByUserId(userId);
+
+        return calculator.calAvgCostRate(menus);
+    }
+
+    @Override
     public void updateMenusByUpdateLaborCost(Long userId, BigDecimal laborCost, Boolean includeWeeklyHolidayPay) {
         BigDecimal calculatedLaborCost = calculator.calLaborCost(includeWeeklyHolidayPay, laborCost);
         List<Menu> menus = menuRepository.findByUserId(userId);
