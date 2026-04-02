@@ -41,16 +41,30 @@ public class Users {
                 .build();
     }
 
-    public static Users createSocial(String provider, String sub) {
+    public static Users createKakaoUser(String id, String sub) {
         LocalDateTime now = LocalDateTime.now();
 
         return Users.builder()
-                .loginId(sub)
+                .loginId(id)
                 .password(null)
                 .onboardingCompleted(false)
                 .createdAt(now)
                 .updatedAt(now)
-                .socialProvider(provider)
+                .socialProvider("kakao")
+                .socialSub(sub)
+                .build();
+    }
+
+    public static Users createNaverUser(String id, String sub) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Users.builder()
+                .loginId(id)
+                .password(null)
+                .onboardingCompleted(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .socialProvider("naver")
                 .socialSub(sub)
                 .build();
     }

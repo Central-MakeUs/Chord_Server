@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -180,7 +181,7 @@ public class AuthService {
         //기존 유저인지 조회
         Users user = usersRepository.findBySocialSubAndSocialProvider(kakaoUserInfo.id().toString(), "kakao")
                 .orElseGet(() -> usersRepository.save(
-                        Users.createSocial("kakao", kakaoUserInfo.id().toString())
+                        Users.createKakaoUser("id" + UUID.randomUUID().toString().substring(3, 18), kakaoUserInfo.id().toString())
                 ));
 
         // Jwt 발급 및 저장
@@ -219,7 +220,7 @@ public class AuthService {
         //기존 유저인지 조회
         Users user = usersRepository.findBySocialSubAndSocialProvider(naverUserInfo.response().getId(), "naver")
                 .orElseGet(() -> usersRepository.save(
-                        Users.createSocial("naver", naverUserInfo.response().getId())
+                        Users.createNaverUser("id" + UUID.randomUUID().toString().substring(3, 18) , naverUserInfo.response().getId())
                 ));
 
         // Jwt 발급 및 저장
