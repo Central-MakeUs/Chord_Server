@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class KakaoLoginService {
 
@@ -24,8 +23,8 @@ public class KakaoLoginService {
     @Value("${prod.url}")
     private String PROD_URL;
 
-    private WebClient kakaoAuthWebClient;
-    private WebClient kakaoApiWebClient;
+    private final WebClient kakaoAuthWebClient;
+    private final WebClient kakaoApiWebClient;
 
     public KakaoLoginService(
             @Qualifier("kakaoAuthWebClient") WebClient kakaoAuthWebClient,

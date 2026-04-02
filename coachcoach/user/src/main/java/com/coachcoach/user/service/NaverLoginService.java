@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Service
-@RequiredArgsConstructor
 public class NaverLoginService {
 
     @Value("${social.naver.client-id}")
@@ -18,8 +17,8 @@ public class NaverLoginService {
     @Value("${social.naver.client-secret}")
     private String NAVER_AUTH_CLIENT_SECRET;
 
-    private WebClient naverAuthWebClient;
-    private WebClient naverApiWebClient;
+    private final WebClient naverAuthWebClient;
+    private final WebClient naverApiWebClient;
 
     public NaverLoginService(
             @Qualifier("naverAuthWebClient") WebClient naverAuthWebClient,
