@@ -44,7 +44,6 @@ public class KakaoLoginService {
         return kakaoAuthWebClient.post()
                 .uri(uriBuilder ->
                         uriBuilder
-                                .scheme("https")
                                 .path("/token")
                                 .queryParam("grant_type", "authorization_code")
                                 .queryParam("client_id", KAUTH_CLIENT_ID)
@@ -62,7 +61,6 @@ public class KakaoLoginService {
         return kakaoApiWebClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
-                                .scheme("https")
                                 .path("/v2/user/me")
                                 .build()
                 )

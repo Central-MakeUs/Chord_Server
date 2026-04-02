@@ -38,7 +38,6 @@ public class NaverLoginService {
         return naverAuthWebClient.post()
                 .uri(uriBuilder ->
                         uriBuilder
-                                .scheme("https")
                                 .path("/token")
                                 .queryParam("grant_type", "authorization_code")
                                 .queryParam("client_id", NAVER_AUTH_CLIENT_ID)
@@ -56,7 +55,6 @@ public class NaverLoginService {
         return naverApiWebClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
-                                .scheme("https")
                                 .path("/v1/nid/me")
                                 .build()
                 )
