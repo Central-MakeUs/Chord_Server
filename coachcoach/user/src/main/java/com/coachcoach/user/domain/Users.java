@@ -26,6 +26,8 @@ public class Users {
     private Boolean onboardingCompleted = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String socialProvider = "local";
+    private String socialSub;
 
     public static Users create(String loginId, String password) {
         LocalDateTime now = LocalDateTime.now();
@@ -36,6 +38,20 @@ public class Users {
                 .onboardingCompleted(false)
                 .createdAt(now)
                 .updatedAt(now)
+                .build();
+    }
+
+    public static Users createSocial(String provider, String sub) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Users.builder()
+                .loginId(sub)
+                .password(null)
+                .onboardingCompleted(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .socialProvider(provider)
+                .socialSub(sub)
                 .build();
     }
 

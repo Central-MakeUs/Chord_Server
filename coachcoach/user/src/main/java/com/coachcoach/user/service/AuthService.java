@@ -4,15 +4,11 @@ import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.CommonErrorCode;
 import com.coachcoach.common.security.jwt.JwtUtil;
 import com.coachcoach.user.domain.FcmToken;
-import com.coachcoach.user.dto.request.LoginRequest;
-import com.coachcoach.user.dto.request.LogoutRequest;
-import com.coachcoach.user.dto.request.SignUpRequest;
-import com.coachcoach.user.dto.request.TokenRefreshRequest;
-import com.coachcoach.user.dto.response.LoginResponse;
+import com.coachcoach.user.dto.request.*;
+import com.coachcoach.user.dto.response.*;
 import com.coachcoach.user.domain.RefreshToken;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
-import com.coachcoach.user.dto.response.TokenRefreshResponse;
 import com.coachcoach.user.repository.FcmTokenRepository;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
@@ -25,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -37,6 +34,8 @@ public class AuthService {
     private final FcmTokenRepository fcmTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final KakaoLoginService kakaoLoginService;
+    private final NaverLoginService naverLoginService;
 
     /**
      * 회원가입
@@ -92,8 +91,14 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        // 토큰 존재 시 저장
+        // 알림 토큰 존재 시 저장
         if(request.fcmToken() != null) {
+            List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(user.getUserId(), request.deviceType(), request.deviceId());
+
+            if(!fcmTokens.isEmpty()) {
+                fcmTokenRepository.deleteAll(fcmTokens);
+            }
+
             FcmToken fcmToken = fcmTokenRepository.save(
                     FcmToken.builder()
                             .userId(user.getUserId())
@@ -135,5 +140,103 @@ public class AuthService {
     public void logout(Long userId, LogoutRequest request) {
         // fcm 토큰 삭제
         fcmTokenRepository.deleteByToken(request.fcmToken());
+    }
+
+    @Transactional(transactionManager = "transactionManager")
+    public void saveFcmToken(Long userId, FcmTokenRequest request) {
+        List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(userId, request.deviceType(), request.deviceId());
+
+        if(!fcmTokens.isEmpty()) {
+            fcmTokenRepository.deleteAll(fcmTokens);
+        }
+
+        FcmToken fcmToken = fcmTokenRepository.save(
+                FcmToken.builder()
+                        .userId(userId)
+                        .token(request.fcmToken())
+                        .deviceType(request.deviceType())
+                        .deviceId(request.deviceId())
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
+    }
+
+
+    // 카카오 로그인
+    @Transactional(transactionManager = "transactionManager")
+    public LoginResponse kakaoLogin(String code) {
+        KakaoTokenResponse kakaoToken = kakaoLoginService.getToken(code);
+
+        if(kakaoToken.error() != null) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        KakaoUserInfoResponse kakaoUserInfo = kakaoLoginService.getSubject(kakaoToken.accessToken());
+
+        if(kakaoUserInfo.error() != null) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        //기존 유저인지 조회
+        Users user = usersRepository.findBySocialSubAndSocialProvider(kakaoUserInfo.id().toString(), "kakao")
+                .orElseGet(() -> usersRepository.save(
+                        Users.createSocial("kakao", kakaoUserInfo.id().toString())
+                ));
+
+        // Jwt 발급 및 저장
+        String accessToken = jwtUtil.createAccessToken(user.getUserId());
+        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
+
+        RefreshToken token = refreshTokenRepository.save(
+                RefreshToken.create(
+                        user.getUserId(),
+                        refreshToken,
+                        jwtUtil.getExpiration(refreshToken)
+                )
+        );
+
+        // 유저 최근 로그인 시간 업데이트
+        user.updateLastLoginAt();
+
+        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+    }
+
+    // 네이버 로그인
+    @Transactional(transactionManager = "transactionManager")
+    public LoginResponse naverLogin(String code, String state) {
+        NaverTokenResponse naverToken = naverLoginService.getToken(code, state);
+
+        if(naverToken.error() != null) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(naverToken.accessToken());
+
+        if(!naverUserInfo.resultcode().equals("00")) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        //기존 유저인지 조회
+        Users user = usersRepository.findBySocialSubAndSocialProvider(naverUserInfo.response().getId(), "naver")
+                .orElseGet(() -> usersRepository.save(
+                        Users.createSocial("naver", naverUserInfo.response().getId())
+                ));
+
+        // Jwt 발급 및 저장
+        String accessToken = jwtUtil.createAccessToken(user.getUserId());
+        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
+
+        RefreshToken token = refreshTokenRepository.save(
+                RefreshToken.create(
+                        user.getUserId(),
+                        refreshToken,
+                        jwtUtil.getExpiration(refreshToken)
+                )
+        );
+
+        // 유저 최근 로그인 시간 업데이트
+        user.updateLastLoginAt();
+
+        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
 }
