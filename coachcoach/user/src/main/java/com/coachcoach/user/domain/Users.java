@@ -38,6 +38,7 @@ public class Users {
                 .onboardingCompleted(false)
                 .createdAt(now)
                 .updatedAt(now)
+                .socialProvider("local")
                 .build();
     }
 
