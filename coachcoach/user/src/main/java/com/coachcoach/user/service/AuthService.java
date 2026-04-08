@@ -37,6 +37,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final KakaoLoginService kakaoLoginService;
     private final NaverLoginService naverLoginService;
+    private final NotificationService notificationService;
 
     /**
      * 회원가입
@@ -92,23 +93,9 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        // 알림 토큰 존재 시 저장
         if(request.fcmToken() != null) {
-            List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(user.getUserId(), request.deviceType(), request.deviceId());
-
-            if(!fcmTokens.isEmpty()) {
-                fcmTokenRepository.deleteAll(fcmTokens);
-            }
-
-            FcmToken fcmToken = fcmTokenRepository.save(
-                    FcmToken.builder()
-                            .userId(user.getUserId())
-                            .token(request.fcmToken())
-                            .deviceType(request.deviceType())
-                            .deviceId(request.deviceId())
-                            .createdAt(LocalDateTime.now())
-                            .build()
-            );
+            // 알림 토큰 존재 시 저장
+            notificationService.saveFcmToken(user.getUserId(), new FcmTokenRequest(request.fcmToken(),request.deviceType(), request.deviceId()));
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
@@ -141,25 +128,6 @@ public class AuthService {
     public void logout(Long userId, LogoutRequest request) {
         // fcm 토큰 삭제
         fcmTokenRepository.deleteByToken(request.fcmToken());
-    }
-
-    @Transactional(transactionManager = "transactionManager")
-    public void saveFcmToken(Long userId, FcmTokenRequest request) {
-        List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(userId, request.deviceType(), request.deviceId());
-
-        if(!fcmTokens.isEmpty()) {
-            fcmTokenRepository.deleteAll(fcmTokens);
-        }
-
-        FcmToken fcmToken = fcmTokenRepository.save(
-                FcmToken.builder()
-                        .userId(userId)
-                        .token(request.fcmToken())
-                        .deviceType(request.deviceType())
-                        .deviceId(request.deviceId())
-                        .createdAt(LocalDateTime.now())
-                        .build()
-        );
     }
 
 
@@ -239,23 +207,9 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        // 알림 토큰 저장
         if(request.fcmToken() != null) {
-            List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(user.getUserId(), request.deviceType(), request.deviceId());
-
-            if(!fcmTokens.isEmpty()) {
-                fcmTokenRepository.deleteAll(fcmTokens);
-            }
-
-            FcmToken fcmToken = fcmTokenRepository.save(
-                    FcmToken.builder()
-                            .userId(user.getUserId())
-                            .token(request.fcmToken())
-                            .deviceType(request.deviceType())
-                            .deviceId(request.deviceId())
-                            .createdAt(LocalDateTime.now())
-                            .build()
-            );
+            // 알림 토큰 존재 시 저장
+            notificationService.saveFcmToken(user.getUserId(), new FcmTokenRequest(request.fcmToken(),request.deviceType(), request.deviceId()));
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
@@ -336,26 +290,11 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
-        // 알림 토큰 저장
         if(request.fcmToken() != null) {
-            List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(user.getUserId(), request.deviceType(), request.deviceId());
-
-            if(!fcmTokens.isEmpty()) {
-                fcmTokenRepository.deleteAll(fcmTokens);
-            }
-
-            FcmToken fcmToken = fcmTokenRepository.save(
-                    FcmToken.builder()
-                            .userId(user.getUserId())
-                            .token(request.fcmToken())
-                            .deviceType(request.deviceType())
-                            .deviceId(request.deviceId())
-                            .createdAt(LocalDateTime.now())
-                            .build()
-            );
+            // 알림 토큰 존재 시 저장
+            notificationService.saveFcmToken(user.getUserId(), new FcmTokenRequest(request.fcmToken(),request.deviceType(), request.deviceId()));
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
-
 }

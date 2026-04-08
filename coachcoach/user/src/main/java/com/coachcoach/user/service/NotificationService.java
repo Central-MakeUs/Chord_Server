@@ -6,14 +6,18 @@ import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.NotificationErrorCode;
 import com.coachcoach.common.notification.FcmNotificationService;
 import com.coachcoach.user.domain.FcmToken;
+import com.coachcoach.user.dto.request.FcmTokenRequest;
 import com.coachcoach.user.dto.request.NotificationContentRequest;
 import com.coachcoach.user.dto.request.NotificationTokenRequest;
 import com.coachcoach.user.repository.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -112,4 +116,23 @@ public class NotificationService {
 
     }
 
+    // fcm 토큰 저장
+    @Transactional(transactionManager = "transactionManager", propagation = Propagation.REQUIRES_NEW)
+    public void saveFcmToken(Long userId, FcmTokenRequest request) {
+        List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(userId, request.deviceType(), request.deviceId());
+
+        if(!fcmTokens.isEmpty()) {
+            fcmTokenRepository.deleteAll(fcmTokens);
+        }
+
+        FcmToken fcmToken = fcmTokenRepository.save(
+                FcmToken.builder()
+                        .userId(userId)
+                        .token(request.fcmToken())
+                        .deviceType(request.deviceType())
+                        .deviceId(request.deviceId())
+                        .createdAt(LocalDateTime.now())
+                        .build()
+        );
+    }
 }

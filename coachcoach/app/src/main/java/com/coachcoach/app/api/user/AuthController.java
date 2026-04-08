@@ -7,6 +7,7 @@ import com.coachcoach.user.dto.response.LoginResponse;
 import com.coachcoach.user.dto.response.TokenRefreshResponse;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.service.AuthService;
+import com.coachcoach.user.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final NotificationService notificationService;
 
     /**
      * 회원가입
@@ -76,7 +78,7 @@ public class AuthController {
             @AuthenticationPrincipal CustomUserDetails details,
             @RequestBody FcmTokenRequest request
     ) {
-       authService.saveFcmToken(Long.valueOf(details.getUserId()), request);
+       notificationService.saveFcmToken(Long.valueOf(details.getUserId()), request);
     }
 
     /* ------------------ 소셜 로그인 ---------------*/
