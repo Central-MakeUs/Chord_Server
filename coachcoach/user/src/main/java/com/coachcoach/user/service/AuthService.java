@@ -239,6 +239,25 @@ public class AuthService {
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
 
+        // 알림 토큰 저장
+        if(request.fcmToken() != null) {
+            List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(user.getUserId(), request.deviceType(), request.deviceId());
+
+            if(!fcmTokens.isEmpty()) {
+                fcmTokenRepository.deleteAll(fcmTokens);
+            }
+
+            FcmToken fcmToken = fcmTokenRepository.save(
+                    FcmToken.builder()
+                            .userId(user.getUserId())
+                            .token(request.fcmToken())
+                            .deviceType(request.deviceType())
+                            .deviceId(request.deviceId())
+                            .createdAt(LocalDateTime.now())
+                            .build()
+            );
+        }
+
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
 
@@ -316,6 +335,25 @@ public class AuthService {
 
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
+
+        // 알림 토큰 저장
+        if(request.fcmToken() != null) {
+            List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(user.getUserId(), request.deviceType(), request.deviceId());
+
+            if(!fcmTokens.isEmpty()) {
+                fcmTokenRepository.deleteAll(fcmTokens);
+            }
+
+            FcmToken fcmToken = fcmTokenRepository.save(
+                    FcmToken.builder()
+                            .userId(user.getUserId())
+                            .token(request.fcmToken())
+                            .deviceType(request.deviceType())
+                            .deviceId(request.deviceId())
+                            .createdAt(LocalDateTime.now())
+                            .build()
+            );
+        }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
