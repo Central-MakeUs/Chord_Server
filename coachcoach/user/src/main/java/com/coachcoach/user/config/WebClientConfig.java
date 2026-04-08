@@ -38,7 +38,7 @@ public class WebClientConfig {
                                     if (response.statusCode().isError()) {
                                         return response.bodyToMono(String.class)
                                                 .flatMap(body -> {
-                                                    log.error("카카오 API 에러: {}", body);
+                                                    log.error("카카오 AUTH 에러: {}", body);
 
                                                     return Mono.error(mapKakaoException(body));
                                                 });

@@ -82,13 +82,7 @@ public class AuthService {
         String accessToken = jwtUtil.createAccessToken(user.getUserId());
         String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
 
-        RefreshToken token = refreshTokenRepository.save(
-                RefreshToken.create(
-                        user.getUserId(),
-                        refreshToken,
-                        jwtUtil.getExpiration(refreshToken)
-                )
-        );
+        saveRefreshToken(user.getUserId(), refreshToken);
 
         // 유저 최근 로그인 시간 업데이트
         user.updateLastLoginAt();
@@ -119,9 +113,7 @@ public class AuthService {
         }
 
         // 새 Access token 발급
-        String newAccessToken = jwtUtil.createAccessToken(userId);
-
-        return new TokenRefreshResponse(newAccessToken);
+        return new TokenRefreshResponse(jwtUtil.createAccessToken(userId));
     }
 
     @Transactional(transactionManager="transactionManager")
@@ -130,8 +122,23 @@ public class AuthService {
         fcmTokenRepository.deleteByToken(request.fcmToken());
     }
 
+    @Transactional(transactionManager = "transactionManager")
+    public void logoutWithRefreshToken(Long userId, LogoutWithRefreshTokenRequest request) {
+        if (request.fcmToken() != null) {
+            fcmTokenRepository.deleteByToken(request.fcmToken());
+        }
+        // 해당 refresh token 만 삭제 (다른 디바이스 세션 유지)
+        if (request.refreshToken() != null) {
+            refreshTokenRepository.deleteByUserIdAndRefreshToken(userId, request.refreshToken());
+        }
+    }
 
-    // 카카오 로그인 콜백
+
+    // =========================================================================
+    // 카카오 로그인
+    // =========================================================================
+
+    /** 웹 콜백 방식 (authorization code -> 서버에서 토큰 교환) **/
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse kakaoLoginCallback(String code) {
         KakaoTokenResponse kakaoToken = kakaoLoginService.getToken(code);
@@ -146,31 +153,13 @@ public class AuthService {
             throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
         }
 
-        //기존 유저인지 조회
-        Users user = usersRepository.findBySocialSubAndSocialProvider(kakaoUserInfo.id().toString(), "kakao")
-                .orElseGet(() -> usersRepository.save(
-                        Users.createKakaoUser("id" + UUID.randomUUID().toString().substring(3, 18), kakaoUserInfo.id().toString())
-                ));
+        Users user = findOrCreateKakaoUser(kakaoUserInfo.id().toString());
 
         // Jwt 발급 및 저장
-        String accessToken = jwtUtil.createAccessToken(user.getUserId());
-        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
-
-        RefreshToken token = refreshTokenRepository.save(
-                RefreshToken.create(
-                        user.getUserId(),
-                        refreshToken,
-                        jwtUtil.getExpiration(refreshToken)
-                )
-        );
-
-        // 유저 최근 로그인 시간 업데이트
-        user.updateLastLoginAt();
-
-        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+        return issueTokensAndRespond(user, null, null, null);
     }
 
-    // 카카오 로그인
+    /** 모바일 방식 (앱에서 access token 전달) **/
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse kakaoLogin(KakaoLoginRequest request) {
         // 토큰 검증
@@ -186,110 +175,81 @@ public class AuthService {
             throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
         }
 
-        //기존 유저인지 조회
-        Users user = usersRepository.findBySocialSubAndSocialProvider(kakaoUserInfo.id().toString(), "kakao")
-                .orElseGet(() -> usersRepository.save(
-                        Users.createKakaoUser("id" + UUID.randomUUID().toString().substring(3, 18), kakaoUserInfo.id().toString())
-                ));
-
-        // Jwt 발급 및 저장
-        String accessToken = jwtUtil.createAccessToken(user.getUserId());
-        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
-
-        RefreshToken token = refreshTokenRepository.save(
-                RefreshToken.create(
-                        user.getUserId(),
-                        refreshToken,
-                        jwtUtil.getExpiration(refreshToken)
-                )
-        );
-
-        // 유저 최근 로그인 시간 업데이트
-        user.updateLastLoginAt();
-
-        if(request.fcmToken() != null) {
-            // 알림 토큰 존재 시 저장
-            notificationService.saveFcmToken(user.getUserId(), new FcmTokenRequest(request.fcmToken(),request.deviceType(), request.deviceId()));
-        }
-
-        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+        Users user = findOrCreateKakaoUser(kakaoUserInfo.id().toString());
+        return issueTokensAndRespond(user, request.fcmToken(), request.deviceType(), request.deviceId());
     }
 
-    // 네이버 로그인 콜백
+    private Users findOrCreateKakaoUser(String kakaoId) {
+        return usersRepository.findBySocialSubAndSocialProvider(kakaoId, "kakao")
+                .orElseGet(() -> usersRepository.save(
+                        Users.createKakaoUser(randomLoginId(), kakaoId)
+                ));
+    }
+
+    // =========================================================================
+    // 네이버 로그인
+    // =========================================================================
+
+    /** 웹 콜백 방식 */
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse naverLoginCallback(String code, String state) {
         NaverTokenResponse naverToken = naverLoginService.getToken(code, state);
-
-        if(naverToken.error() != null) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
+        if (naverToken.error() != null) throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
 
         NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(naverToken.accessToken());
+        if (!naverUserInfo.resultcode().equals("00")) throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
 
-        if(!naverUserInfo.resultcode().equals("00")) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
-
-        //기존 유저인지 조회
-        Users user = usersRepository.findBySocialSubAndSocialProvider(naverUserInfo.response().getId(), "naver")
-                .orElseGet(() -> usersRepository.save(
-                        Users.createNaverUser("id" + UUID.randomUUID().toString().substring(3, 18) , naverUserInfo.response().getId())
-                ));
-
-        // Jwt 발급 및 저장
-        String accessToken = jwtUtil.createAccessToken(user.getUserId());
-        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
-
-        RefreshToken token = refreshTokenRepository.save(
-                RefreshToken.create(
-                        user.getUserId(),
-                        refreshToken,
-                        jwtUtil.getExpiration(refreshToken)
-                )
-        );
-
-        // 유저 최근 로그인 시간 업데이트
-        user.updateLastLoginAt();
-
-        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+        Users user = findOrCreateNaverUser(naverUserInfo.response().getId());
+        return issueTokensAndRespond(user, null, null, null);
     }
 
     // 네이버 로그인
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse naverLogin(NaverLoginRequest request) {
-
         NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(request.accessToken());
+        if (!naverUserInfo.resultcode().equals("00")) throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
 
-        if(!naverUserInfo.resultcode().equals("00")) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
+        Users user = findOrCreateNaverUser(naverUserInfo.response().getId());
+        return issueTokensAndRespond(user, request.fcmToken(), request.deviceType(), request.deviceId());
+    }
 
-        //기존 유저인지 조회
-        Users user = usersRepository.findBySocialSubAndSocialProvider(naverUserInfo.response().getId(), "naver")
+
+    private Users findOrCreateNaverUser(String naverId) {
+        return usersRepository.findBySocialSubAndSocialProvider(naverId, "naver")
                 .orElseGet(() -> usersRepository.save(
-                        Users.createNaverUser("id" + UUID.randomUUID().toString().substring(3, 18) , naverUserInfo.response().getId())
+                        Users.createNaverUser(randomLoginId(), naverId)
                 ));
+    }
 
-        // Jwt 발급 및 저장
-        String accessToken = jwtUtil.createAccessToken(user.getUserId());
+    /** 소셜 회원 loginId 랜덤 생성 */
+    private String randomLoginId() {
+        return "id" + UUID.randomUUID().toString().replace("-", "").substring(0, 15);
+    }
+
+    /** jwt 토큰 생성 및 LoginResponse 생성 */
+    private LoginResponse issueTokensAndRespond(
+            Users user, String fcmToken, String deviceType, String deviceId
+    ) {
+        String accessToken  = jwtUtil.createAccessToken(user.getUserId());
         String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
-
-        RefreshToken token = refreshTokenRepository.save(
-                RefreshToken.create(
-                        user.getUserId(),
-                        refreshToken,
-                        jwtUtil.getExpiration(refreshToken)
-                )
-        );
-
-        // 유저 최근 로그인 시간 업데이트
+        saveRefreshToken(user.getUserId(), refreshToken);
         user.updateLastLoginAt();
 
-        if(request.fcmToken() != null) {
-            // 알림 토큰 존재 시 저장
-            notificationService.saveFcmToken(user.getUserId(), new FcmTokenRequest(request.fcmToken(),request.deviceType(), request.deviceId()));
+        if (fcmToken != null) {
+            notificationService.saveFcmToken(
+                    user.getUserId(),
+                    new FcmTokenRequest(fcmToken, deviceType, deviceId)
+            );
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+    }
+
+
+    /** refresh token 생성 **/
+    private void saveRefreshToken(Long userId, String refreshToken) {
+        refreshTokenRepository.save(
+                RefreshToken.create(userId, refreshToken, jwtUtil.getExpiration(refreshToken))
+        );
     }
 }
