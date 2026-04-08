@@ -1,5 +1,6 @@
 package com.coachcoach.user.service;
 
+import com.coachcoach.user.dto.response.KakaoAccessTokenValidateResponse;
 import com.coachcoach.user.dto.response.KakaoTokenResponse;
 import com.coachcoach.user.dto.response.KakaoUserInfoResponse;
 import com.coachcoach.user.dto.response.LoginResponse;
@@ -57,6 +58,28 @@ public class KakaoLoginService {
                 .block();
     }
 
+    /**
+     * 카카오 Access token 검증
+     */
+    public KakaoAccessTokenValidateResponse validateAccessToken(String accessToken) {
+        return kakaoApiWebClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/v1/user/access_token_info")
+                                .build()
+
+                )
+                .header("Authorization", "Bearer " + accessToken)
+                .retrieve()
+                .bodyToMono(KakaoAccessTokenValidateResponse.class)
+                .block();
+    }
+
+    /**
+     * 카카오 Access token으로 유저 정보 받기
+     * @param accessToken
+     * @return
+     */
     public KakaoUserInfoResponse getSubject(String accessToken) {
         return kakaoApiWebClient.get()
                 .uri(uriBuilder ->

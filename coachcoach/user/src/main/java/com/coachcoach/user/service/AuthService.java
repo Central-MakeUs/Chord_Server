@@ -163,9 +163,9 @@ public class AuthService {
     }
 
 
-    // 카카오 로그인
+    // 카카오 로그인 콜백
     @Transactional(transactionManager = "transactionManager")
-    public LoginResponse kakaoLogin(String code) {
+    public LoginResponse kakaoLoginCallback(String code) {
         KakaoTokenResponse kakaoToken = kakaoLoginService.getToken(code);
 
         if(kakaoToken.error() != null) {
@@ -202,9 +202,49 @@ public class AuthService {
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
 
+    // 카카오 로그인
+    @Transactional(transactionManager = "transactionManager")
+    public LoginResponse kakaoLogin(KakaoLoginRequest request) {
+        // 토큰 검증
+        KakaoAccessTokenValidateResponse kakaoAccessTokenValidateResponse = kakaoLoginService.validateAccessToken(request.accessToken());
+
+        if(kakaoAccessTokenValidateResponse.error() != null) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        KakaoUserInfoResponse kakaoUserInfo = kakaoLoginService.getSubject(request.accessToken());
+
+        if(kakaoUserInfo.error() != null) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        //기존 유저인지 조회
+        Users user = usersRepository.findBySocialSubAndSocialProvider(kakaoUserInfo.id().toString(), "kakao")
+                .orElseGet(() -> usersRepository.save(
+                        Users.createKakaoUser("id" + UUID.randomUUID().toString().substring(3, 18), kakaoUserInfo.id().toString())
+                ));
+
+        // Jwt 발급 및 저장
+        String accessToken = jwtUtil.createAccessToken(user.getUserId());
+        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
+
+        RefreshToken token = refreshTokenRepository.save(
+                RefreshToken.create(
+                        user.getUserId(),
+                        refreshToken,
+                        jwtUtil.getExpiration(refreshToken)
+                )
+        );
+
+        // 유저 최근 로그인 시간 업데이트
+        user.updateLastLoginAt();
+
+        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+    }
+
     // 네이버 로그인
     @Transactional(transactionManager = "transactionManager")
-    public LoginResponse naverLogin(String code, String state) {
+    public LoginResponse naverLoginCallback(String code, String state) {
         NaverTokenResponse naverToken = naverLoginService.getToken(code, state);
 
         if(naverToken.error() != null) {

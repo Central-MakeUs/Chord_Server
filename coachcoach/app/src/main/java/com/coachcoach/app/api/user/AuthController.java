@@ -97,7 +97,7 @@ public class AuthController {
             }
         }
 
-        return authService.kakaoLogin(code);
+        return authService.kakaoLoginCallback(code);
     }
 
     @Operation(summary = "네이버 로그인 콜백")
@@ -113,6 +113,17 @@ public class AuthController {
             throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
         }
 
-        return authService.naverLogin(code, state);
+        return authService.naverLoginCallback(code, state);
+    }
+
+    /**
+     * 카카오 로그인
+     */
+    @Operation(summary = "카카오 로그인")
+    @PostMapping("/kakao/login")
+    public LoginResponse kakaoLogin(
+            @RequestBody KakaoLoginRequest request
+    ) {
+        return authService.kakaoLogin(request);
     }
 }
