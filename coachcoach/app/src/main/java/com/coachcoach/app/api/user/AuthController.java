@@ -126,4 +126,15 @@ public class AuthController {
     ) {
         return authService.kakaoLogin(request);
     }
+
+    /**
+     * 네이버 로그인
+     */
+    @Operation(summary = "네이버 로그인")
+    @PostMapping("/naver/login")
+    public LoginResponse naverLogin(
+            @RequestBody NaverLoginRequest request
+    ) {
+        return authService.naverLogin(request);
+    }
 }

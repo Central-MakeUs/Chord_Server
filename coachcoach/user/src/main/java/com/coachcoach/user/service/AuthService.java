@@ -242,7 +242,7 @@ public class AuthService {
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
 
-    // 네이버 로그인
+    // 네이버 로그인 콜백
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse naverLoginCallback(String code, String state) {
         NaverTokenResponse naverToken = naverLoginService.getToken(code, state);
@@ -280,4 +280,44 @@ public class AuthService {
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
     }
+
+    // 네이버 로그인
+    @Transactional(transactionManager = "transactionManager")
+    public LoginResponse naverLogin(NaverLoginRequest request) {
+        NaverTokenResponse naverToken = naverLoginService.getToken(request.code(), request.state());
+
+        if(naverToken.error() != null) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(naverToken.accessToken());
+
+        if(!naverUserInfo.resultcode().equals("00")) {
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        //기존 유저인지 조회
+        Users user = usersRepository.findBySocialSubAndSocialProvider(naverUserInfo.response().getId(), "naver")
+                .orElseGet(() -> usersRepository.save(
+                        Users.createNaverUser("id" + UUID.randomUUID().toString().substring(3, 18) , naverUserInfo.response().getId())
+                ));
+
+        // Jwt 발급 및 저장
+        String accessToken = jwtUtil.createAccessToken(user.getUserId());
+        String refreshToken = jwtUtil.createRefreshToken(user.getUserId());
+
+        RefreshToken token = refreshTokenRepository.save(
+                RefreshToken.create(
+                        user.getUserId(),
+                        refreshToken,
+                        jwtUtil.getExpiration(refreshToken)
+                )
+        );
+
+        // 유저 최근 로그인 시간 업데이트
+        user.updateLastLoginAt();
+
+        return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
+    }
+
 }
