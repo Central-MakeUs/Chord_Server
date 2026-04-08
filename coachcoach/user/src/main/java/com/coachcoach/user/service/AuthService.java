@@ -257,13 +257,8 @@ public class AuthService {
     // 네이버 로그인
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse naverLogin(NaverLoginRequest request) {
-        NaverTokenResponse naverToken = naverLoginService.getToken(request.code(), request.state());
 
-        if(naverToken.error() != null) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
-
-        NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(naverToken.accessToken());
+        NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(request.accessToken());
 
         if(!naverUserInfo.resultcode().equals("00")) {
             throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);

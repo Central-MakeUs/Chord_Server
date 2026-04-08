@@ -5,10 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 
 public record NaverLoginRequest(
         @NotBlank
-        String code,
-
-        @NotBlank
-        String state,
+        String accessToken,
 
         @Nullable
         String fcmToken,
