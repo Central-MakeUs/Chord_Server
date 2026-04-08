@@ -99,9 +99,7 @@ public class AuthController {
             }
         }
 
-        LoginResponse loginResponse = authService.kakaoLoginCallback(code);
-
-        return new LoginResponse(loginResponse.accessToken(), null, null);
+        return authService.kakaoLoginCallback(code);
     }
 
     @Operation(summary = "네이버 로그인 콜백")

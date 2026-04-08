@@ -143,6 +143,8 @@ public class AuthService {
     public LoginResponse kakaoLoginCallback(String code) {
         KakaoTokenResponse kakaoToken = kakaoLoginService.getToken(code);
 
+        log.info(kakaoToken.accessToken());
+
         if(kakaoToken.error() != null) {
             throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
         }
