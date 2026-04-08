@@ -1,12 +1,11 @@
 package com.coachcoach.app.api.user;
 
+import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
-import com.coachcoach.user.dto.request.LoginRequest;
-import com.coachcoach.user.dto.request.LogoutRequest;
-import com.coachcoach.user.dto.request.SignUpRequest;
-import com.coachcoach.user.dto.request.TokenRefreshRequest;
+import com.coachcoach.user.dto.request.*;
 import com.coachcoach.user.dto.response.LoginResponse;
 import com.coachcoach.user.dto.response.TokenRefreshResponse;
+import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -66,5 +65,54 @@ public class AuthController {
             @RequestBody LogoutRequest request
     ) {
         authService.logout(Long.valueOf(details.getUserId()), request);
+    }
+
+    /**
+     * Fcm token 저장
+     */
+    @Operation(summary = "fcm token 저장")
+    @PostMapping("/fcm")
+    public void saveFcmToken(
+            @AuthenticationPrincipal CustomUserDetails details,
+            @RequestBody FcmTokenRequest request
+    ) {
+       authService.saveFcmToken(Long.valueOf(details.getUserId()), request);
+    }
+
+    /* ------------------ 소셜 로그인 ---------------*/
+    @Operation(summary = "카카오 로그인 콜백")
+    @GetMapping("/kakao/callback")
+    public LoginResponse kakaoCallback(
+            @RequestParam(name = "code", required = false) String code,
+            @RequestParam(name = "state", required = false) String state,
+            @RequestParam(name = "error", required = false) String error,
+            @RequestParam(name = "error_description", required = false) String errorDescription
+    ) {
+        if(error != null) {
+            // 카카오 로그인 실패
+            if("access_denied".equals(errorDescription)) {
+                throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_CANCELED);
+            } else {
+                throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+            }
+        }
+
+        return authService.kakaoLogin(code);
+    }
+
+    @Operation(summary = "네이버 로그인 콜백")
+    @GetMapping("/naver/callback")
+    public LoginResponse naverCallback(
+            @RequestParam(name = "code", required = false) String code,
+            @RequestParam(name = "state") String state,
+            @RequestParam(name = "error", required = false) String error,
+            @RequestParam(name = "error_description", required = false) String errorDescription
+    ) {
+        if(error != null) {
+            // 네이버 로그인 실패
+            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        }
+
+        return authService.naverLogin(code, state);
     }
 }

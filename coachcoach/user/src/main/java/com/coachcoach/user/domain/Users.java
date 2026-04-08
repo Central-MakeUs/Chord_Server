@@ -26,6 +26,8 @@ public class Users {
     private Boolean onboardingCompleted = false;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String socialProvider = "local";
+    private String socialSub;
 
     public static Users create(String loginId, String password) {
         LocalDateTime now = LocalDateTime.now();
@@ -36,6 +38,35 @@ public class Users {
                 .onboardingCompleted(false)
                 .createdAt(now)
                 .updatedAt(now)
+                .socialProvider("local")
+                .build();
+    }
+
+    public static Users createKakaoUser(String id, String sub) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Users.builder()
+                .loginId(id)
+                .password(null)
+                .onboardingCompleted(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .socialProvider("kakao")
+                .socialSub(sub)
+                .build();
+    }
+
+    public static Users createNaverUser(String id, String sub) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Users.builder()
+                .loginId(id)
+                .password(null)
+                .onboardingCompleted(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .socialProvider("naver")
+                .socialSub(sub)
                 .build();
     }
 

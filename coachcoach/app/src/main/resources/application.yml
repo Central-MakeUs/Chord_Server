@@ -71,3 +71,15 @@ jwt:
   secret: ${JWT_SECRET}
   access-token-expiration: 86400000       # 1day
   refresh-token-expiration: 1814400000    # 3weeks
+social:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    client-secret: ${KAKAO_CLIENT_SECRET}
+    auth-url: https://kauth.kakao.com/oauth
+    api-url: https://kapi.kakao.com
+  naver:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_CLIENT_SECRET}
+    auth-url: https://nid.naver.com/oauth2.0
+    api-url: https://openapi.naver.com
+prod.url: ${PROD_URL}
