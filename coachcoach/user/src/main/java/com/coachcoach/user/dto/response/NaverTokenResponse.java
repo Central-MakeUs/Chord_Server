@@ -13,12 +13,6 @@ public record NaverTokenResponse(
         String tokenType,
 
         @JsonProperty("expires_in")
-        Integer expiresIn,
-
-        @JsonProperty("error")
-        String error,
-
-        @JsonProperty("error_description")
-        String errorDescription
+        Integer expiresIn
 ) {
 }

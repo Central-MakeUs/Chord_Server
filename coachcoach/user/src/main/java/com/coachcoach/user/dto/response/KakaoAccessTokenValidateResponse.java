@@ -9,12 +9,6 @@ public record KakaoAccessTokenValidateResponse(
         Integer expiresIn,
 
         @JsonProperty("app_id")
-        Integer appId,
-
-        @JsonProperty("error")
-        String error,
-
-        @JsonProperty("error_description")
-        String errorDescription
+        Integer appId
 ) {
 }

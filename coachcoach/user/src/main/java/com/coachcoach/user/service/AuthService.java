@@ -9,6 +9,7 @@ import com.coachcoach.user.dto.response.*;
 import com.coachcoach.user.domain.RefreshToken;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
+import com.coachcoach.user.exception.SocialLoginErrorCode;
 import com.coachcoach.user.repository.FcmTokenRepository;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
@@ -116,12 +117,14 @@ public class AuthService {
         return new TokenRefreshResponse(jwtUtil.createAccessToken(userId));
     }
 
+    /* 로그아웃 (fcm 토큰 만료 처리) */
     @Transactional(transactionManager="transactionManager")
     public void logout(Long userId, LogoutRequest request) {
         // fcm 토큰 삭제
         fcmTokenRepository.deleteByToken(request.fcmToken());
     }
 
+    /* 로그아웃 (fcm 토큰 + refresh token 만료 처리) */
     @Transactional(transactionManager = "transactionManager")
     public void logoutWithRefreshToken(Long userId, LogoutWithRefreshTokenRequest request) {
         if (request.fcmToken() != null) {
@@ -143,15 +146,7 @@ public class AuthService {
     public LoginResponse kakaoLoginCallback(String code) {
         KakaoTokenResponse kakaoToken = kakaoLoginService.getToken(code);
 
-        if(kakaoToken.error() != null) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
-
         KakaoUserInfoResponse kakaoUserInfo = kakaoLoginService.getSubject(kakaoToken.accessToken());
-
-        if(kakaoUserInfo.error() != null) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
 
         Users user = findOrCreateKakaoUser(kakaoUserInfo.id().toString());
 
@@ -165,15 +160,7 @@ public class AuthService {
         // 토큰 검증
         KakaoAccessTokenValidateResponse kakaoAccessTokenValidateResponse = kakaoLoginService.validateAccessToken(request.accessToken());
 
-        if(kakaoAccessTokenValidateResponse.error() != null) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
-
         KakaoUserInfoResponse kakaoUserInfo = kakaoLoginService.getSubject(request.accessToken());
-
-        if(kakaoUserInfo.error() != null) {
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
-        }
 
         Users user = findOrCreateKakaoUser(kakaoUserInfo.id().toString());
         return issueTokensAndRespond(user, request.fcmToken(), request.deviceType(), request.deviceId());
@@ -194,10 +181,9 @@ public class AuthService {
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse naverLoginCallback(String code, String state) {
         NaverTokenResponse naverToken = naverLoginService.getToken(code, state);
-        if (naverToken.error() != null) throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
 
         NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(naverToken.accessToken());
-        if (!naverUserInfo.resultcode().equals("00")) throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        if (!naverUserInfo.resultcode().equals("00")) throw new BusinessException(SocialLoginErrorCode.NAVER_FORBIDDEN);
 
         Users user = findOrCreateNaverUser(naverUserInfo.response().getId());
         return issueTokensAndRespond(user, null, null, null);
@@ -207,7 +193,7 @@ public class AuthService {
     @Transactional(transactionManager = "transactionManager")
     public LoginResponse naverLogin(NaverLoginRequest request) {
         NaverUserInfoResponse naverUserInfo = naverLoginService.getSubject(request.accessToken());
-        if (!naverUserInfo.resultcode().equals("00")) throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+        if (!naverUserInfo.resultcode().equals("00")) throw new BusinessException(SocialLoginErrorCode.NAVER_FORBIDDEN);
 
         Users user = findOrCreateNaverUser(naverUserInfo.response().getId());
         return issueTokensAndRespond(user, request.fcmToken(), request.deviceType(), request.deviceId());

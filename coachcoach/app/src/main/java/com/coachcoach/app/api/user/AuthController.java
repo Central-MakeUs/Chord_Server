@@ -5,6 +5,7 @@ import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.user.dto.request.*;
 import com.coachcoach.user.dto.response.LoginResponse;
 import com.coachcoach.user.dto.response.TokenRefreshResponse;
+import com.coachcoach.user.exception.SocialLoginErrorCode;
 import com.coachcoach.user.exception.UserErrorCode;
 import com.coachcoach.user.service.AuthService;
 import com.coachcoach.user.service.NotificationService;
@@ -93,9 +94,9 @@ public class AuthController {
         if(error != null) {
             // 카카오 로그인 실패
             if("access_denied".equals(errorDescription)) {
-                throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_CANCELED);
+                throw new BusinessException(SocialLoginErrorCode.KAKAO_UNAUTHORIZED);
             } else {
-                throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+                throw new BusinessException(SocialLoginErrorCode.KAKAO_FORBIDDEN);
             }
         }
 
@@ -112,7 +113,7 @@ public class AuthController {
     ) {
         if(error != null) {
             // 네이버 로그인 실패
-            throw new BusinessException(UserErrorCode.SOCIAL_LOGIN_FAILED);
+            throw new BusinessException(SocialLoginErrorCode.NAVER_FORBIDDEN);
         }
 
         return authService.naverLoginCallback(code, state);

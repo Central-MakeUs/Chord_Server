@@ -1,15 +1,19 @@
 package com.coachcoach.user.service;
 
+import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.user.dto.response.KakaoAccessTokenValidateResponse;
 import com.coachcoach.user.dto.response.KakaoTokenResponse;
 import com.coachcoach.user.dto.response.KakaoUserInfoResponse;
 import com.coachcoach.user.dto.response.LoginResponse;
+import com.coachcoach.user.exception.SocialLoginErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
@@ -71,6 +75,14 @@ public class KakaoLoginService {
                 )
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    log.error("카카오 접근 토큰 검증 API 에러: {}", body);
+
+                                    return Mono.error(mapKakaoException(body));
+                                })
+                )
                 .bodyToMono(KakaoAccessTokenValidateResponse.class)
                 .block();
     }
@@ -89,8 +101,34 @@ public class KakaoLoginService {
                 )
                 .header("Authorization", "Bearer " + accessToken)
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, response ->
+                        response.bodyToMono(String.class)
+                                .flatMap(body -> {
+                                    log.error("카카오 회원 정보 조회 API 에러: {}", body);
+
+                                    return Mono.error(mapKakaoException(body));
+                                })
+                )
                 .bodyToMono(KakaoUserInfoResponse.class)
                 .block();
 
+    }
+
+    private BusinessException mapKakaoException(String body) {
+        if (body.contains("\"code\":-101")) {
+            return new BusinessException(SocialLoginErrorCode.KAKAO_NOT_LINKED);
+        } else if (body.contains("\"code\":-102")) {
+            return new BusinessException(SocialLoginErrorCode.KAKAO_ALREADY_LINKED);
+        } else if (body.contains("\"code\":-103")) {
+            return new BusinessException(SocialLoginErrorCode.KAKAO_INVALID_USER);
+        } else if (body.contains("\"code\":-201")) {
+            return new BusinessException(SocialLoginErrorCode.KAKAO_INVALID_PROPERTY);
+        } else if (body.contains("\"code\":-402")) {
+            return new BusinessException(SocialLoginErrorCode.KAKAO_FORBIDDEN);
+        } else if (body.contains("\"code\":-406")) {
+            return new BusinessException(SocialLoginErrorCode.KAKAO_UNAUTHORIZED);
+        }
+
+        return new BusinessException(SocialLoginErrorCode.KAKAO_BAD_REQUEST);
     }
 }

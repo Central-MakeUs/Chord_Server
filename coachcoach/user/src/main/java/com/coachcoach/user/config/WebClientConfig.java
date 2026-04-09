@@ -32,20 +32,6 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(KAKAO_AUTH_URL)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                .filter((request, next) ->
-                        next.exchange(request)
-                                .flatMap(response -> {
-                                    if (response.statusCode().isError()) {
-                                        return response.bodyToMono(String.class)
-                                                .flatMap(body -> {
-                                                    log.error("카카오 AUTH 에러: {}", body);
-
-                                                    return Mono.error(mapKakaoException(body));
-                                                });
-                                    }
-                                    return Mono.just(response);
-                                })
-                )
                 .build();
     }
 
@@ -53,20 +39,6 @@ public class WebClientConfig {
         return WebClient.builder()
                 .baseUrl(KAKAO_API_URL)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-                .filter((request, next) ->
-                        next.exchange(request)
-                                .flatMap(response -> {
-                                    if (response.statusCode().isError()) {
-                                        return response.bodyToMono(String.class)
-                                                .flatMap(body -> {
-                                                    log.error("카카오 API 에러: {}", body);
-
-                                                    return Mono.error(mapKakaoException(body));
-                                                });
-                                    }
-                                    return Mono.just(response);
-                                })
-                )
                 .build();
     }
     @Bean
@@ -83,21 +55,5 @@ public class WebClientConfig {
                 .build();
     }
 
-    private BusinessException mapKakaoException(String body) {
-        if (body.contains("\"code\":-101")) {
-            return new BusinessException(SocialLoginErrorCode.KAKAO_NOT_LINKED);
-        } else if (body.contains("\"code\":-102")) {
-            return new BusinessException(SocialLoginErrorCode.KAKAO_ALREADY_LINKED);
-        } else if (body.contains("\"code\":-103")) {
-            return new BusinessException(SocialLoginErrorCode.KAKAO_INVALID_USER);
-        } else if (body.contains("\"code\":-201")) {
-            return new BusinessException(SocialLoginErrorCode.KAKAO_INVALID_PROPERTY);
-        } else if (body.contains("\"code\":-402")) {
-            return new BusinessException(SocialLoginErrorCode.KAKAO_FORBIDDEN);
-        } else if (body.contains("\"code\":-406")) {
-            return new BusinessException(SocialLoginErrorCode.KAKAO_UNAUTHORIZED);
-        }
 
-        return new BusinessException(SocialLoginErrorCode.KAKAO_BAD_REQUEST);
-    }
 }

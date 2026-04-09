@@ -19,12 +19,6 @@ public record KakaoTokenResponse(
         String refreshToken,
 
         @JsonProperty("refresh_token_expires_in")
-        Integer refreshTokenExpiresIn,
-
-        @JsonProperty("error")
-        String error,
-
-        @JsonProperty("error_description")
-        String errorDescription
+        Integer refreshTokenExpiresIn
 ) {
 }

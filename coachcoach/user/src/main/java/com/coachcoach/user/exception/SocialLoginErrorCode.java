@@ -18,16 +18,10 @@ public enum SocialLoginErrorCode implements ErrorCode {
     KAKAO_UNAUTHORIZED("SOCIAL_KAKAO_007", "카카오 계정 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
 
     // 네이버 로그인
-    // 네이버 로그인
-
-    NAVER_BAD_REQUEST("SOCIAL_NAVER_001", "네이버 로그인 요청 값이 올바르지 않습니다.", HttpStatus.BAD_REQUEST),
     NAVER_INVALID_REQUEST("SOCIAL_NAVER_002", "필수 요청 값이 누락되었거나 잘못되었습니다.", HttpStatus.BAD_REQUEST),
     NAVER_UNAUTHORIZED("SOCIAL_NAVER_003", "네이버 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
-    NAVER_INVALID_TOKEN("SOCIAL_NAVER_004", "유효하지 않거나 만료된 네이버 토큰입니다.", HttpStatus.UNAUTHORIZED),
     NAVER_FORBIDDEN("SOCIAL_NAVER_005", "허용되지 않은 접근입니다.", HttpStatus.FORBIDDEN),
     NAVER_NOT_FOUND("SOCIAL_NAVER_006", "요청한 네이버 API를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    NAVER_METHOD_NOT_ALLOWED("SOCIAL_NAVER_007", "잘못된 HTTP 메서드 요청입니다.", HttpStatus.METHOD_NOT_ALLOWED),
-    NAVER_TOO_MANY_REQUESTS("SOCIAL_NAVER_008", "네이버 API 호출 한도를 초과했습니다.", HttpStatus.TOO_MANY_REQUESTS),
     NAVER_SERVER_ERROR("SOCIAL_NAVER_009", "네이버 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
     ;
     private final String code;
