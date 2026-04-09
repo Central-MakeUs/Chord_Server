@@ -78,6 +78,27 @@ public class NaverLoginService {
                 .block();
     }
 
+    /**
+     * unlink
+     * @param accessToken
+     */
+    public void unlink(String accessToken) {
+        naverAuthWebClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/token")
+                        .queryParam("grant_type", "delete")
+                        .queryParam("client_id", NAVER_AUTH_CLIENT_ID)
+                        .queryParam("client_secret", NAVER_AUTH_CLIENT_SECRET)
+                        .queryParam("access_token", accessToken)
+                        .queryParam("service_provider", "NAVER")
+                        .build())
+                .retrieve()
+                .bodyToMono(Void.class)
+                .doOnError(e -> log.error("네이버 unlink 실패", e))
+                .onErrorComplete()
+                .block();
+    }
+
     private BusinessException mapNaverException(String body) {
         if(body.contains("\"errorCode\":\"024\"")) {
             return new BusinessException(SocialLoginErrorCode.NAVER_UNAUTHORIZED);

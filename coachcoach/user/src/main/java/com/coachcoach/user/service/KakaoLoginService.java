@@ -28,6 +28,9 @@ public class KakaoLoginService {
     @Value("${prod.url}")
     private String PROD_URL;
 
+    @Value("${social.kakao.admin-key}")
+    private String KAUTH_ADMIN_KEY;
+
     private final WebClient kakaoAuthWebClient;
     private final WebClient kakaoApiWebClient;
 
@@ -112,6 +115,23 @@ public class KakaoLoginService {
                 .bodyToMono(KakaoUserInfoResponse.class)
                 .block();
 
+    }
+
+    /**
+     * unlink
+     * @param socialSub
+     */
+    public void unlink(String socialSub) {
+        kakaoApiWebClient.post()
+                .uri("/v1/user/unlink")
+                .header("Authorization", "KakaoAK " + KAUTH_ADMIN_KEY)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .bodyValue("target_id_type=user_id&target_id=" + socialSub)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .doOnError(e -> log.error("카카오 unlink 실패: socialSub={}", socialSub, e))
+                .onErrorComplete()
+                .block();
     }
 
     private BusinessException mapKakaoException(String body) {
