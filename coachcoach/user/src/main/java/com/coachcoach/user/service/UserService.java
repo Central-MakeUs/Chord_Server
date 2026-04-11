@@ -6,6 +6,7 @@ import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
+import com.coachcoach.user.dto.request.DeleteUserRequest;
 import com.coachcoach.user.dto.request.LogoutRequest;
 import com.coachcoach.user.dto.request.OnboardingRequest;
 import com.coachcoach.user.dto.request.UpdateStoreRequest;
@@ -35,6 +36,8 @@ public class UserService {
     private final FcmTokenRepository fcmTokenRepository;
     private final CatalogQueryApi catalogQueryApi;
     private final InsightQueryApi insightQueryApi;
+    private final KakaoLoginService kakaoLoginService;
+    private final NaverLoginService naverLoginService;
 
     /**
      * 온보딩
@@ -60,6 +63,8 @@ public class UserService {
      */
     @Transactional(transactionManager = "transactionManager")
     public void deleteUser(Long userId) {
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_USER));
 
         // delete insights
         insightQueryApi.deleteByUserId(userId);
@@ -70,10 +75,48 @@ public class UserService {
         // delete user information
         refreshTokenRepository.deleteByUserId(userId);
         storeRepository.deleteByUserId(userId);
-        usersRepository.deleteByUserId(userId);
-
-        // delete fcm tokens
         fcmTokenRepository.deleteAllByUserId(userId);
+
+        usersRepository.delete(user);
+    }
+
+    /**
+     * 회원 탈퇴
+     * insights -> recipes -> menus -> ingredients -> ingredient price histories -> refresh tokens -> stores -> users
+     */
+    @Transactional(transactionManager = "transactionManager")
+    public void deleteUserWithSocial(Long userId, DeleteUserRequest request) {
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_USER));
+
+        // 소셜 unlink
+        unlinkSocial(user, request);
+
+        // delete insights
+        insightQueryApi.deleteByUserId(userId);
+
+        // delete catalogs
+        catalogQueryApi.deleteByUserId(userId);
+
+        // delete user information
+        refreshTokenRepository.deleteByUserId(userId);
+        storeRepository.deleteByUserId(userId);
+        fcmTokenRepository.deleteAllByUserId(userId);
+
+        usersRepository.delete(user);
+    }
+
+    private void unlinkSocial(Users user, DeleteUserRequest request) {
+        // 로컬 유저 패스
+        if("kakao".equals(user.getSocialProvider())) {
+            kakaoLoginService.unlink(user.getSocialSub());
+        } else if("naver".equals(user.getSocialProvider())) {
+            if(request.accessToken() == null) {
+                log.warn("네이버 unlink 실패, 패스");
+            }
+
+            naverLoginService.unlink(request.accessToken());
+        }
     }
 
     /**

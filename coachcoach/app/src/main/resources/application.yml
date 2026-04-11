@@ -75,6 +75,7 @@ social:
   kakao:
     client-id: ${KAKAO_CLIENT_ID}
     client-secret: ${KAKAO_CLIENT_SECRET}
+    admin-key: ${KAKAO_ADMIN_KEY}
     auth-url: https://kauth.kakao.com/oauth
     api-url: https://kapi.kakao.com
   naver:

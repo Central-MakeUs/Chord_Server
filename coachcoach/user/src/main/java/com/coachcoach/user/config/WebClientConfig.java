@@ -1,12 +1,17 @@
 package com.coachcoach.user.config;
 
+import com.coachcoach.common.exception.BusinessException;
+import com.coachcoach.user.exception.SocialLoginErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
+@Slf4j
 @Configuration
 public class WebClientConfig {
 
@@ -49,4 +54,6 @@ public class WebClientConfig {
                 .baseUrl(NAVER_API_URL)
                 .build();
     }
+
+
 }
