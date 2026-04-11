@@ -121,7 +121,9 @@ public class AuthService {
     @Transactional(transactionManager="transactionManager")
     public void logout(Long userId, LogoutRequest request) {
         // fcm 토큰 삭제
-        fcmTokenRepository.deleteByToken(request.fcmToken());
+        if (request.fcmToken() != null) {
+            fcmTokenRepository.deleteByToken(request.fcmToken());
+        }
     }
 
     /* 로그아웃 (fcm 토큰 + refresh token 만료 처리) */
@@ -168,7 +170,7 @@ public class AuthService {
 
     private Users findOrCreateKakaoUser(String kakaoId) {
         return usersRepository.findBySocialSubAndSocialProvider(kakaoId, "kakao")
-                .orElseGet(() -> usersRepository.save(
+                .orElseGet(() -> usersRepository.saveAndFlush(
                         Users.createKakaoUser(randomLoginId(), kakaoId)
                 ));
     }
@@ -202,7 +204,7 @@ public class AuthService {
 
     private Users findOrCreateNaverUser(String naverId) {
         return usersRepository.findBySocialSubAndSocialProvider(naverId, "naver")
-                .orElseGet(() -> usersRepository.save(
+                .orElseGet(() -> usersRepository.saveAndFlush(
                         Users.createNaverUser(randomLoginId(), naverId)
                 ));
     }
