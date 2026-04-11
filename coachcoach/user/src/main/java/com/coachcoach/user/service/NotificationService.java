@@ -117,7 +117,7 @@ public class NotificationService {
     }
 
     // fcm 토큰 저장
-    @Transactional(transactionManager = "transactionManager", propagation = Propagation.REQUIRES_NEW)
+    @Transactional(transactionManager = "transactionManager")
     public void saveFcmToken(Long userId, FcmTokenRequest request) {
         List<FcmToken> fcmTokens = fcmTokenRepository.findAllByUserIdAndDeviceTypeAndDeviceId(userId, request.deviceType(), request.deviceId());
 
