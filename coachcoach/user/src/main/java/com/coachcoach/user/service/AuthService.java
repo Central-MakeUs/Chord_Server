@@ -4,6 +4,7 @@ import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.CommonErrorCode;
 import com.coachcoach.common.security.jwt.JwtUtil;
 import com.coachcoach.user.domain.FcmToken;
+import com.coachcoach.user.dto.apple.AppleUserInfo;
 import com.coachcoach.user.dto.request.*;
 import com.coachcoach.user.dto.response.*;
 import com.coachcoach.user.domain.RefreshToken;
@@ -38,6 +39,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final KakaoLoginService kakaoLoginService;
     private final NaverLoginService naverLoginService;
+    private final AppleLoginService appleLoginService;
     private final NotificationService notificationService;
 
     /**
@@ -206,6 +208,25 @@ public class AuthService {
         return usersRepository.findBySocialSubAndSocialProvider(naverId, "naver")
                 .orElseGet(() -> usersRepository.saveAndFlush(
                         Users.createNaverUser(randomLoginId(), naverId)
+                ));
+    }
+
+    // =========================================================================
+    // 애플 로그인
+    // =========================================================================
+    @Transactional(transactionManager = "transactionManager")
+    public LoginResponse appleLogin(AppleLoginRequest request) {
+        AppleUserInfo appleUserInfo = appleLoginService.verifyAndExtract(request.identityToken());
+
+        Users user = findOrCreateAppleUser(appleUserInfo.sub());
+        return issueTokensAndRespond(user, request.fcmToken(), request.deviceType(), request.deviceId());
+
+    }
+
+    private Users findOrCreateAppleUser(String sub) {
+        return usersRepository.findBySocialSubAndSocialProvider(sub, "apple")
+                .orElseGet(() -> usersRepository.saveAndFlush(
+                        Users.createAppleUser(randomLoginId(), sub)
                 ));
     }
 

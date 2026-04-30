@@ -140,4 +140,15 @@ public class AuthController {
     ) {
         return authService.naverLogin(request);
     }
+
+    /**
+     * 애플 로그인
+     */
+    @Operation(summary = "애플 로그인")
+    @PostMapping("/apple/login")
+    public LoginResponse appleLogin(
+            @RequestBody AppleLoginRequest request
+    ) {
+        return authService.appleLogin(request);
+    }
 }

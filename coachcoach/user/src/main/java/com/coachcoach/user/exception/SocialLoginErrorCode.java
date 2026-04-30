@@ -22,7 +22,20 @@ public enum SocialLoginErrorCode implements ErrorCode {
     NAVER_UNAUTHORIZED("SOCIAL_NAVER_003", "네이버 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
     NAVER_FORBIDDEN("SOCIAL_NAVER_005", "허용되지 않은 접근입니다.", HttpStatus.FORBIDDEN),
     NAVER_NOT_FOUND("SOCIAL_NAVER_006", "요청한 네이버 API를 찾을 수 없습니다.", HttpStatus.NOT_FOUND),
-    NAVER_SERVER_ERROR("SOCIAL_NAVER_009", "네이버 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    NAVER_SERVER_ERROR("SOCIAL_NAVER_009", "네이버 서버 오류가 발생했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    // 애플 로그인
+    APPLE_UNAUTHORIZED("SOCIAL_APPLE_001", "애플 계정 인증에 실패했습니다.", HttpStatus.UNAUTHORIZED),
+    APPLE_INVALID_TOKEN("SOCIAL_APPLE_002", "유효하지 않은 토큰입니다.", HttpStatus.UNAUTHORIZED),
+    APPLE_EXPIRED_TOKEN("SOCIAL_APPLE_003", "토큰이 만료되었습니다.", HttpStatus.UNAUTHORIZED),
+    APPLE_INVALID_ISSUER("SOCIAL_APPLE_004", "토큰의 발급자가 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+    APPLE_INVALID_AUDIENCE("SOCIAL_APPLE_005", "토큰의 대상이 올바르지 않습니다.", HttpStatus.UNAUTHORIZED),
+    APPLE_PUBLIC_KEY_NOT_FOUND("SOCIAL_APPLE_006", "매칭되는 애플 공개키를 찾을 수 없습니다.", HttpStatus.UNAUTHORIZED),
+    APPLE_PUBLIC_KEY_FETCH_FAILED("SOCIAL_APPLE_007", "애플 공개키 조회에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    APPLE_PUBLIC_KEY_INVALID("SOCIAL_APPLE_008", "애플 공개키 생성에 실패했습니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+    APPLE_NOT_LINKED("SOCIAL_APPLE_009", "애플 계정 연결이 필요합니다. 다시 로그인해주세요.", HttpStatus.BAD_REQUEST),
+    APPLE_ALREADY_LINKED("SOCIAL_APPLE_010", "이미 애플 계정이 연결된 사용자입니다.", HttpStatus.BAD_REQUEST),
+    APPLE_FORBIDDEN("SOCIAL_APPLE_011", "필수 동의 항목이 누락되었습니다. 동의 후 다시 시도해주세요.", HttpStatus.FORBIDDEN),
     ;
     private final String code;
     private final String message;
