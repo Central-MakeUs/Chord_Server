@@ -38,6 +38,7 @@ public class UserService {
     private final InsightQueryApi insightQueryApi;
     private final KakaoLoginService kakaoLoginService;
     private final NaverLoginService naverLoginService;
+    private final AppleLoginService appleLoginService;
 
     /**
      * 온보딩
@@ -116,6 +117,8 @@ public class UserService {
             }
 
             naverLoginService.unlink(request.accessToken());
+        } else if("apple".equals(user.getSocialProvider())) {
+            appleLoginService.revoke(request.accessToken());
         }
     }
 

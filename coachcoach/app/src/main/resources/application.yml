@@ -83,4 +83,10 @@ social:
     client-secret: ${NAVER_CLIENT_SECRET}
     auth-url: https://nid.naver.com/oauth2.0
     api-url: https://openapi.naver.com
+  apple:
+    team-id: ${APPLE_TEAM_ID}
+    client-id: ${APPLE_CLIENT_ID}
+    key-id: ${APPLE_KEY_ID}
+    private-key: ${APPLE_PRIVATE_KEY}
+    auth-url: https://appleid.apple.com/auth
 prod.url: ${PROD_URL}

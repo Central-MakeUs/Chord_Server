@@ -70,6 +70,19 @@ public class Users {
                 .build();
     }
 
+    public static Users createAppleUser(String id, String sub) {
+        LocalDateTime now = LocalDateTime.now();
+
+        return Users.builder()
+                .loginId(id)
+                .password(null)
+                .onboardingCompleted(false)
+                .createdAt(now)
+                .updatedAt(now)
+                .socialProvider("apple")
+                .socialSub(sub)
+                .build();
+    }
     public void updateLastLoginAt() {
         this.lastLoginAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

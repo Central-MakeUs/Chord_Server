@@ -21,11 +21,15 @@ public class WebClientConfig {
     @Value("${social.naver.auth-url}")
     private String NAVER_AUTH_URL;
 
+    @Value("${social.apple.auth-url}")
+    private String APPLE_AUTH_URL;
+
     @Value("${social.kakao.api-url}")
     private String KAKAO_API_URL;
 
     @Value("${social.naver.api-url}")
     private String NAVER_API_URL;
+
 
     @Bean
     public WebClient kakaoAuthWebClient() {
@@ -55,5 +59,10 @@ public class WebClientConfig {
                 .build();
     }
 
-
+    @Bean
+    public WebClient appleAuthWebClient() {
+        return WebClient.builder()
+                .baseUrl(APPLE_AUTH_URL)
+                .build();
+    }
 }
