@@ -2,26 +2,22 @@ package com.coachcoach.user.service;
 
 import com.coachcoach.common.api.CatalogQueryApi;
 import com.coachcoach.common.api.InsightQueryApi;
+import com.coachcoach.common.api.NotificationQueryApi;
 import com.coachcoach.common.exception.BusinessException;
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.dto.request.DeleteUserRequest;
-import com.coachcoach.user.dto.request.LogoutRequest;
 import com.coachcoach.user.dto.request.OnboardingRequest;
 import com.coachcoach.user.dto.request.UpdateStoreRequest;
 import com.coachcoach.user.dto.response.StoreResponse;
 import com.coachcoach.user.exception.UserErrorCode;
-import com.coachcoach.user.repository.FcmTokenRepository;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
 
 import java.math.BigDecimal;
 
@@ -33,9 +29,9 @@ public class UserService {
     private final StoreRepository storeRepository;
     private final UsersRepository usersRepository;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final FcmTokenRepository fcmTokenRepository;
     private final CatalogQueryApi catalogQueryApi;
     private final InsightQueryApi insightQueryApi;
+    private final NotificationQueryApi notificationQueryApi;
     private final KakaoLoginService kakaoLoginService;
     private final NaverLoginService naverLoginService;
     private final AppleLoginService appleLoginService;
@@ -76,7 +72,7 @@ public class UserService {
         // delete user information
         refreshTokenRepository.deleteByUserId(userId);
         storeRepository.deleteByUserId(userId);
-        fcmTokenRepository.deleteAllByUserId(userId);
+        notificationQueryApi.deleteAllByUserId(userId);
 
         usersRepository.delete(user);
     }
@@ -102,7 +98,7 @@ public class UserService {
         // delete user information
         refreshTokenRepository.deleteByUserId(userId);
         storeRepository.deleteByUserId(userId);
-        fcmTokenRepository.deleteAllByUserId(userId);
+        notificationQueryApi.deleteAllByUserId(userId);
 
         usersRepository.delete(user);
     }

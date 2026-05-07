@@ -1,6 +1,7 @@
 package com.coachcoach.user.domain;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
@@ -18,9 +19,9 @@ public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
-    @Length(min = 3, max = 20)
+    @Size(min = 3, max = 20)
     private String loginId;
-    @Length(min = 8, max = 100)
+    @Size(min = 8, max = 100)
     private String password;
     private LocalDateTime lastLoginAt;
     private Boolean onboardingCompleted = false;

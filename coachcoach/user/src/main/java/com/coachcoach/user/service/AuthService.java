@@ -1,9 +1,9 @@
 package com.coachcoach.user.service;
 
+import com.coachcoach.common.api.NotificationQueryApi;
 import com.coachcoach.common.exception.BusinessException;
 import com.coachcoach.common.exception.CommonErrorCode;
-import com.coachcoach.common.security.jwt.JwtUtil;
-import com.coachcoach.user.domain.FcmToken;
+import com.coachcoach.user.security.JwtUtil;
 import com.coachcoach.user.dto.apple.AppleUserInfo;
 import com.coachcoach.user.dto.request.*;
 import com.coachcoach.user.dto.response.*;
@@ -11,7 +11,6 @@ import com.coachcoach.user.domain.RefreshToken;
 import com.coachcoach.user.domain.Store;
 import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.exception.SocialLoginErrorCode;
-import com.coachcoach.user.repository.FcmTokenRepository;
 import com.coachcoach.user.repository.RefreshTokenRepository;
 import com.coachcoach.user.repository.StoreRepository;
 import com.coachcoach.user.repository.UsersRepository;
@@ -22,8 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -34,13 +31,12 @@ public class AuthService {
     private final UsersRepository usersRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final StoreRepository storeRepository;
-    private final FcmTokenRepository fcmTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final KakaoLoginService kakaoLoginService;
     private final NaverLoginService naverLoginService;
     private final AppleLoginService appleLoginService;
-    private final NotificationService notificationService;
+    private final NotificationQueryApi notificationQueryApi;
 
     /**
      * 회원가입
@@ -92,7 +88,7 @@ public class AuthService {
 
         if(request.fcmToken() != null) {
             // 알림 토큰 존재 시 저장
-            notificationService.saveFcmToken(user.getUserId(), new FcmTokenRequest(request.fcmToken(),request.deviceType(), request.deviceId()));
+            notificationQueryApi.saveFcmToken(user.getUserId(), request.fcmToken(), request.deviceType(), request.deviceId());
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());
@@ -124,7 +120,7 @@ public class AuthService {
     public void logout(Long userId, LogoutRequest request) {
         // fcm 토큰 삭제
         if (request.fcmToken() != null) {
-            fcmTokenRepository.deleteByToken(request.fcmToken());
+            notificationQueryApi.deleteByToken(request.fcmToken());
         }
     }
 
@@ -132,7 +128,7 @@ public class AuthService {
     @Transactional(transactionManager = "transactionManager")
     public void logoutWithRefreshToken(Long userId, LogoutWithRefreshTokenRequest request) {
         if (request.fcmToken() != null) {
-            fcmTokenRepository.deleteByToken(request.fcmToken());
+            notificationQueryApi.deleteByToken(request.fcmToken());
         }
         // 해당 refresh token 만 삭제 (다른 디바이스 세션 유지)
         if (request.refreshToken() != null) {
@@ -245,10 +241,7 @@ public class AuthService {
         user.updateLastLoginAt();
 
         if (fcmToken != null) {
-            notificationService.saveFcmToken(
-                    user.getUserId(),
-                    new FcmTokenRequest(fcmToken, deviceType, deviceId)
-            );
+            notificationQueryApi.saveFcmToken(user.getUserId(), fcmToken, deviceType, deviceId);
         }
 
         return new LoginResponse(accessToken, refreshToken, user.getOnboardingCompleted());

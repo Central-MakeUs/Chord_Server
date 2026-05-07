@@ -1,16 +1,11 @@
 package com.coachcoach.app.api.user;
 
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
+import com.coachcoach.user.security.CustomUserDetails;
 import com.coachcoach.user.dto.request.DeleteUserRequest;
-import com.coachcoach.user.dto.request.OnboardingRequest;
-import com.coachcoach.user.dto.request.UpdateStoreRequest;
-import com.coachcoach.user.dto.response.StoreResponse;
 import com.coachcoach.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.sql.Delete;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 

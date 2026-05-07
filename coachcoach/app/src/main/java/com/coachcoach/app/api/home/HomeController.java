@@ -2,7 +2,7 @@ package com.coachcoach.app.api.home;
 
 import com.coachcoach.catalog.dto.response.HomeMenusResponse;
 import com.coachcoach.catalog.service.MenuService;
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
+import com.coachcoach.user.security.CustomUserDetails;
 import com.coachcoach.insight.dto.response.HomeStrategiesResponse;
 import com.coachcoach.insight.service.InsightService;
 import io.swagger.v3.oas.annotations.Operation;

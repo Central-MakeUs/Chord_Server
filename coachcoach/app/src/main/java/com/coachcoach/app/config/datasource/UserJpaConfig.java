@@ -13,7 +13,10 @@ import java.util.Map;
 
 @Configuration
 @EnableJpaRepositories(
-        basePackages = "com.coachcoach.user.repository",
+        basePackages = {
+                "com.coachcoach.user.repository",
+                "com.coachcoach.notification.repository"
+        },
         entityManagerFactoryRef = "userEntityManagerFactory",
         transactionManagerRef = "transactionManager"
 )
@@ -26,7 +29,10 @@ public class UserJpaConfig {
 
         return builder
                 .dataSource(dataSource)
-                .packages("com.coachcoach.user.domain")
+                .packages(
+                        "com.coachcoach.user.domain",
+                        "com.coachcoach.notification.domain"
+                )
                 .persistenceUnit("user")
                 .properties(JpaProperties.getHibernateProperties())
                 .jta(true)

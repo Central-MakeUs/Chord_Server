@@ -1,16 +1,12 @@
 package com.coachcoach.app.api.notification;
 
-import com.coachcoach.common.dto.notification.MulticastNotificationRequest;
-import com.coachcoach.common.notification.FcmNotificationService;
-import com.coachcoach.user.dto.request.NotificationContentRequest;
-import com.coachcoach.user.dto.request.NotificationTokenRequest;
-import com.coachcoach.user.service.NotificationService;
+import com.coachcoach.notification.dto.request.NotificationContentRequest;
+import com.coachcoach.notification.dto.request.NotificationTokenRequest;
+import com.coachcoach.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "알림", description = "알림 관리 API")
 @RestController

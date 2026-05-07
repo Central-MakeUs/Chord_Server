@@ -1,7 +1,7 @@
 package com.coachcoach.app.config;
 
 import com.coachcoach.common.api.UserQueryApi;
-import com.coachcoach.common.interceptor.OnboardingCheckInterceptor;
+import com.coachcoach.app.interceptor.OnboardingCheckInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
