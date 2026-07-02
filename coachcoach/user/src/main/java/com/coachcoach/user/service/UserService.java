@@ -42,7 +42,8 @@ public class UserService {
     @Transactional(transactionManager = "transactionManager")
     public void onboarding(Long userId, OnboardingRequest request) {
         Users user = usersRepository.findByUserId(userId).orElseThrow(() -> new BusinessException(UserErrorCode.NOTFOUND_USER));
-        Store store = storeRepository.findByUserId(userId).orElse(Store.create(user));
+        Store store = storeRepository.findByUserId(userId)
+                .orElseGet(() -> storeRepository.save(Store.create(user)));
 
         store.updateInformation(
                 request.name(),
