@@ -1,9 +1,9 @@
 package com.coachcoach.app.config;
 
-import com.coachcoach.common.security.handler.JwtAccessDeniedHandler;
-import com.coachcoach.common.security.handler.JwtAuthenticationEntryPoint;
-import com.coachcoach.common.security.jwt.JwtAuthenticationFilter;
-import com.coachcoach.common.security.jwt.JwtUtil;
+import com.coachcoach.app.security.handler.JwtAccessDeniedHandler;
+import com.coachcoach.app.security.handler.JwtAuthenticationEntryPoint;
+import com.coachcoach.app.security.jwt.JwtAuthenticationFilter;
+import com.coachcoach.user.security.JwtUtil;
 import com.coachcoach.user.security.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

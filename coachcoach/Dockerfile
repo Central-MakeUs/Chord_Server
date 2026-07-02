@@ -12,6 +12,7 @@ COPY common common
 COPY user user
 COPY catalog catalog
 COPY insight insight
+COPY notification notification
 COPY app app
 
 # 빌드

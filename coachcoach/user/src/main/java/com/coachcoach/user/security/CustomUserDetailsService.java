@@ -1,7 +1,5 @@
 package com.coachcoach.user.security;
 
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
-import com.coachcoach.common.security.userdetails.UserDetailsLoader;
 import com.coachcoach.user.domain.Users;
 import com.coachcoach.user.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;

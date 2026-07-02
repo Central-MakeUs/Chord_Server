@@ -90,3 +90,5 @@ social:
     private-key: ${APPLE_PRIVATE_KEY}
     auth-url: https://appleid.apple.com/auth
 prod.url: ${PROD_URL}
+firebase:
+  credential: ${FIREBASE_CREDENTIALS_JSON}

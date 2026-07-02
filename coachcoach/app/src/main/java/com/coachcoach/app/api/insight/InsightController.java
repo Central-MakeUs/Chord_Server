@@ -1,7 +1,6 @@
 package com.coachcoach.app.api.insight;
 
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
-import com.coachcoach.insight.domain.enums.StrategyState;
+import com.coachcoach.user.security.CustomUserDetails;
 import com.coachcoach.insight.domain.enums.StrategyType;
 import com.coachcoach.insight.dto.response.*;
 import com.coachcoach.insight.service.InsightService;

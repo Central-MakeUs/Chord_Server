@@ -1,16 +1,11 @@
 package com.coachcoach.app.api.user;
 
-import com.coachcoach.common.exception.BusinessException;
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
+import com.coachcoach.user.security.CustomUserDetails;
 import com.coachcoach.user.dto.request.*;
-import com.coachcoach.user.dto.response.LoginResponse;
-import com.coachcoach.user.dto.response.TokenRefreshResponse;
-import com.coachcoach.user.exception.SocialLoginErrorCode;
 import com.coachcoach.user.service.AuthService;
-import com.coachcoach.user.service.NotificationService;
+import com.coachcoach.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;

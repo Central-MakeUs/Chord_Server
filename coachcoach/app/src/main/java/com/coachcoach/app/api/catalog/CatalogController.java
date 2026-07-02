@@ -4,7 +4,7 @@ import com.coachcoach.catalog.dto.request.*;
 import com.coachcoach.catalog.dto.response.*;
 import com.coachcoach.catalog.service.MenuService;
 import com.coachcoach.catalog.service.IngredientService;
-import com.coachcoach.common.security.userdetails.CustomUserDetails;
+import com.coachcoach.user.security.CustomUserDetails;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

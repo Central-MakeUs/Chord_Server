@@ -2,8 +2,8 @@ package com.coachcoach.user.domain;
 
 import com.coachcoach.user.dto.request.OnboardingRequest;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.validator.constraints.Length;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,12 +25,12 @@ public class Store {
     @JoinColumn(name = "user_id")
     private Users user;
 
-    @Length(max = 20, min = 1)
+    @Size(max = 20, min = 1)
     private String name;
     private Integer employees;
-    @Column(scale = 10, precision = 1)
+    @Column(precision = 10, scale = 1)
     private BigDecimal laborCost;
-    @Column(scale = 15, precision = 2)
+    @Column(precision = 15, scale = 2)
     private BigDecimal rentCost;
     private Boolean includeWeeklyHolidayPay = false;
     private LocalDateTime createdAt;
